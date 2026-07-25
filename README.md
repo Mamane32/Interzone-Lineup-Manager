@@ -5,6 +5,11 @@ Coaches get a private link (no login, no account), fill in their Starting XI,
 Substitutes, and Captain in Haitian Creole, and the production team gets an
 instant, structured export ready to paste into vMix.
 
+> **New to GitHub and Vercel?** Skip the command-line instructions below and
+> use **[GITHUB_AND_VERCEL_GUIDE.md](./GITHUB_AND_VERCEL_GUIDE.md)** instead —
+> a full, click-by-click walkthrough using the GitHub Desktop app, written for
+> total beginners.
+
 ---
 
 ## Stack

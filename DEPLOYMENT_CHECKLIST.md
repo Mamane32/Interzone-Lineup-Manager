@@ -35,6 +35,11 @@ From Project Settings → API, copy:
 
 ## ☐ 4. Push to GitHub
 
+> Prefer clicking buttons over typing commands? Use
+> **[GITHUB_AND_VERCEL_GUIDE.md](./GITHUB_AND_VERCEL_GUIDE.md)** instead,
+> which covers this entire checklist using the GitHub Desktop app. The
+> steps below are the command-line equivalent.
+
 - [ ] `git init` (if not already a repo)
 - [ ] Confirm `.env.local` is **not** tracked (`.gitignore` already
       excludes it — double-check with `git status`)
