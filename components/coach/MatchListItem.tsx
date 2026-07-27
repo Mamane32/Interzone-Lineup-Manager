@@ -16,6 +16,7 @@ export default function MatchListItem({
   opponentName,
   opponentLogoUrl,
   homeTeamName,
+  venue,
   competitionName,
   matchDate,
   matchTime,
@@ -27,6 +28,7 @@ export default function MatchListItem({
   opponentName: string;
   opponentLogoUrl?: string | null;
   homeTeamName?: string;
+  venue?: string | null;
   competitionName?: string | null;
   matchDate: string;
   matchTime: string;
@@ -75,7 +77,7 @@ export default function MatchListItem({
             </span>
             {homeTeamName && (
               <span className="flex items-center gap-1 truncate">
-                <MapPin size={11} /> Teren {homeTeamName}
+                <MapPin size={11} /> {venue || `Teren ${homeTeamName}`}
               </span>
             )}
           </div>

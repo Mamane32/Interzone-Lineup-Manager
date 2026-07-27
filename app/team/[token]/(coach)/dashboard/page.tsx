@@ -118,7 +118,7 @@ export default async function DashboardPage({ params }: { params: { token: strin
                 <StatusBadge status={next.status} />
                 {nextHomeTeam && (
                   <span className="flex items-center gap-1 text-xs text-white/60">
-                    <MapPin size={12} /> Teren {nextHomeTeam.name}
+                    <MapPin size={12} /> {next.match.venue || `Teren ${nextHomeTeam.name}`}
                   </span>
                 )}
               </div>
@@ -157,6 +157,7 @@ export default async function DashboardPage({ params }: { params: { token: strin
                 opponentName={opp?.name ?? "—"}
                 opponentLogoUrl={opp?.logo_url}
                 homeTeamName={homeTeam?.name}
+                venue={l.match.venue}
                 competitionName={l.match.competition?.name}
                 matchDate={l.match.match_date}
                 matchTime={l.match.match_time}

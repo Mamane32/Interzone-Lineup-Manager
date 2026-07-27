@@ -9,9 +9,13 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const { response, user } = await updateSession(request);
 
-  // --- Admin area ------------------------------------------------------
+  // --- Admin area + Live Center ------------------------------------------
+  // The Live Center (/live/...) is operated by the same single administrator
+  // account as /admin — there's no separate "broadcast operator" role in
+  // this system, so it reuses the exact same auth gate.
   const isAdminLoginRoute = pathname.startsWith("/admin/login");
-  if (pathname.startsWith("/admin") && !isAdminLoginRoute && !user) {
+  const isAdminOrLive = pathname.startsWith("/admin") || pathname.startsWith("/live");
+  if (isAdminOrLive && !isAdminLoginRoute && !user) {
     return NextResponse.redirect(new URL("/admin/login", request.url));
   }
   if (isAdminLoginRoute && user) {
@@ -40,5 +44,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/team/:path*"],
+  matcher: ["/admin/:path*", "/team/:path*", "/live/:path*"],
 };

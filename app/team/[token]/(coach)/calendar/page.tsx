@@ -73,6 +73,7 @@ export default async function CalendarPage({ params }: { params: { token: string
                     opponentName={opp?.name ?? "—"}
                     opponentLogoUrl={opp?.logo_url}
                     homeTeamName={l.match.home_team?.name}
+                    venue={l.match.venue}
                     competitionName={l.match.competition?.name}
                     matchDate={l.match.match_date}
                     matchTime={l.match.match_time}
@@ -107,6 +108,7 @@ export default async function CalendarPage({ params }: { params: { token: string
                     opponentName={opp?.name ?? "—"}
                     opponentLogoUrl={opp?.logo_url}
                     homeTeamName={l.match.home_team?.name}
+                    venue={l.match.venue}
                     competitionName={l.match.competition?.name}
                     matchDate={l.match.match_date}
                     matchTime={l.match.match_time}

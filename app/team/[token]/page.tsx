@@ -120,7 +120,7 @@ function MatchCard({ team, lineup, theme }: { team: Team; lineup: any; theme: Re
         </div>
         <div className="flex items-center gap-2">
           <MapPin size={15} className="text-white/60" />
-          Teren {m.home_team?.name}
+          {m.venue || `Teren ${m.home_team?.name}`}
         </div>
       </div>
     </div>

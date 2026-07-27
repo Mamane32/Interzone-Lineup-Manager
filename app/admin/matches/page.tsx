@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { createMatch, deleteMatch } from "./actions";
 import Card from "@/components/ui/Card";
@@ -93,11 +94,18 @@ export default async function MatchesPage() {
               </p>
               <p className="text-xs text-ink-muted">{formatMatchDate(m.match_date, m.match_time)}</p>
             </div>
-            <form action={deleteMatch.bind(null, m.id)}>
-              <Button type="submit" variant="danger" size="md">
-                Delete
-              </Button>
-            </form>
+            <div className="flex gap-2">
+              <Link href={`/live/${m.id}`}>
+                <Button type="button" variant="secondary" size="md">
+                  Live Center
+                </Button>
+              </Link>
+              <form action={deleteMatch.bind(null, m.id)}>
+                <Button type="submit" variant="danger" size="md">
+                  Delete
+                </Button>
+              </form>
+            </div>
           </Card>
         ))}
       </div>

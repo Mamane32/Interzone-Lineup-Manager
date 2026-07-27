@@ -16,6 +16,11 @@ instant, structured export ready to paste into vMix.
 > **[SPRINT_1_UI_POLISH.md](./SPRINT_1_UI_POLISH.md)** for the follow-up
 > visual polish pass (dynamic team theming, premium match cards, animations).
 
+> **Broadcast Control Center / Live Center (Sprint 2)?** See
+> **[SPRINT_2_LIVE_CENTER.md](./SPRINT_2_LIVE_CENTER.md)** for the
+> architecture, the new (additive-only) database migration, and what's real
+> vs. placeholder.
+
 ---
 
 ## Stack
@@ -50,6 +55,11 @@ Open the Supabase SQL editor and run the full contents of
 - RLS enabled on every table, with no policies — the service-role key is the
   only way in
 - a public `team-logos` storage bucket
+
+Then run `supabase/migrations/002_live_center.sql` (adds the Broadcast
+Control Center's `match_events` table and a handful of new, nullable/
+defaulted columns on `matches` — additive only, safe on an existing
+database; see `SPRINT_2_LIVE_CENTER.md` for details).
 
 ## 3. Create the administrator account
 

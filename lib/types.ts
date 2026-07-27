@@ -1,5 +1,31 @@
 export type LineupStatus = "waiting" | "submitted" | "needs_correction";
 
+export type MatchLiveStatus =
+  | "pre_match"
+  | "kickoff"
+  | "first_half"
+  | "half_time"
+  | "second_half"
+  | "extra_time"
+  | "penalty_shootout"
+  | "full_time";
+
+export type MatchEventType =
+  | "goal"
+  | "penalty_goal"
+  | "own_goal"
+  | "yellow_card"
+  | "second_yellow"
+  | "red_card"
+  | "substitution"
+  | "var"
+  | "penalty_missed"
+  | "injury"
+  | "match_start"
+  | "half_time"
+  | "match_resume"
+  | "match_end";
+
 export interface Competition {
   id: string;
   name: string;
@@ -34,6 +60,24 @@ export interface Match {
   away_team_id: string;
   match_date: string;
   match_time: string;
+  created_at: string;
+  // Sprint 2 — Live Center (supabase/migrations/002_live_center.sql).
+  // Optional so older records / pre-migration environments still type-check.
+  live_status?: MatchLiveStatus;
+  home_score?: number;
+  away_score?: number;
+  referee_name?: string | null;
+  venue?: string | null;
+}
+
+export interface MatchEvent {
+  id: string;
+  match_id: string;
+  minute: string;
+  type: MatchEventType;
+  team_id: string | null;
+  player_id: string | null;
+  description: string | null;
   created_at: string;
 }
 

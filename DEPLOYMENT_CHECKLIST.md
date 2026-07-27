@@ -7,13 +7,16 @@ Full context for each step is in `README.md`.
 
 - [ ] Create a project at [supabase.com](https://supabase.com)
 - [ ] Open **SQL Editor** → run the entire contents of `supabase/schema.sql`
+- [ ] Then run `supabase/migrations/002_live_center.sql` (Broadcast Control
+      Center — additive only, safe to run on top of the schema above)
 - [ ] Confirm these exist afterward:
-  - [ ] Tables: `competitions`, `teams`, `players`, `matches`, `lineups`
-  - [ ] Enum type `lineup_status`
+  - [ ] Tables: `competitions`, `teams`, `players`, `matches`, `lineups`, `match_events`
+  - [ ] Enum types `lineup_status`, `match_live_status`, `match_event_type`
   - [ ] Trigger `matches_create_lineups` (Database → Triggers)
   - [ ] Storage bucket `team-logos`, marked **public** (Storage tab)
-  - [ ] RLS shows **enabled** with **0 policies** on every table
-    (Authentication → Policies) — this is intentional, not a mistake
+  - [ ] RLS shows **enabled** with **0 policies** on every table, including
+        `match_events` (Authentication → Policies) — this is intentional,
+        not a mistake
 
 ## ☐ 2. Administrator account (Supabase Auth)
 
@@ -122,7 +125,31 @@ From Project Settings → API, copy:
 - [ ] From the coach login page, use **Ou bliye modpas ou?** (forgot
       password), confirm the reset email arrives and the link works
 
-## ☐ 9. Handoff
+## ☐ 9. Smoke test — Live Center
+
+- [ ] From Admin → Matches, click **Live Center** on a scheduled match (or
+      visit `/live` directly)
+- [ ] Confirm the Match Header shows both team logos, 0–0, and Pre Match
+- [ ] Click through a few **Match Status** buttons and confirm the top-nav
+      status pill updates and shows "LIVE" once past Kick Off
+- [ ] Add a goal via **Score Control** (pick a team → confirm minute →
+      Confirm Goal); confirm the score updates and the event appears in
+      the **Timeline** on the right
+- [ ] Click **Undo Last Goal** and confirm the score reverts
+- [ ] Add a Yellow Card and a Substitution via **Match Events**; confirm
+      both appear in the Timeline and filtering (Cards / Subs) works
+- [ ] Switch the center tabs (Statistics / Teams / Broadcast / Highlights)
+      and confirm Teams shows the real submitted lineup (or "Lineup not
+      submitted yet" if none exists)
+- [ ] Use the **Bottom Quick Controls** to add a goal and advance status
+      from a different control than the ones already tested
+- [ ] Open **Report** from the top nav and confirm the final score,
+      timeline, goals/cards/substitutions lists, and squads all match what
+      you just entered
+- [ ] Confirm `/team/<token>` (Coach Portal landing page) still loads
+      normally and is unaffected by any of the above
+
+## ☐ 10. Handoff
 
 - [ ] Share the admin email/password with whoever will run the
       production desk, through a secure channel (not Slack/email in
