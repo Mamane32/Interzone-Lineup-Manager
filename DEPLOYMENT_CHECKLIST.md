@@ -11,14 +11,17 @@ Full context for each step is in `README.md`.
       Center — additive only, safe to run on top of the schema above)
 - [ ] Then run `supabase/migrations/003_unified_access.sql` (unified
       login's role model — additive only)
+- [ ] Then run `supabase/migrations/004_iam_foundation.sql` (Identity &
+      Access Management — additive only, seeds `role_metadata`)
 - [ ] Confirm these exist afterward:
-  - [ ] Tables: `competitions`, `teams`, `players`, `matches`, `lineups`, `match_events`, `profiles`, `user_access_assignments`
-  - [ ] Enum types `lineup_status`, `match_live_status`, `match_event_type`, `access_status`, `platform_role`
+  - [ ] Tables: `competitions`, `teams`, `players`, `matches`, `lineups`, `match_events`, `profiles`, `user_access_assignments`, `invitations`, `audit_logs`, `role_metadata`
+  - [ ] Enum types `lineup_status`, `match_live_status`, `match_event_type`, `access_status`, `platform_role`, `invitation_status`
   - [ ] Trigger `matches_create_lineups` (Database → Triggers)
   - [ ] Storage bucket `team-logos`, marked **public** (Storage tab)
   - [ ] RLS shows **enabled** with **0 policies** on every table, including
-        `profiles` and `user_access_assignments` (Authentication →
-        Policies) — this is intentional, not a mistake
+        `profiles`, `user_access_assignments`, `invitations`, `audit_logs`,
+        and `role_metadata` (Authentication → Policies) — this is
+        intentional, not a mistake
 
 ## ☐ 2. Administrator account (Supabase Auth)
 
@@ -186,7 +189,30 @@ From Project Settings → API, copy:
       follow the email link, set a new password, and confirm you land
       back in the correct workspace afterward
 
-## ☐ 11. Handoff
+## ☐ 11. Smoke test — Identity & Access Management
+
+- [ ] Sign in as the administrator, visit `/admin/users` — confirm the
+      admin account itself appears in the list
+- [ ] Search by a partial name/email, confirm results narrow correctly;
+      clear the search and confirm the full list returns
+- [ ] Filter by role and by status, confirm both narrow the list; use
+      **Clear** to reset
+- [ ] Open a user's detail page, confirm Overview/Access/Activity all
+      render, and that editing the full name saves successfully
+- [ ] Suspend a test user, confirm the confirmation dialog appears, then
+      confirm their status badge updates; reactivate them
+- [ ] Visit `/admin/invitations`, send a test invite, confirm it appears
+      as "Pending" — if email isn't configured yet, confirm the page shows
+      the honest configuration warning rather than silently claiming success
+- [ ] Visit `/admin/roles`, confirm all 8 roles show with live user counts
+      that match reality
+- [ ] Visit `/admin/access`, confirm the legacy-coach-fallback warning (if
+      any teams still rely on it) lists real team names with a working
+      link to Invitations
+- [ ] Visit `/admin/audit-log`, confirm the actions above (suspend,
+      invite, etc.) all appear with correct actor/action/timestamp
+
+## ☐ 12. Handoff
 
 - [ ] Share the admin email/password with whoever will run the
       production desk, through a secure channel (not Slack/email in

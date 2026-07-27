@@ -33,6 +33,43 @@ export interface UserAccessAssignment {
   updated_at: string;
 }
 
+export type InvitationStatus = "pending" | "accepted" | "expired" | "revoked";
+
+export interface Invitation {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role_key: PlatformRole;
+  competition_id: string | null;
+  team_id: string | null;
+  status: InvitationStatus;
+  message: string | null;
+  invited_by: string | null;
+  accepted_user_id: string | null;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  actor_user_id: string | null;
+  action: string;
+  target_type: string;
+  target_id: string | null;
+  organization_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface RoleMetadata {
+  role_key: PlatformRole;
+  name: string;
+  description: string | null;
+  is_system: boolean;
+  updated_at: string;
+}
+
 export type MatchLiveStatus =
   | "pre_match"
   | "kickoff"

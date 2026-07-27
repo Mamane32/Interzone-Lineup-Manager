@@ -11,6 +11,14 @@ const NAV = [
   { href: "/admin/settings", label: "Settings" },
 ];
 
+const IAM_NAV = [
+  { href: "/admin/users", label: "Users" },
+  { href: "/admin/invitations", label: "Invitations" },
+  { href: "/admin/roles", label: "Roles" },
+  { href: "/admin/access", label: "Access Assignments" },
+  { href: "/admin/audit-log", label: "Audit Log" },
+];
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-ink text-white">
@@ -29,8 +37,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <button className="text-sm text-ink-muted hover:text-white">Sign out</button>
           </form>
         </div>
-        <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 pb-2">
+        <nav className="mx-auto flex max-w-6xl items-center gap-1 overflow-x-auto px-4 pb-2">
           {NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium text-ink-muted hover:bg-white/5 hover:text-white"
+            >
+              {item.label}
+            </Link>
+          ))}
+          <span className="mx-1 h-4 w-px flex-none bg-ink-line" aria-hidden="true" />
+          <span className="flex-none whitespace-nowrap px-1 text-[11px] font-semibold uppercase tracking-wide text-ink-muted/60">
+            Identity &amp; Access
+          </span>
+          {IAM_NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}

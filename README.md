@@ -32,6 +32,11 @@ instant, structured export ready to paste into vMix.
 > a critical migration-ordering step or your administrator will be locked
 > out of `/admin`.
 
+> **Identity & Access Management (Sprint 1.3)?** See
+> **[SPRINT_1_3_IAM_FOUNDATION.md](./SPRINT_1_3_IAM_FOUNDATION.md)** for
+> the Users/Invitations/Roles/Access/Audit Log module now in the Admin
+> Portal.
+
 ---
 
 ## Stack
@@ -76,6 +81,11 @@ Then run `supabase/migrations/003_unified_access.sql` (adds `profiles` and
 `user_access_assignments` — the role/access model behind the unified
 login; additive only. **Do not skip step 3 below after running this** —
 see the warning there).
+
+Then run `supabase/migrations/004_iam_foundation.sql` (adds `invitations`,
+`audit_logs`, and `role_metadata` — the Identity & Access Management
+module in the Admin Portal; additive only, seeds `role_metadata` with the
+8 existing roles).
 
 ## 3. Create the administrator account
 
