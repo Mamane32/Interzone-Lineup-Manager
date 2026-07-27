@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import type { Match, MatchEvent, Player, Team } from "@/lib/types";
+import type { Match, MatchEvent, Player, Team, LineupStatus } from "@/lib/types";
 
 export type LiveMatchBundle = {
   match: Match & {
@@ -16,12 +16,14 @@ export type LiveMatchBundle = {
     substitutes: string[];
     captain_id: string | null;
     coach_name: string;
+    status: LineupStatus;
   } | null;
   awayLineup: {
     starting_xi: string[];
     substitutes: string[];
     captain_id: string | null;
     coach_name: string;
+    status: LineupStatus;
   } | null;
   homePlayers: Player[];
   awayPlayers: Player[];
@@ -66,6 +68,7 @@ export const getLiveMatch = cache(async (matchId: string): Promise<LiveMatchBund
           substitutes: homeLineupRow.substitutes,
           captain_id: homeLineupRow.captain_id,
           coach_name: match.home_team.coach_name,
+          status: homeLineupRow.status,
         }
       : null,
     awayLineup: awayLineupRow
@@ -74,6 +77,7 @@ export const getLiveMatch = cache(async (matchId: string): Promise<LiveMatchBund
           substitutes: awayLineupRow.substitutes,
           captain_id: awayLineupRow.captain_id,
           coach_name: match.away_team.coach_name,
+          status: awayLineupRow.status,
         }
       : null,
     homePlayers: (homePlayers ?? []) as Player[],

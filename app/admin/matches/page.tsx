@@ -97,7 +97,7 @@ export default async function MatchesPage() {
             <div className="flex gap-2">
               <Link href={`/live/${m.id}`}>
                 <Button type="button" variant="secondary" size="md">
-                  Live Center
+                  Broadcast Control Center
                 </Button>
               </Link>
               <form action={deleteMatch.bind(null, m.id)}>

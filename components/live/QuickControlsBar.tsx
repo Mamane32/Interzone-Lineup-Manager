@@ -1,133 +1,217 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronRight, Plus } from "lucide-react";
-import Modal from "./Modal";
-import { addGoalEvent, setLiveStatus } from "@/app/live/[matchId]/actions";
-import type { MatchLiveStatus, Team } from "@/lib/types";
+import { Undo2, ChevronRight } from "lucide-react";
+import GoalDialog from "./GoalDialog";
+import EventDialog from "./EventDialog";
+import ConfirmDialog from "./ConfirmDialog";
+import { setLiveStatus, undoLastEvent } from "@/app/live/[matchId]/actions";
+import type { MatchEventType, MatchLiveStatus, Player, Team } from "@/lib/types";
 
-const SEQUENCE: MatchLiveStatus[] = [
-  "pre_match",
-  "kickoff",
-  "first_half",
-  "half_time",
-  "second_half",
-  "extra_time",
-  "penalty_shootout",
-  "full_time",
+type QuickAction =
+  | { kind: "goal" }
+  | { kind: "event"; type: MatchEventType; label: string; needsTeamPlayer: boolean }
+  | { kind: "status"; status: MatchLiveStatus; label: string; confirm?: boolean };
+
+const ACTIONS: (QuickAction & { display: string })[] = [
+  { kind: "goal", display: "⚽ Goal" },
+  { kind: "event", type: "yellow_card", label: "Yellow Card", needsTeamPlayer: true, display: "🟨 Yellow Card" },
+  { kind: "event", type: "red_card", label: "Red Card", needsTeamPlayer: true, display: "🟥 Red Card" },
+  { kind: "event", type: "substitution", label: "Substitution", needsTeamPlayer: true, display: "🔁 Substitution" },
+  { kind: "event", type: "var", label: "VAR", needsTeamPlayer: false, display: "📺 VAR" },
+  { kind: "event", type: "penalty_missed", label: "Penalty", needsTeamPlayer: true, display: "🥅 Penalty" },
+  { kind: "event", type: "var", label: "Additional Time", needsTeamPlayer: false, display: "➕ Additional Time" },
+  { kind: "status", status: "half_time", label: "Half Time", display: "⏸️ Half Time" },
+  { kind: "status", status: "full_time", label: "Full Time", display: "⏹️ End Match", confirm: true },
 ];
 
-const STATUS_LABEL: Record<MatchLiveStatus, string> = {
-  pre_match: "Pre Match",
-  kickoff: "Kick Off",
-  first_half: "First Half",
-  half_time: "Half Time",
-  second_half: "Second Half",
-  extra_time: "Extra Time",
-  penalty_shootout: "Penalties",
-  full_time: "Full Time",
-};
-
+/**
+ * Bottom Quick Controls / Quick Action Bar — the fastest-access production
+ * buttons, meant to feel like the big physical buttons on a broadcast
+ * console. Reuses the same GoalDialog / EventDialog / setLiveStatus as the
+ * Left Control Panel — this is a second, faster entry point into the exact
+ * same underlying actions, not a separate system.
+ */
 export default function QuickControlsBar({
   matchId,
   homeTeam,
   awayTeam,
-  currentStatus,
+  homePlayers,
+  awayPlayers,
 }: {
   matchId: string;
   homeTeam: Team;
   awayTeam: Team;
-  currentStatus: MatchLiveStatus;
+  homePlayers: Player[];
+  awayPlayers: Player[];
 }) {
-  const [goalTeam, setGoalTeam] = useState<Team | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [goalPickerOpen, setGoalPickerOpen] = useState(false);
+  const [activeEvent, setActiveEvent] = useState<Extract<QuickAction, { kind: "event" }> | null>(null);
+  const [confirmingStatus, setConfirmingStatus] = useState<Extract<QuickAction, { kind: "status" }> | null>(null);
+  const [confirmingUndo, setConfirmingUndo] = useState(false);
+  const [pendingStatus, startStatusTransition] = useTransition();
+  const [pendingUndo, startUndoTransition] = useTransition();
 
-  const currentIndex = SEQUENCE.indexOf(currentStatus);
-  const next = SEQUENCE[currentIndex + 1];
+  function handle(action: QuickAction) {
+    if (action.kind === "goal") {
+      setGoalPickerOpen(true);
+      return;
+    }
+    if (action.kind === "event") {
+      setActiveEvent(action);
+      return;
+    }
+    if (action.kind === "status") {
+      if (action.confirm) {
+        setConfirmingStatus(action);
+        return;
+      }
+      startStatusTransition(() => {
+        setLiveStatus(matchId, action.status);
+      });
+    }
+  }
 
-  function advance() {
-    if (!next) return;
-    startTransition(() => {
-      setLiveStatus(matchId, next);
+  function confirmStatusChange() {
+    if (!confirmingStatus) return;
+    startStatusTransition(() => {
+      setLiveStatus(matchId, confirmingStatus.status);
+      setConfirmingStatus(null);
+    });
+  }
+
+  function undo() {
+    startUndoTransition(() => {
+      undoLastEvent(matchId);
+      setConfirmingUndo(false);
     });
   }
 
   return (
     <>
-      <div className="sticky bottom-0 z-20 mt-4 flex items-center gap-2 rounded-2xl border border-white/10 bg-[#0b0e13]/95 p-2.5 backdrop-blur">
-        <button
-          onClick={() => setGoalTeam(homeTeam)}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white/5 py-2.5 text-xs font-semibold text-white/80 hover:bg-white/10 active:scale-95"
-        >
-          <Plus size={13} /> {homeTeam.name}
-        </button>
-        <button
-          onClick={() => setGoalTeam(awayTeam)}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white/5 py-2.5 text-xs font-semibold text-white/80 hover:bg-white/10 active:scale-95"
-        >
-          <Plus size={13} /> {awayTeam.name}
-        </button>
-        <button
-          onClick={advance}
-          disabled={!next || pending}
-          className="flex flex-[1.4] items-center justify-center gap-1.5 rounded-xl bg-red-500 py-2.5 text-xs font-bold text-white hover:brightness-95 disabled:opacity-30"
-        >
-          {next ? STATUS_LABEL[next] : "Match Over"} <ChevronRight size={13} />
-        </button>
+      <div className="sticky bottom-0 z-20 mt-4 rounded-2xl border border-white/10 bg-[#0b0e13]/95 p-2.5 backdrop-blur">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {ACTIONS.map((a, i) => (
+            <button
+              key={i}
+              onClick={() => handle(a)}
+              disabled={pendingStatus}
+              className="flex-none whitespace-nowrap rounded-xl bg-white/5 px-3.5 py-2.5 text-xs font-bold text-white/80 transition-all hover:bg-white/10 active:scale-95 disabled:opacity-30"
+            >
+              {a.display}
+            </button>
+          ))}
+          <button
+            onClick={() => setConfirmingUndo(true)}
+            disabled={pendingUndo}
+            className="flex flex-none items-center gap-1.5 whitespace-nowrap rounded-xl bg-red-500/15 px-3.5 py-2.5 text-xs font-bold text-red-400 transition-all hover:bg-red-500/25 active:scale-95 disabled:opacity-30"
+          >
+            <Undo2 size={13} /> Undo Last Action
+          </button>
+        </div>
       </div>
 
-      {goalTeam && (
-        <QuickGoalDialog
+      {confirmingStatus && (
+        <ConfirmDialog
+          title={`${confirmingStatus.label}?`}
+          body="This changes the match status for everyone viewing the Broadcast Control Center. This action can be reversed manually from Match Status Controls if needed."
+          confirmLabel={confirmingStatus.label}
+          pending={pendingStatus}
+          onConfirm={confirmStatusChange}
+          onClose={() => setConfirmingStatus(null)}
+        />
+      )}
+
+      {confirmingUndo && (
+        <ConfirmDialog
+          title="Undo last action?"
+          body="This removes the most recent timeline event. If it was a goal, the score will be corrected too."
+          confirmLabel="Undo"
+          pending={pendingUndo}
+          onConfirm={undo}
+          onClose={() => setConfirmingUndo(false)}
+        />
+      )}
+
+      {goalPickerOpen && (
+        <QuickGoalTeamPicker
+          homeTeam={homeTeam}
+          awayTeam={awayTeam}
+          onClose={() => setGoalPickerOpen(false)}
           matchId={matchId}
-          team={goalTeam}
-          opponent={goalTeam.id === homeTeam.id ? awayTeam : homeTeam}
-          onClose={() => setGoalTeam(null)}
+          homePlayers={homePlayers}
+          awayPlayers={awayPlayers}
+        />
+      )}
+
+      {activeEvent && (
+        <EventDialog
+          matchId={matchId}
+          type={activeEvent.type}
+          label={activeEvent.label}
+          needsTeamPlayer={activeEvent.needsTeamPlayer}
+          homeTeam={homeTeam}
+          awayTeam={awayTeam}
+          homePlayers={homePlayers}
+          awayPlayers={awayPlayers}
+          onClose={() => setActiveEvent(null)}
         />
       )}
     </>
   );
 }
 
-function QuickGoalDialog({
-  matchId,
-  team,
-  opponent,
+/** The Quick Action Bar's Goal button needs a team pick before the usual GoalDialog. */
+function QuickGoalTeamPicker({
+  homeTeam,
+  awayTeam,
   onClose,
+  matchId,
+  homePlayers,
+  awayPlayers,
 }: {
-  matchId: string;
-  team: Team;
-  opponent: Team;
+  homeTeam: Team;
+  awayTeam: Team;
   onClose: () => void;
+  matchId: string;
+  homePlayers: Player[];
+  awayPlayers: Player[];
 }) {
-  const [minute, setMinute] = useState("");
-  const [pending, startTransition] = useTransition();
+  const [chosen, setChosen] = useState<Team | null>(null);
 
-  function confirm() {
-    if (!minute) return;
-    startTransition(async () => {
-      await addGoalEvent(matchId, team.id, opponent.id, "goal", minute, null, null);
-      onClose();
-    });
+  if (chosen) {
+    return (
+      <GoalDialog
+        matchId={matchId}
+        team={chosen}
+        opponent={chosen.id === homeTeam.id ? awayTeam : homeTeam}
+        players={chosen.id === homeTeam.id ? homePlayers : awayPlayers}
+        onClose={onClose}
+      />
+    );
   }
 
   return (
-    <Modal onClose={onClose}>
-      <h3 className="mb-4 font-display text-base font-semibold">Goal — {team.name}</h3>
-      <input
-        value={minute}
-        onChange={(e) => setMinute(e.target.value)}
-        placeholder="Minute, e.g. 63"
-        autoFocus
-        className="h-11 w-full rounded-lg border border-white/10 bg-white/5 px-3 text-sm focus:border-white/30 focus:outline-none"
-      />
-      <button
-        type="button"
-        onClick={confirm}
-        disabled={!minute || pending}
-        className="mt-3 h-11 w-full rounded-lg bg-red-500 font-semibold text-white hover:brightness-95 disabled:opacity-40"
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/60 p-4 sm:items-center" onClick={onClose}>
+      <div
+        className="animate-fade-up w-full max-w-sm rounded-2xl border border-white/10 bg-[#0b0e13] p-5"
+        onClick={(e) => e.stopPropagation()}
       >
-        {pending ? "Confirming..." : "Confirm Goal"}
-      </button>
-    </Modal>
+        <h3 className="mb-4 flex items-center gap-1.5 font-display text-base font-semibold">
+          <ChevronRight size={16} /> Which team scored?
+        </h3>
+        <div className="grid grid-cols-2 gap-2">
+          {[homeTeam, awayTeam].map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setChosen(t)}
+              className="truncate rounded-xl bg-white/5 py-4 text-sm font-semibold hover:bg-white/10"
+            >
+              {t.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -2,21 +2,30 @@ import Link from "next/link";
 import { Radio, Trophy } from "lucide-react";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { formatMatchDate } from "@/lib/utils";
+import { getBaseBranding } from "@/lib/branding";
+import BrandBar from "@/components/live/BrandBar";
+import type { Match, Team } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const STATUS_LABEL: Record<string, string> = {
-  pre_match: "Pre Match",
-  kickoff: "Kick Off",
-  first_half: "First Half",
-  half_time: "Half Time",
-  second_half: "Second Half",
-  extra_time: "Extra Time",
-  penalty_shootout: "Penalties",
-  full_time: "Full Time",
+type MatchListRow = Match & {
+  competition: { name: string } | null;
+  home_team: Team;
+  away_team: Team;
 };
 
-export default async function LiveIndexPage() {
+const STATUS_LABEL: Record<string, string> = {
+  pre_match: "Scheduled",
+  kickoff: "Kick Off",
+  first_half: "First Half",
+  half_time: "Half-time",
+  second_half: "Second Half",
+  extra_time: "Additional Time",
+  penalty_shootout: "Penalties",
+  full_time: "Full-time",
+};
+
+export default async function BroadcastControlCenterIndexPage() {
   const supabase = supabaseAdmin();
   const { data: matches } = await supabase
     .from("matches")
@@ -27,13 +36,19 @@ export default async function LiveIndexPage() {
     .order("match_time", { ascending: false });
 
   const list = matches ?? [];
+  const branding = getBaseBranding();
 
   return (
     <div className="min-h-screen bg-[#05070a] px-4 py-10 text-white">
       <div className="mx-auto max-w-3xl">
-        <div className="mb-8 flex items-center gap-2">
-          <Radio size={18} className="text-red-400" />
-          <h1 className="font-display text-2xl font-semibold">Broadcast Control Center</h1>
+        <div className="mb-8 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Radio size={18} className="text-red-400" />
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Broadcast Control Center</p>
+              <BrandBar branding={branding} />
+            </div>
+          </div>
         </div>
 
         {list.length === 0 && (
@@ -41,7 +56,7 @@ export default async function LiveIndexPage() {
         )}
 
         <div className="flex flex-col gap-2">
-          {list.map((m: any) => (
+          {list.map((m: MatchListRow) => (
             <Link
               key={m.id}
               href={`/live/${m.id}`}

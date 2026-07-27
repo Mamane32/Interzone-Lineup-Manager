@@ -112,6 +112,44 @@ export async function deleteMatchEvent(matchId: string, eventId: string) {
   revalidateMatch(matchId);
 }
 
+/** Edits an existing timeline event's minute/team/player/description in place. Does not touch score even for goal-type events — use deleteMatchEvent + addGoalEvent if the team/type of a goal needs to change. */
+export async function updateMatchEvent(
+  matchId: string,
+  eventId: string,
+  minute: string,
+  teamId: string | null,
+  playerId: string | null,
+  description: string | null
+) {
+  const supabase = supabaseAdmin();
+  await supabase
+    .from("match_events")
+    .update({ minute, team_id: teamId, player_id: playerId, description })
+    .eq("id", eventId);
+  revalidateMatch(matchId);
+}
+
+/**
+ * Undo Last Action — removes the single most recent timeline event,
+ * regardless of type (broader than "Undo Last Goal" in Score Control,
+ * which only considers goals). Reuses deleteMatchEvent's score-adjustment
+ * logic, so undoing a goal here still corrects the score.
+ */
+export async function undoLastEvent(matchId: string) {
+  const supabase = supabaseAdmin();
+  const { data: last } = await supabase
+    .from("match_events")
+    .select("id")
+    .eq("match_id", matchId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (last) {
+    await deleteMatchEvent(matchId, last.id);
+  }
+}
+
 /** Manual Score Edit — direct override, independent of the event log. */
 export async function setManualScore(matchId: string, homeScore: number, awayScore: number) {
   const supabase = supabaseAdmin();

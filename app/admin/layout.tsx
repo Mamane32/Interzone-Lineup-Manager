@@ -7,7 +7,7 @@ const NAV = [
   { href: "/admin/matches", label: "Matches" },
   { href: "/admin/teams", label: "Teams" },
   { href: "/admin/lineups", label: "Lineups" },
-  { href: "/live", label: "Live Center" },
+  { href: "/live", label: "Broadcast Control Center" },
   { href: "/admin/settings", label: "Settings" },
 ];
 

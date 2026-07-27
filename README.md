@@ -21,6 +21,11 @@ instant, structured export ready to paste into vMix.
 > architecture, the new (additive-only) database migration, and what's real
 > vs. placeholder.
 
+> **Broadcast Control Center premium UI upgrade (Sprint 2.1)?** See
+> **[SPRINT_2_1_LIVE_CENTER_UPGRADE.md](./SPRINT_2_1_LIVE_CENTER_UPGRADE.md)**
+> for the dynamic branding system, the renamed product surface, and the
+> full deliverables/acceptance-criteria report.
+
 ---
 
 ## Stack

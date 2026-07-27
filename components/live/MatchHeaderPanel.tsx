@@ -1,45 +1,34 @@
-import { CloudSun, MapPin, Users, Clock3, Trophy } from "lucide-react";
+import { CloudSun, MapPin, Users, Clock3, Trophy, CalendarRange } from "lucide-react";
 import { updateMatchHeaderInfo } from "@/app/live/[matchId]/actions";
 import type { LiveMatchBundle } from "@/lib/live-match";
+import type { BrandingConfiguration } from "@/lib/branding";
 
-const STATUS_LABEL: Record<string, string> = {
-  pre_match: "Pre Match",
-  kickoff: "Kick Off",
-  first_half: "First Half",
-  half_time: "Half Time",
-  second_half: "Second Half",
-  extra_time: "Extra Time",
-  penalty_shootout: "Penalties",
-  full_time: "Full Time",
-};
-
-export default function MatchHeaderPanel({ bundle }: { bundle: LiveMatchBundle }) {
+/**
+ * Match Context Card — competition, round/matchday, season, kickoff,
+ * venue, referee, weather placeholder. The score itself lives in
+ * MatchScorePanel (the brief's "most important part of the screen"); this
+ * card is the surrounding context, kept compact.
+ */
+export default function MatchHeaderPanel({ bundle, branding }: { bundle: LiveMatchBundle; branding: BrandingConfiguration }) {
   const { match } = bundle;
-  const status = match.live_status ?? "pre_match";
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-transparent">
-      <div className="flex items-center justify-between border-b border-white/10 px-5 py-2.5 text-[11px] uppercase tracking-wide text-white/40">
+    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-5 py-2.5 text-[11px] uppercase tracking-wide text-white/40">
         <span className="flex items-center gap-1.5">
-          <Trophy size={12} /> {match.competition?.name ?? "No competition"} {match.round ? `· ${match.round}` : ""}
+          <Trophy size={12} /> {branding.competitionName ?? "No competition"}
         </span>
-        <span>Season —</span>
-      </div>
-
-      <div className="grid grid-cols-3 items-center gap-2 px-5 py-6">
-        <TeamColumn name={match.home_team.name} logo={match.home_team.logo_url} />
-        <div className="flex flex-col items-center gap-1">
-          <div className="font-display text-4xl font-black tabular-nums">
-            {match.home_score ?? 0} <span className="text-white/20">–</span> {match.away_score ?? 0}
-          </div>
-          <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white/70">
-            {STATUS_LABEL[status]}
-          </span>
+        <div className="flex items-center gap-3">
+          {branding.seasonName && (
+            <span className="flex items-center gap-1">
+              <CalendarRange size={12} /> {branding.seasonName}
+            </span>
+          )}
+          <span>{match.round ? `Matchday: ${match.round}` : "Matchday —"}</span>
         </div>
-        <TeamColumn name={match.away_team.name} logo={match.away_team.logo_url} align="right" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 border-t border-white/10 px-5 py-3 text-xs text-white/50 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 px-5 py-3 text-xs text-white/50 sm:grid-cols-4">
         <Info icon={<Clock3 size={13} />} label="Kickoff" value={match.match_time?.slice(0, 5)} />
         <Info icon={<MapPin size={13} />} label="Venue" value={match.venue || `Teren ${match.home_team.name}`} />
         <Info icon={<Users size={13} />} label="Referee" value={match.referee_name || "—"} />
@@ -68,22 +57,6 @@ export default function MatchHeaderPanel({ bundle }: { bundle: LiveMatchBundle }
           </button>
         </form>
       </details>
-    </div>
-  );
-}
-
-function TeamColumn({ name, logo, align = "left" }: { name: string; logo: string | null; align?: "left" | "right" }) {
-  return (
-    <div className={`flex flex-col items-center gap-2 text-center ${align === "right" ? "" : ""}`}>
-      {logo ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={logo} alt="" className="h-14 w-14 rounded-full bg-white/10 object-cover ring-1 ring-white/15" />
-      ) : (
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 font-display text-sm ring-1 ring-white/15">
-          {name.slice(0, 2).toUpperCase()}
-        </div>
-      )}
-      <span className="max-w-[8rem] truncate text-xs font-semibold text-white/90">{name}</span>
     </div>
   );
 }

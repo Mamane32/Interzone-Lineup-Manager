@@ -1,29 +1,37 @@
+import SectionHeader from "./SectionHeader";
 import type { Team } from "@/lib/types";
 
-// Per the brief: "Statistics may use placeholder values for now." These are
-// static — no live data source exists yet (no stats table, no external
-// feed). Wiring this to a real feed later only requires swapping this one
-// array for a fetched one; the UI below doesn't change.
+// Per the brief: "Statistics may use placeholder values for now" / "The
+// statistics panel should be reusable with real Supabase data later."
+// Static — no stats table exists. Swapping in a real feed later only means
+// replacing this array with a fetched one; the comparison-bar UI below
+// doesn't change.
 const PLACEHOLDER_STATS: { label: string; home: number; away: number; suffix?: string }[] = [
   { label: "Possession", home: 54, away: 46, suffix: "%" },
+  { label: "Expected Goals (xG)", home: 0, away: 0 },
   { label: "Shots", home: 0, away: 0 },
   { label: "Shots on Target", home: 0, away: 0 },
+  { label: "Passes", home: 0, away: 0 },
+  { label: "Pass Accuracy", home: 0, away: 0, suffix: "%" },
   { label: "Corners", home: 0, away: 0 },
   { label: "Fouls", home: 0, away: 0 },
-  { label: "Yellow Cards", home: 0, away: 0 },
-  { label: "Red Cards", home: 0, away: 0 },
   { label: "Offside", home: 0, away: 0 },
   { label: "Saves", home: 0, away: 0 },
+  { label: "Yellow Cards", home: 0, away: 0 },
+  { label: "Red Cards", home: 0, away: 0 },
 ];
 
 export default function StatisticsPanel({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-white/40">Statistics</h2>
-        <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-medium text-white/30">
-          Placeholder data
-        </span>
+      <SectionHeader
+        title="Match Statistics"
+        badge={<span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-medium text-white/30">Placeholder data</span>}
+      />
+
+      <div className="mb-3 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-white/30">
+        <span>{homeTeam.name.slice(0, 3).toUpperCase()}</span>
+        <span>{awayTeam.name.slice(0, 3).toUpperCase()}</span>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -51,10 +59,6 @@ export default function StatisticsPanel({ homeTeam, awayTeam }: { homeTeam: Team
           );
         })}
       </div>
-
-      <p className="mt-3 truncate text-[10px] text-white/25">
-        {homeTeam.name} vs {awayTeam.name} — live feed not yet connected
-      </p>
     </div>
   );
 }
