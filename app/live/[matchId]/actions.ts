@@ -1,5 +1,6 @@
 "use server";
 
+import { requireRole } from "@/lib/access";
 import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import type { MatchLiveStatus, MatchEventType } from "@/lib/types";
@@ -13,6 +14,7 @@ function revalidateMatch(matchId: string) {
 
 /** Match Status Controls — manual only, exactly as specified ("Do not implement backend automation yet"). */
 export async function setLiveStatus(matchId: string, status: MatchLiveStatus) {
+  await requireRole(["broadcast_operator", "admin", "super_admin"]);
   const supabase = supabaseAdmin();
   await supabase.from("matches").update({ live_status: status }).eq("id", matchId);
   revalidateMatch(matchId);
@@ -31,6 +33,7 @@ export async function addGoalEvent(
   playerId: string | null,
   description: string | null
 ) {
+  await requireRole(["broadcast_operator", "admin", "super_admin"]);
   const supabase = supabaseAdmin();
   const { data: match } = await supabase.from("matches").select("home_team_id, away_team_id, home_score, away_score").eq("id", matchId).single();
   if (!match) return;
@@ -68,6 +71,7 @@ export async function addMatchEvent(
   playerId: string | null,
   description: string | null
 ) {
+  await requireRole(["broadcast_operator", "admin", "super_admin"]);
   const supabase = supabaseAdmin();
   await supabase.from("match_events").insert({
     match_id: matchId,
@@ -87,6 +91,7 @@ export async function addMatchEvent(
  * recent" selection live in the UI, this action just needs an event id).
  */
 export async function deleteMatchEvent(matchId: string, eventId: string) {
+  await requireRole(["broadcast_operator", "admin", "super_admin"]);
   const supabase = supabaseAdmin();
   const { data: event } = await supabase.from("match_events").select("*").eq("id", eventId).single();
   if (!event) return;
@@ -121,6 +126,7 @@ export async function updateMatchEvent(
   playerId: string | null,
   description: string | null
 ) {
+  await requireRole(["broadcast_operator", "admin", "super_admin"]);
   const supabase = supabaseAdmin();
   await supabase
     .from("match_events")
@@ -136,6 +142,7 @@ export async function updateMatchEvent(
  * logic, so undoing a goal here still corrects the score.
  */
 export async function undoLastEvent(matchId: string) {
+  await requireRole(["broadcast_operator", "admin", "super_admin"]);
   const supabase = supabaseAdmin();
   const { data: last } = await supabase
     .from("match_events")
@@ -152,6 +159,7 @@ export async function undoLastEvent(matchId: string) {
 
 /** Manual Score Edit — direct override, independent of the event log. */
 export async function setManualScore(matchId: string, homeScore: number, awayScore: number) {
+  await requireRole(["broadcast_operator", "admin", "super_admin"]);
   const supabase = supabaseAdmin();
   await supabase
     .from("matches")
@@ -162,6 +170,7 @@ export async function setManualScore(matchId: string, homeScore: number, awaySco
 
 /** Match Header — venue and referee are optional operator-entered fields (Sprint 2 addition). */
 export async function updateMatchHeaderInfo(matchId: string, formData: FormData) {
+  await requireRole(["broadcast_operator", "admin", "super_admin"]);
   const venue = String(formData.get("venue") ?? "").trim();
   const refereeName = String(formData.get("refereeName") ?? "").trim();
 

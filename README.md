@@ -26,6 +26,12 @@ instant, structured export ready to paste into vMix.
 > for the dynamic branding system, the renamed product surface, and the
 > full deliverables/acceptance-criteria report.
 
+> **Unified login & role-based access (Sprint 1.2)?** See
+> **[SPRINT_1_2_UNIFIED_AUTH.md](./SPRINT_1_2_UNIFIED_AUTH.md)** — read
+> this before deploying if you have an existing installation, it includes
+> a critical migration-ordering step or your administrator will be locked
+> out of `/admin`.
+
 ---
 
 ## Stack
@@ -66,6 +72,11 @@ Control Center's `match_events` table and a handful of new, nullable/
 defaulted columns on `matches` — additive only, safe on an existing
 database; see `SPRINT_2_LIVE_CENTER.md` for details).
 
+Then run `supabase/migrations/003_unified_access.sql` (adds `profiles` and
+`user_access_assignments` — the role/access model behind the unified
+login; additive only. **Do not skip step 3 below after running this** —
+see the warning there).
+
 ## 3. Create the administrator account
 
 The app has exactly one administrator, authenticated with Supabase Auth
@@ -76,8 +87,21 @@ The app has exactly one administrator, authenticated with Supabase Auth
    self-registration).
 2. Go to **Authentication → Users → Add user** and create the one
    administrator with an email and password.
-3. That's the login you'll use at `/admin/login`. To change the password
-   later, edit the user from the same screen — no redeploy needed.
+3. **Required:** open the SQL editor and run (replacing the email):
+   ```sql
+   insert into profiles (id, email, status)
+   select id, email, 'active' from auth.users where email = 'admin@example.com'
+   on conflict (id) do nothing;
+
+   insert into user_access_assignments (user_id, role_key, status)
+   select id, 'admin', 'active' from auth.users where email = 'admin@example.com';
+   ```
+   ⚠️ Skipping this step locks the administrator out of `/admin` — every
+   admin page now checks for a real `admin` role assignment, not just a
+   valid login. See `SPRINT_1_2_UNIFIED_AUTH.md` for why.
+4. Sign in at `/login` (the unified login — `/admin/login` still works too).
+   To change the password later, edit the user in Supabase Authentication →
+   Users — no redeploy needed.
 
 ## 4. Configure environment variables
 

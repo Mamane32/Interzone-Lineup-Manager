@@ -1,5 +1,6 @@
 "use server";
 
+import { requireAdmin } from "@/lib/access";
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -25,6 +26,7 @@ async function uploadLogoIfPresent(formData: FormData): Promise<string | null> {
 }
 
 export async function createTeam(formData: FormData) {
+  await requireAdmin();
   const supabase = supabaseAdmin();
 
   const name = String(formData.get("name") ?? "").trim();
@@ -51,6 +53,7 @@ export async function createTeam(formData: FormData) {
 }
 
 export async function updateTeam(id: string, formData: FormData) {
+  await requireAdmin();
   const supabase = supabaseAdmin();
 
   const name = String(formData.get("name") ?? "").trim();
@@ -78,6 +81,7 @@ export async function updateTeam(id: string, formData: FormData) {
 }
 
 export async function deleteTeam(id: string) {
+  await requireAdmin();
   const supabase = supabaseAdmin();
   await supabase.from("teams").delete().eq("id", id);
   revalidatePath("/admin/teams");

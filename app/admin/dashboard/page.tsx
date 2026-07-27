@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import Card from "@/components/ui/Card";
 import StatusBadge from "@/components/ui/StatusBadge";
 import type { Lineup, Match, Team, Competition } from "@/lib/types";
+import { requireAdmin } from "@/lib/access";
 
 // Always render on request — this page reads live data via the service-role
 // Supabase client, and must never be executed or cached at build time.
@@ -24,6 +25,7 @@ async function getBoard() {
 }
 
 export default async function DashboardPage() {
+  await requireAdmin();
   const { matches, lineups } = await getBoard();
 
   const lineupFor = (matchId: string, teamId: string) =>

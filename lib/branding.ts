@@ -1,9 +1,11 @@
 /**
- * Branding configuration for the Broadcast Control Center (app/live/**,
- * components/live/**) — nowhere else. This module is built to be reused by
- * more than one organization (Interzone, Media Tout Kote, other
- * competitions/federations/leagues), so nothing about a specific
- * organization is hardcoded into components; everything reads from here.
+ * Branding configuration for the platform's public-facing surfaces —
+ * originally built for the Broadcast Control Center (app/live/**,
+ * components/live/**) and now also the source of truth for the unified
+ * login (app/login/**). This module is built to be reused by more than one
+ * organization (Interzone, Media Tout Kote, other competitions/
+ * federations/leagues), so nothing about a specific organization is
+ * hardcoded into components; everything reads from here.
  *
  * Hierarchy (per the brief):
  *   1. Competition / organization branding — who this broadcast is *for*.

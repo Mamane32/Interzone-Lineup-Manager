@@ -9,14 +9,16 @@ Full context for each step is in `README.md`.
 - [ ] Open **SQL Editor** → run the entire contents of `supabase/schema.sql`
 - [ ] Then run `supabase/migrations/002_live_center.sql` (Broadcast Control
       Center — additive only, safe to run on top of the schema above)
+- [ ] Then run `supabase/migrations/003_unified_access.sql` (unified
+      login's role model — additive only)
 - [ ] Confirm these exist afterward:
-  - [ ] Tables: `competitions`, `teams`, `players`, `matches`, `lineups`, `match_events`
-  - [ ] Enum types `lineup_status`, `match_live_status`, `match_event_type`
+  - [ ] Tables: `competitions`, `teams`, `players`, `matches`, `lineups`, `match_events`, `profiles`, `user_access_assignments`
+  - [ ] Enum types `lineup_status`, `match_live_status`, `match_event_type`, `access_status`, `platform_role`
   - [ ] Trigger `matches_create_lineups` (Database → Triggers)
   - [ ] Storage bucket `team-logos`, marked **public** (Storage tab)
   - [ ] RLS shows **enabled** with **0 policies** on every table, including
-        `match_events` (Authentication → Policies) — this is intentional,
-        not a mistake
+        `profiles` and `user_access_assignments` (Authentication →
+        Policies) — this is intentional, not a mistake
 
 ## ☐ 2. Administrator account (Supabase Auth)
 
@@ -24,8 +26,20 @@ Full context for each step is in `README.md`.
       "Allow new users to sign up"
 - [ ] Authentication → Users → **Add user** → create the one
       administrator (email + password)
+- [ ] **Required — do not skip:** SQL Editor → run, replacing the email:
+      ```sql
+      insert into profiles (id, email, status)
+      select id, email, 'active' from auth.users where email = 'admin@example.com'
+      on conflict (id) do nothing;
+
+      insert into user_access_assignments (user_id, role_key, status)
+      select id, 'admin', 'active' from auth.users where email = 'admin@example.com';
+      ```
+      ⚠️ Every admin page now checks for a real `admin` role assignment,
+      not just a valid login — skipping this locks the administrator out
+      of `/admin` entirely. See `SPRINT_1_2_UNIFIED_AUTH.md`.
 - [ ] Save that email/password somewhere safe — it's the only way into
-      `/admin`
+      `/admin` (via `/login` or `/admin/login`, both work)
 
 ## ☐ 3. Collect your keys
 
@@ -149,7 +163,30 @@ From Project Settings → API, copy:
 - [ ] Confirm `/team/<token>` (Coach Portal landing page) still loads
       normally and is unaffected by any of the above
 
-## ☐ 10. Handoff
+## ☐ 10. Smoke test — Unified login & role-based access
+
+- [ ] Visit `/login` and sign in with the administrator account — confirm
+      it lands on `/admin/dashboard` (not a workspace picker, since the
+      admin has exactly one assignment)
+- [ ] Sign out, then visit `/admin` directly while logged out — confirm
+      it redirects to `/admin/login`, not a blank or broken page
+- [ ] Sign in as a coach (via a team's invite or existing credentials) at
+      `/login` — confirm it lands on that team's `/team/<token>/dashboard`
+      directly, no picker shown
+- [ ] While signed in as that coach, manually visit `/admin` in the same
+      browser — confirm you're redirected away (this is the fix: a coach
+      session must never reach the admin area)
+- [ ] Same check for `/live` — a coach session should not be able to open
+      the Broadcast Control Center either
+- [ ] In Supabase, manually grant one real user a **second** active
+      assignment (any role) — sign in as them at `/login` and confirm
+      `/select-workspace` appears showing only their two options, and
+      that picking one lands correctly
+- [ ] From `/login`, click "Forgot your password?", request a reset,
+      follow the email link, set a new password, and confirm you land
+      back in the correct workspace afterward
+
+## ☐ 11. Handoff
 
 - [ ] Share the admin email/password with whoever will run the
       production desk, through a secure channel (not Slack/email in

@@ -1,6 +1,8 @@
 import Card from "@/components/ui/Card";
+import { requireAdmin } from "@/lib/access";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  await requireAdmin();
   return (
     <div className="flex flex-col gap-6">
       <div>

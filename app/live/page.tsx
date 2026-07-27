@@ -3,6 +3,7 @@ import { Radio, Trophy } from "lucide-react";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { formatMatchDate } from "@/lib/utils";
 import { getBaseBranding } from "@/lib/branding";
+import { requireRole } from "@/lib/access";
 import BrandBar from "@/components/live/BrandBar";
 import type { Match, Team } from "@/lib/types";
 
@@ -26,6 +27,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default async function BroadcastControlCenterIndexPage() {
+  await requireRole(["broadcast_operator", "admin", "super_admin"]);
   const supabase = supabaseAdmin();
   const { data: matches } = await supabase
     .from("matches")

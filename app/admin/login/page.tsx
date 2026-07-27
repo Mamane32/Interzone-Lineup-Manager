@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { login } from "./actions";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -46,6 +47,9 @@ export default function LoginPage({
           <Button type="submit" size="lg" className="mt-2 w-full">
             Sign in
           </Button>
+          <Link href="/login/forgot-password" className="text-center text-sm text-ink-muted hover:text-white">
+            Forgot your password?
+          </Link>
         </form>
       </Card>
     </main>

@@ -1,5 +1,38 @@
 export type LineupStatus = "waiting" | "submitted" | "needs_correction";
 
+export type AccessStatus = "invited" | "active" | "suspended" | "disabled";
+
+export type PlatformRole =
+  | "super_admin"
+  | "admin"
+  | "competition_manager"
+  | "broadcast_operator"
+  | "coach"
+  | "referee"
+  | "media"
+  | "viewer";
+
+export interface Profile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  status: AccessStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserAccessAssignment {
+  id: string;
+  user_id: string;
+  role_key: PlatformRole;
+  competition_id: string | null;
+  team_id: string | null;
+  status: AccessStatus;
+  created_at: string;
+  updated_at: string;
+}
+
 export type MatchLiveStatus =
   | "pre_match"
   | "kickoff"

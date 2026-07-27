@@ -7,6 +7,7 @@ import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import { formatMatchDate } from "@/lib/utils";
 import type { Team, Competition } from "@/lib/types";
+import { requireAdmin } from "@/lib/access";
 
 // Always render on request — this page reads live data via the service-role
 // Supabase client, and must never be executed or cached at build time.
@@ -14,6 +15,7 @@ export const dynamic = "force-dynamic";
 
 
 export default async function MatchesPage() {
+  await requireAdmin();
   const supabase = supabaseAdmin();
 
   const [{ data: teams }, { data: competitions }, { data: matches }] = await Promise.all([

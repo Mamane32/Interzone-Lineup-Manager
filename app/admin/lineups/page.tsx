@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import Card from "@/components/ui/Card";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { formatMatchDate } from "@/lib/utils";
+import { requireAdmin } from "@/lib/access";
 
 // Always render on request — this page reads live data via the service-role
 // Supabase client, and must never be executed or cached at build time.
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
 
 
 export default async function LineupsPage() {
+  await requireAdmin();
   const supabase = supabaseAdmin();
 
   const { data: lineups } = await supabase

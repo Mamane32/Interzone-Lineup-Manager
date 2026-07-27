@@ -4,6 +4,7 @@ import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import type { Competition } from "@/lib/types";
+import { requireAdmin } from "@/lib/access";
 
 // Always render on request — this page reads live data via the service-role
 // Supabase client, and must never be executed or cached at build time.
@@ -11,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 
 export default async function CompetitionsPage() {
+  await requireAdmin();
   const supabase = supabaseAdmin();
   const { data: competitions } = await supabase
     .from("competitions")

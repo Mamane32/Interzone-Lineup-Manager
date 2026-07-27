@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import CopyLinkButton from "@/components/ui/CopyLinkButton";
 import { teamLink } from "@/lib/utils";
 import type { Team, Competition, Player } from "@/lib/types";
+import { requireAdmin } from "@/lib/access";
 
 // Always render on request — this page reads live data via the service-role
 // Supabase client, and must never be executed or cached at build time.
@@ -27,6 +28,7 @@ export default async function TeamDetailPage({
   params: { id: string };
   searchParams: { invite?: string };
 }) {
+  await requireAdmin();
   const supabase = supabaseAdmin();
 
   const [{ data: team }, { data: competitions }, { data: players }] = await Promise.all([

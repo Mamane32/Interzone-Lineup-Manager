@@ -2,11 +2,17 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { resolveUserDestination } from "@/lib/access";
 
+/**
+ * Shared reset-password action for every portal — coach invites/resets
+ * (token present, redirect straight back to that team's dashboard) and the
+ * unified login's forgot-password flow (no token — route through the same
+ * centralized resolver every other login path uses).
+ */
 export async function setNewPassword(token: string | undefined, formData: FormData) {
   const password = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirm") ?? "");
-  const destination = token ? `/team/${token}/dashboard` : "/team";
 
   if (password.length < 8) {
     redirect(`/team/reset-password?token=${token ?? ""}&error=short`);
@@ -16,11 +22,18 @@ export async function setNewPassword(token: string | undefined, formData: FormDa
   }
 
   const supabase = createClient();
-  const { error } = await supabase.auth.updateUser({ password });
+  const { error, data } = await supabase.auth.updateUser({ password });
 
-  if (error) {
+  if (error || !data.user) {
     redirect(`/team/reset-password?token=${token ?? ""}&error=1`);
   }
 
-  redirect(destination);
+  if (token) {
+    redirect(`/team/${token}/dashboard`);
+  }
+
+  const resolution = await resolveUserDestination(data.user.id);
+  if (resolution.kind === "redirect") redirect(resolution.path);
+  if (resolution.kind === "select-workspace") redirect("/select-workspace");
+  redirect(`/login?error=${resolution.reason}`);
 }

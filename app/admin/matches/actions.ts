@@ -1,9 +1,11 @@
 "use server";
 
+import { requireAdmin } from "@/lib/access";
 import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function createMatch(formData: FormData) {
+  await requireAdmin();
   const competition_id = String(formData.get("competition_id") ?? "") || null;
   const round = String(formData.get("round") ?? "").trim() || null;
   const home_team_id = String(formData.get("home_team_id") ?? "");
@@ -30,6 +32,7 @@ export async function createMatch(formData: FormData) {
 }
 
 export async function deleteMatch(id: string) {
+  await requireAdmin();
   const supabase = supabaseAdmin();
   await supabase.from("matches").delete().eq("id", id);
   revalidatePath("/admin/matches");
