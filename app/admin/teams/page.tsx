@@ -46,7 +46,7 @@ export default async function TeamsPage() {
           </Select>
           <Input id="coach_name" name="coach_name" label="Coach name" required />
           <Input id="coach_phone" name="coach_phone" label="Coach telephone" required />
-          <Input id="coach_email" name="coach_email" label="Coach email (optional)" type="email" />
+          <Input id="coach_email" name="coach_email" label="Coach email (used for Coach Portal login)" type="email" required />
           <div className="flex flex-col gap-1.5">
             <label htmlFor="logo" className="text-sm font-medium text-ink-muted">
               Team logo (PNG)

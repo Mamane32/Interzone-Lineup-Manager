@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { updateTeam, deleteTeam } from "../actions";
-import { addPlayer, updatePlayer, deletePlayer } from "./actions";
+import { addPlayer, updatePlayer, deletePlayer, inviteCoach } from "./actions";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
@@ -14,8 +14,19 @@ import type { Team, Competition, Player } from "@/lib/types";
 // Supabase client, and must never be executed or cached at build time.
 export const dynamic = "force-dynamic";
 
+const INVITE_MESSAGES: Record<string, { text: string; tone: "ok" | "error" }> = {
+  sent: { text: "Invite email sent to the coach.", tone: "ok" },
+  failed: { text: "Could not send the invite — check the email address and try again.", tone: "error" },
+  "missing-email": { text: "Add a coach email above before sending an invite.", tone: "error" },
+};
 
-export default async function TeamDetailPage({ params }: { params: { id: string } }) {
+export default async function TeamDetailPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { invite?: string };
+}) {
   const supabase = supabaseAdmin();
 
   const [{ data: team }, { data: competitions }, { data: players }] = await Promise.all([
@@ -29,6 +40,7 @@ export default async function TeamDetailPage({ params }: { params: { id: string 
   const t = team as Team;
   const competitionList = (competitions ?? []) as Competition[];
   const playerList = (players ?? []) as Player[];
+  const inviteMessage = searchParams.invite ? INVITE_MESSAGES[searchParams.invite] : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -51,7 +63,14 @@ export default async function TeamDetailPage({ params }: { params: { id: string 
           </Select>
           <Input id="coach_name" name="coach_name" label="Coach name" defaultValue={t.coach_name} required />
           <Input id="coach_phone" name="coach_phone" label="Coach telephone" defaultValue={t.coach_phone} required />
-          <Input id="coach_email" name="coach_email" label="Coach email (optional)" type="email" defaultValue={t.coach_email ?? ""} />
+          <Input
+            id="coach_email"
+            name="coach_email"
+            label="Coach email (used for Coach Portal login)"
+            type="email"
+            defaultValue={t.coach_email ?? ""}
+            required
+          />
           <div className="flex flex-col gap-1.5">
             <label htmlFor="logo" className="text-sm font-medium text-ink-muted">
               Replace logo (PNG)
@@ -81,6 +100,29 @@ export default async function TeamDetailPage({ params }: { params: { id: string 
             <CopyLinkButton link={teamLink(t.token)} teamName={t.name} />
           </div>
         </div>
+      </Card>
+
+      <Card className="max-w-2xl">
+        <h2 className="mb-1 font-display text-lg font-semibold">Coach Portal access</h2>
+        <p className="mb-4 text-sm text-ink-muted">
+          Sends the coach an email to set their password and sign in at{" "}
+          <code className="text-amber-signal">{teamLink(t.token)}</code>. Uses Supabase Auth — no
+          separate account system.
+        </p>
+        {inviteMessage && (
+          <p
+            className={`mb-3 text-sm font-medium ${
+              inviteMessage.tone === "ok" ? "text-status-submitted" : "text-status-correction"
+            }`}
+          >
+            {inviteMessage.text}
+          </p>
+        )}
+        <form action={inviteCoach.bind(null, t.id)}>
+          <Button type="submit" variant="secondary">
+            Send coach login invite
+          </Button>
+        </form>
       </Card>
 
       <Card className="max-w-2xl">

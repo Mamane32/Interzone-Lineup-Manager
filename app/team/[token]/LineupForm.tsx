@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { ShieldAlert } from "lucide-react";
 import Select from "@/components/ui/Select";
-import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { JerseyBadge, PlayerRow } from "@/components/ui/PlayerBadge";
+import { PlayerRow } from "@/components/ui/PlayerBadge";
 import { playerLabel } from "@/lib/utils";
 import { submitLineup } from "./actions";
 import type { Player, Team } from "@/lib/types";
@@ -34,16 +34,7 @@ export default function LineupForm({
   const alreadySubmitted = lineup.status === "submitted" && lineup.locked;
 
   if (alreadySubmitted) {
-    return (
-      <ConfirmedView
-        team={team}
-        players={players}
-        lineup={lineup}
-        opponent={opponent}
-        isHome={isHome}
-        competitionName={competitionName}
-      />
-    );
+    return <ConfirmedView team={team} players={players} lineup={lineup} opponent={opponent} />;
   }
 
   return (
@@ -52,7 +43,6 @@ export default function LineupForm({
       players={players}
       lineup={lineup}
       opponent={opponent}
-      isHome={isHome}
       competitionName={competitionName}
       round={round}
       token={token}
@@ -61,39 +51,37 @@ export default function LineupForm({
 }
 
 // ---------------------------------------------------------------------------
-// Header used by both the form and the confirmation screen
+// Compact match context strip — the (coach) layout already shows team
+// identity in its header, so this only needs to say who the opponent is.
 // ---------------------------------------------------------------------------
-function Header({
-  team,
+function MatchStrip({
   opponent,
-  isHome,
   competitionName,
+  round,
 }: {
-  team: Team;
   opponent: Team;
-  isHome: boolean;
-  competitionName: string | null;
+  competitionName?: string | null;
+  round?: string | null;
 }) {
   return (
-    <div className="bg-ink px-4 pb-6 pt-8 text-center text-white">
-      {team.logo_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={team.logo_url} alt="" className="mx-auto h-16 w-16 rounded-full object-cover" />
-      ) : (
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/10 font-display text-xl">
-          {team.name.slice(0, 2).toUpperCase()}
-        </div>
-      )}
+    <div className="animate-fade-up rounded-2xl bg-gradient-to-br from-ink to-ink-panel p-4 text-white shadow-sm">
       {competitionName && (
-        <p className="mt-3 font-display text-xs uppercase tracking-[0.2em] text-amber-signal">
-          {competitionName}
+        <p className="text-[11px] uppercase tracking-[0.2em] text-amber-signal">
+          {competitionName} {round ? `· ${round}` : ""}
         </p>
       )}
-      <h1 className="font-display text-2xl font-semibold">{team.name}</h1>
-      <p className="mt-1 text-sm text-white/60">Kont</p>
-      <p className="font-display text-lg text-white/90">{opponent?.name ?? "—"}</p>
+      <p className="mt-1 font-display text-lg font-semibold">Kont {opponent?.name ?? "—"}</p>
     </div>
   );
+}
+
+/** A tiny pill badge for Captain / Goalkeeper markers on a player row. */
+function Chip({ tone, children }: { tone: "captain" | "gk"; children: React.ReactNode }) {
+  const cls =
+    tone === "captain"
+      ? "bg-amber-signal/15 text-amber-signal"
+      : "bg-status-submitted/15 text-status-submitted";
+  return <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${cls}`}>{children}</span>;
 }
 
 // ---------------------------------------------------------------------------
@@ -104,80 +92,77 @@ function ConfirmedView({
   players,
   lineup,
   opponent,
-  isHome,
-  competitionName,
 }: {
   team: Team;
   players: Player[];
   lineup: any;
   opponent: Team;
-  isHome: boolean;
-  competitionName: string | null;
 }) {
   const byId = useMemo(() => new Map(players.map((p) => [p.id, p])), [players]);
 
   return (
-    <main className="min-h-screen bg-coach-bg">
-      <Header team={team} opponent={opponent} isHome={isHome} competitionName={competitionName} />
-
-      <div className="mx-auto -mt-4 max-w-md rounded-t-2xl bg-coach-bg px-4 pb-16">
-        <div className="mt-4 rounded-2xl border border-status-submitted/30 bg-status-submitted/10 p-5 text-center">
-          <p className="text-lg font-semibold text-status-submitted">
-            ✅ Lis ekip la voye avèk siksè.
-          </p>
-          <p className="mt-1 text-ink/70">Mèsi.</p>
-        </div>
-
-        <section className="mt-6 rounded-2xl bg-coach-card p-4 shadow-sm">
-          <h2 className="mb-2 font-display text-sm font-semibold uppercase tracking-wide text-ink/50">
-            Onz Titilè
-          </h2>
-          <div className="divide-y divide-coach-line">
-            {lineup.starting_xi.map((pid: string) => {
-              const p = byId.get(pid);
-              if (!p) return null;
-              return (
-                <PlayerRow
-                  key={pid}
-                  number={p.number}
-                  name={p.full_name}
-                  trailing={lineup.captain_id === pid ? <span className="text-xs font-bold text-amber-signal">C</span> : undefined}
-                />
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="mt-4 rounded-2xl bg-coach-card p-4 shadow-sm">
-          <h2 className="mb-2 font-display text-sm font-semibold uppercase tracking-wide text-ink/50">
-            Ranplasan
-          </h2>
-          <div className="divide-y divide-coach-line">
-            {lineup.substitutes.map((pid: string) => {
-              const p = byId.get(pid);
-              if (!p) return null;
-              return <PlayerRow key={pid} number={p.number} name={p.full_name} />;
-            })}
-          </div>
-        </section>
-
-        <p className="mt-6 text-center text-xs text-ink/40">
-          Si gen erè, kontakte òganizasyon an pou yo louvri lis la ankò.
-        </p>
+    <div className="flex flex-col gap-4 pb-10">
+      <div className="animate-fade-up rounded-2xl border border-status-submitted/30 bg-status-submitted/10 p-5 text-center">
+        <p className="text-lg font-semibold text-status-submitted">✅ Lis ekip la voye avèk siksè.</p>
+        <p className="mt-1 text-ink/70">Mèsi.</p>
       </div>
-    </main>
+
+      <p className="text-center text-sm text-ink/50">Kont {opponent?.name ?? "—"}</p>
+
+      <section className="animate-fade-up rounded-2xl bg-coach-card p-4 shadow-sm">
+        <h2 className="mb-2 font-display text-sm font-semibold uppercase tracking-wide text-ink/50">
+          Onz Titilè
+        </h2>
+        <div className="divide-y divide-coach-line">
+          {lineup.starting_xi.map((pid: string, i: number) => {
+            const p = byId.get(pid);
+            if (!p) return null;
+            return (
+              <PlayerRow
+                key={pid}
+                number={p.number}
+                name={p.full_name}
+                trailing={
+                  <div className="flex gap-1">
+                    {i === 0 && <Chip tone="gk">GK</Chip>}
+                    {lineup.captain_id === pid && <Chip tone="captain">C</Chip>}
+                  </div>
+                }
+              />
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="animate-fade-up rounded-2xl bg-coach-card p-4 shadow-sm">
+        <h2 className="mb-2 font-display text-sm font-semibold uppercase tracking-wide text-ink/50">
+          Ranplasan
+        </h2>
+        <div className="divide-y divide-coach-line">
+          {lineup.substitutes.map((pid: string) => {
+            const p = byId.get(pid);
+            if (!p) return null;
+            return <PlayerRow key={pid} number={p.number} name={p.full_name} />;
+          })}
+        </div>
+      </section>
+
+      <p className="text-center text-xs text-ink/40">
+        Si gen erè, kontakte òganizasyon an pou yo louvri lis la ankò.
+      </p>
+    </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// The actual form
+// The actual form — same fields, same validation, same submitLineup() call
+// as before. Only the layout/markup around it changed.
 // ---------------------------------------------------------------------------
 function Form({
   team,
   players,
   lineup,
   opponent,
-  isHome,
   competitionName,
   round,
   token,
@@ -186,7 +171,6 @@ function Form({
   players: Player[];
   lineup: any;
   opponent: Team;
-  isHome: boolean;
   competitionName: string | null;
   round: string | null;
   token: string;
@@ -263,142 +247,142 @@ function Form({
         players={players}
         lineup={{ ...lineup, starting_xi: starters.filter(Boolean), substitutes: subs.filter(Boolean), captain_id: captain }}
         opponent={opponent}
-        isHome={isHome}
-        competitionName={competitionName}
       />
     );
   }
 
   return (
-    <main className="min-h-screen bg-coach-bg pb-24">
-      <Header team={team} opponent={opponent} isHome={isHome} competitionName={competitionName} />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 pb-10">
+      <MatchStrip opponent={opponent} competitionName={competitionName} round={round} />
 
-      <form onSubmit={handleSubmit} className="mx-auto -mt-4 max-w-md rounded-t-2xl bg-coach-bg px-4">
-        {lineup.status === "needs_correction" && (
-          <div className="mt-4 rounded-xl bg-status-correction/10 p-3 text-center text-sm font-medium text-status-correction">
-            Òganizasyon an mande pou ou korije lis la.
+      {lineup.status === "needs_correction" && (
+        <div className="flex items-center gap-2 rounded-xl bg-status-correction/10 p-3 text-sm font-medium text-status-correction">
+          <ShieldAlert size={16} className="flex-none" />
+          Òganizasyon an mande pou ou korije lis la.
+        </div>
+      )}
+
+      <section className="animate-fade-up rounded-2xl bg-coach-card p-4 shadow-sm">
+        <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-ink/50">
+          Enfòmasyon Antrenè
+        </h2>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-ink/60">Non Antrenè</label>
+            <input
+              value={coachName}
+              onChange={(e) => setCoachName(e.target.value)}
+              required
+              className="h-12 rounded-xl border border-coach-line bg-white px-3 text-ink focus:border-status-submitted focus:outline-none"
+            />
           </div>
-        )}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-ink/60">Telefòn</label>
+            <input
+              value={coachPhone}
+              onChange={(e) => setCoachPhone(e.target.value)}
+              required
+              className="h-12 rounded-xl border border-coach-line bg-white px-3 text-ink focus:border-status-submitted focus:outline-none"
+            />
+          </div>
+        </div>
+      </section>
 
-        <section className="mt-4 rounded-2xl bg-coach-card p-4 shadow-sm">
-          <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-ink/50">
-            Enfòmasyon Antrenè
-          </h2>
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-ink/60">Non Antrenè</label>
-              <input
-                value={coachName}
-                onChange={(e) => setCoachName(e.target.value)}
+      <section className="animate-fade-up rounded-2xl bg-coach-card p-4 shadow-sm">
+        <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-ink/50">
+          11 Titilè
+        </h2>
+        <div className="flex flex-col gap-3">
+          {starters.map((value, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="flex w-7 flex-none flex-col items-center font-display text-sm text-ink/40">
+                {i + 1}
+                {i === 0 && <span className="text-[9px] font-semibold text-status-submitted">GK</span>}
+              </span>
+              <Select
+                tone="light"
+                value={value}
+                onChange={(e) => updateStarter(i, e.target.value)}
                 required
-                className="h-12 rounded-xl border border-coach-line bg-white px-3 text-ink focus:border-status-submitted focus:outline-none"
-              />
+                className="flex-1"
+              >
+                <option value="">— Chwazi jwè —</option>
+                {optionsFor(value).map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {playerLabel(p)}
+                  </option>
+                ))}
+              </Select>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-ink/60">Telefòn</label>
-              <input
-                value={coachPhone}
-                onChange={(e) => setCoachPhone(e.target.value)}
-                required
-                className="h-12 rounded-xl border border-coach-line bg-white px-3 text-ink focus:border-status-submitted focus:outline-none"
-              />
+          ))}
+        </div>
+      </section>
+
+      <section className="animate-fade-up rounded-2xl bg-coach-card p-4 shadow-sm">
+        <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-ink/50">
+          Ranplasan
+        </h2>
+        <div className="flex flex-col gap-3">
+          {subs.map((value, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="font-display w-6 text-center text-sm text-ink/40">{i + 1}</span>
+              <Select
+                tone="light"
+                value={value}
+                onChange={(e) => updateSub(i, e.target.value)}
+                className="flex-1"
+              >
+                <option value="">— Chwazi jwè —</option>
+                {optionsFor(value).map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {playerLabel(p)}
+                  </option>
+                ))}
+              </Select>
             </div>
-          </div>
-        </section>
+          ))}
+        </div>
+      </section>
 
-        <section className="mt-4 rounded-2xl bg-coach-card p-4 shadow-sm">
-          <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-ink/50">
-            11 Titilè
-          </h2>
-          <div className="flex flex-col gap-3">
-            {starters.map((value, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <span className="font-display w-6 text-center text-sm text-ink/40">{i + 1}</span>
-                <Select
-                  tone="light"
-                  value={value}
-                  onChange={(e) => updateStarter(i, e.target.value)}
-                  required
-                  className="flex-1"
-                >
-                  <option value="">— Chwazi jwè —</option>
-                  {optionsFor(value).map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {playerLabel(p)}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-4 rounded-2xl bg-coach-card p-4 shadow-sm">
-          <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-ink/50">
-            Ranplasan
-          </h2>
-          <div className="flex flex-col gap-3">
-            {subs.map((value, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <span className="font-display w-6 text-center text-sm text-ink/40">{i + 1}</span>
-                <Select
-                  tone="light"
-                  value={value}
-                  onChange={(e) => updateSub(i, e.target.value)}
-                  className="flex-1"
-                >
-                  <option value="">— Chwazi jwè —</option>
-                  {optionsFor(value).map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {playerLabel(p)}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-4 rounded-2xl bg-coach-card p-4 shadow-sm">
-          <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-ink/50">
-            Kapitèn
-          </h2>
-          <Select tone="light" value={captain} onChange={(e) => setCaptain(e.target.value)}>
-            <option value="">— Chwazi kapitèn —</option>
-            {startingPlayers.map((p) => (
-              <option key={p.id} value={p.id}>
-                {playerLabel(p)}
-              </option>
-            ))}
-          </Select>
-          {startingPlayers.length === 0 && (
-            <p className="mt-2 text-xs text-ink/40">Chwazi 11 titilè yo anvan ou chwazi kapitèn nan.</p>
-          )}
-        </section>
-
-        <section className="mt-4 rounded-2xl bg-coach-card p-4 shadow-sm">
-          <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-ink/50">
-            Remak
-          </h2>
-          <textarea
-            value={remarks}
-            onChange={(e) => setRemarks(e.target.value)}
-            rows={3}
-            placeholder="Opsyonèl"
-            className="w-full rounded-xl border border-coach-line bg-white p-3 text-ink focus:border-status-submitted focus:outline-none"
-          />
-        </section>
-
-        {error && (
-          <p className="mt-4 rounded-xl bg-status-correction/10 p-3 text-center text-sm font-medium text-status-correction">
-            {error}
-          </p>
+      <section className="animate-fade-up rounded-2xl bg-coach-card p-4 shadow-sm">
+        <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-ink/50">
+          Kapitèn
+        </h2>
+        <Select tone="light" value={captain} onChange={(e) => setCaptain(e.target.value)}>
+          <option value="">— Chwazi kapitèn —</option>
+          {startingPlayers.map((p) => (
+            <option key={p.id} value={p.id}>
+              {playerLabel(p)}
+            </option>
+          ))}
+        </Select>
+        {startingPlayers.length === 0 && (
+          <p className="mt-2 text-xs text-ink/40">Chwazi 11 titilè yo anvan ou chwazi kapitèn nan.</p>
         )}
+      </section>
 
-        <Button type="submit" variant="coach" size="lg" disabled={pending} className="mt-6 w-full">
-          {pending ? "N ap voye..." : "VOYE LIS LA"}
-        </Button>
-      </form>
-    </main>
+      <section className="animate-fade-up rounded-2xl bg-coach-card p-4 shadow-sm">
+        <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-ink/50">
+          Remak
+        </h2>
+        <textarea
+          value={remarks}
+          onChange={(e) => setRemarks(e.target.value)}
+          rows={3}
+          placeholder="Opsyonèl"
+          className="w-full rounded-xl border border-coach-line bg-white p-3 text-ink focus:border-status-submitted focus:outline-none"
+        />
+      </section>
+
+      {error && (
+        <p className="rounded-xl bg-status-correction/10 p-3 text-center text-sm font-medium text-status-correction">
+          {error}
+        </p>
+      )}
+
+      <Button type="submit" variant="coach" size="lg" disabled={pending} className="w-full">
+        {pending ? "N ap voye..." : "VOYE LIS LA"}
+      </Button>
+    </form>
   );
 }

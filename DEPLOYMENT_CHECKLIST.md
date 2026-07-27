@@ -79,27 +79,48 @@ From Project Settings → API, copy:
 
 ## ☐ 7. Authorize the domain in Supabase
 
-- [ ] Supabase → Authentication → URL Configuration → add your Vercel
-      production URL (and custom domain, once attached) to
-      **Site URL** / **Redirect URLs**
+- [ ] Supabase → Authentication → URL Configuration → set **Site URL** to
+      your production URL
+- [ ] Under **Redirect URLs**, add `<your domain>/auth/callback` (and
+      `<your domain>/**` as a wildcard is fine too) — this is required for
+      the coach "forgot password" email and the admin's "Send coach login
+      invite" button to work; without it, Supabase rejects those emailed
+      links
 
 ## ☐ 8. Smoke test in production
 
 - [ ] Visit `/admin/login`, sign in with the account from step 2
 - [ ] Create a competition
-- [ ] Create two teams (try uploading a logo on one)
-- [ ] Confirm each team's private link opens correctly at `/team/<token>`
-      in an incognito window (simulating a coach — no login)
+- [ ] Create two teams (try uploading a logo on one) — coach email is
+      now required, since it's the Coach Portal login identity
 - [ ] Create a match between the two teams
-- [ ] Confirm the dashboard shows both teams as 🟡 Waiting
-- [ ] Submit a lineup from one team's coach link, confirm:
+- [ ] Confirm each team's private link opens the new **landing page** at
+      `/team/<token>` in an incognito window (simulating a coach — no
+      login yet), showing the team/opponent match card and a LOGIN button
+- [ ] From a team's admin detail page, click **Send coach login invite**
+      and confirm the coach receives the invite email
+- [ ] Open the invite link in an incognito window, set a password on
+      `/team/reset-password`, and confirm it lands on that team's
+      **dashboard**
+- [ ] On the dashboard, confirm: coach name, team identity, countdown to
+      next match, lineup status, upcoming matches list, and the
+      notifications bell all render
+- [ ] Try opening a **different** team's dashboard URL while logged in as
+      this coach — confirm it redirects to that other team's login
+      instead of showing its data (this is the coach-isolation check)
+- [ ] Use the bottom nav to visit Calendar and Profile; from Profile,
+      change the password and confirm re-login works with the new one
+- [ ] From the dashboard's **Soumèt Lis** quick action, open the lineup
+      page and submit a lineup, confirm:
   - [ ] The confirmation message appears and the page locks
-  - [ ] The dashboard flips that team to 🟢 Submitted
-  - [ ] The lineup detail page shows all three export formats correctly
+  - [ ] The admin dashboard flips that team to 🟢 Submitted
+  - [ ] The admin lineup detail page shows all three export formats correctly
   - [ ] Copy and Download both work on each export format
-- [ ] From the lineup detail page, click **Reopen for correction** and
-      confirm the coach link becomes editable again and the dashboard
-      shows 🔴 Needs Correction
+- [ ] From the admin lineup detail page, click **Reopen for correction**
+      and confirm the coach's lineup page becomes editable again and the
+      admin dashboard shows 🔴 Needs Correction
+- [ ] From the coach login page, use **Ou bliye modpas ou?** (forgot
+      password), confirm the reset email arrives and the link works
 
 ## ☐ 9. Handoff
 

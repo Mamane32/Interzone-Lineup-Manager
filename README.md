@@ -10,6 +10,10 @@ instant, structured export ready to paste into vMix.
 > a full, click-by-click walkthrough using the GitHub Desktop app, written for
 > total beginners.
 
+> **Coach Portal redesign (Sprint 1)?** See
+> **[SPRINT_1_COACH_PORTAL.md](./SPRINT_1_COACH_PORTAL.md)** for what changed,
+> why, and the schema-safe design decisions behind coach login.
+
 ---
 
 ## Stack

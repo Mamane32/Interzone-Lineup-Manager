@@ -33,7 +33,7 @@ export async function createTeam(formData: FormData) {
   const coach_email = String(formData.get("coach_email") ?? "").trim() || null;
   const competition_id = String(formData.get("competition_id") ?? "") || null;
 
-  if (!name || !coach_name || !coach_phone) return;
+  if (!name || !coach_name || !coach_phone || !coach_email) return;
 
   const logo_url = await uploadLogoIfPresent(formData);
 
@@ -59,7 +59,7 @@ export async function updateTeam(id: string, formData: FormData) {
   const coach_email = String(formData.get("coach_email") ?? "").trim() || null;
   const competition_id = String(formData.get("competition_id") ?? "") || null;
 
-  if (!name || !coach_name || !coach_phone) return;
+  if (!name || !coach_name || !coach_phone || !coach_email) return;
 
   const logo_url = await uploadLogoIfPresent(formData);
 
