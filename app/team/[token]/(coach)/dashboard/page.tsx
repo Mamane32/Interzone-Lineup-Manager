@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { ClipboardList, History, CalendarDays, UserCircle2, Trophy } from "lucide-react";
+import { ClipboardList, History, CalendarDays, UserCircle2, Trophy, MapPin } from "lucide-react";
 import { requireCoach } from "@/lib/coach-auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import CountdownTimer from "@/components/coach/CountdownTimer";
 import MatchListItem from "@/components/coach/MatchListItem";
 import NotificationsPanel, { type NotificationItem } from "@/components/coach/NotificationsPanel";
 import StatusBadge from "@/components/ui/StatusBadge";
+import { getTheme } from "@/lib/team-theme";
+import type { Team } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +36,9 @@ export default async function DashboardPage({ params }: { params: { token: strin
     .sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime());
 
   const next = upcoming[0];
-  const nextOpponent = next ? (next.match.home_team_id === team.id ? next.match.away_team : next.match.home_team) : null;
+  const nextOpponent: Team | null = next ? (next.match.home_team_id === team.id ? next.match.away_team : next.match.home_team) : null;
   const nextISO = next ? `${next.match.match_date}T${next.match.match_time}` : null;
+  const nextHomeTeam: Team | null = next ? next.match.home_team : null;
 
   const notifications: NotificationItem[] = [];
   if (next && nextISO) {
@@ -63,51 +66,77 @@ export default async function DashboardPage({ params }: { params: { token: strin
   }
   notifications.push({
     id: "admin-example",
-    icon: "admin",
+    icon: "announcement",
     title: "Mesaj Administratè",
     body: "Tanpri konfime kapitèn ekip la anvan match la.",
   });
 
-  return (
-    <div className="flex flex-col gap-5">
-      {/* Hero */}
-      <div className="rounded-2xl bg-gradient-to-br from-ink via-ink to-ink-panel p-5 text-white shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 font-display text-sm">
-              {team.coach_name.slice(0, 2).toUpperCase()}
-            </div>
-            <div>
-              <p className="text-xs text-white/50">Byenveni,</p>
-              <p className="font-display text-base font-semibold">{team.coach_name}</p>
-            </div>
-          </div>
-          <NotificationsPanel items={notifications} />
-        </div>
+  const competitionTheme = getTheme(next?.match?.competition?.id ?? team.competition_id);
+  const matchTheme = getTheme(nextOpponent?.name ?? team.name);
 
-        {next ? (
-          <div className="mt-5 border-t border-white/10 pt-4">
-            <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-amber-signal">
-              <Trophy size={12} /> {next.match.competition?.name ?? "Match"} · Kont {nextOpponent?.name}
-            </p>
-            <div className="mt-2">{nextISO && <CountdownTimer targetISO={nextISO} />}</div>
-            <div className="mt-3">
-              <StatusBadge status={next.status} />
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Top bar — greeting + notifications */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-ink font-display text-sm text-white">
+            {team.coach_name.slice(0, 2).toUpperCase()}
+          </div>
+          <div>
+            <p className="text-xs text-ink/40">Byenveni,</p>
+            <p className="font-display text-base font-semibold text-ink">{team.coach_name}</p>
+          </div>
+        </div>
+        <NotificationsPanel items={notifications} />
+      </div>
+
+      {/* Hero match card */}
+      {next ? (
+        <div
+          className={`animate-fade-up overflow-hidden rounded-3xl bg-gradient-to-br ${matchTheme.heroFrom} ${matchTheme.heroTo} text-white shadow-[0_25px_60px_-20px_rgba(0,0,0,0.5)]`}
+        >
+          {next.match.competition?.name && (
+            <div className={`flex items-center gap-1.5 bg-black/25 px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.15em] ${competitionTheme.chipText}`}>
+              <Trophy size={12} /> {next.match.competition.name}
+              {next.match.round ? ` · ${next.match.round}` : ""}
+            </div>
+          )}
+
+          <div className="px-5 pb-5 pt-4">
+            <div className="flex items-center justify-between">
+              <TeamBadge t={team} />
+              <div className="flex flex-col items-center px-2">
+                <span className="font-display text-[11px] uppercase tracking-widest text-white/60">Kont</span>
+                <span className="mt-1 font-display text-2xl font-bold">VS</span>
+              </div>
+              <TeamBadge t={nextOpponent} />
+            </div>
+
+            <div className="mt-5 flex flex-col items-center gap-3 border-t border-white/15 pt-4">
+              <CountdownTimer targetISO={nextISO!} />
+              <div className="flex items-center gap-3">
+                <StatusBadge status={next.status} />
+                {nextHomeTeam && (
+                  <span className="flex items-center gap-1 text-xs text-white/60">
+                    <MapPin size={12} /> Teren {nextHomeTeam.name}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        ) : (
-          <p className="mt-5 border-t border-white/10 pt-4 text-sm text-white/50">
-            Pa gen match ki pwograme pou kounye a.
-          </p>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="animate-fade-up rounded-3xl bg-gradient-to-br from-ink to-ink-panel p-8 text-center text-white/60 shadow-sm">
+          Pa gen match ki pwograme pou kounye a.
+        </div>
+      )}
 
       {/* Quick actions */}
       <div className="grid grid-cols-2 gap-3">
-        <QuickAction href={`/team/${params.token}/lineup`} icon={ClipboardList} label="Soumèt Lis" />
-        <QuickAction href={`/team/${params.token}/calendar#past`} icon={History} label="Ansyen Lis" />
-        <QuickAction href={`/team/${params.token}/calendar`} icon={CalendarDays} label="Kalandriye" />
-        <QuickAction href={`/team/${params.token}/profile`} icon={UserCircle2} label="Pwofil" />
+        <QuickAction href={`/team/${params.token}/lineup`} icon={ClipboardList} label="Soumèt Lis" index={0} />
+        <QuickAction href={`/team/${params.token}/calendar#past`} icon={History} label="Ansyen Lis" index={1} />
+        <QuickAction href={`/team/${params.token}/calendar`} icon={CalendarDays} label="Kalandriye" index={2} />
+        <QuickAction href={`/team/${params.token}/profile`} icon={UserCircle2} label="Pwofil" index={3} />
       </div>
 
       {/* Upcoming matches */}
@@ -117,17 +146,22 @@ export default async function DashboardPage({ params }: { params: { token: strin
         </h2>
         <div className="flex flex-col gap-2">
           {upcoming.length === 0 && <p className="text-sm text-ink/40">Pa gen match ki pwograme.</p>}
-          {upcoming.slice(0, 4).map((l) => {
+          {upcoming.slice(0, 4).map((l, i) => {
             const opp = l.match.home_team_id === team.id ? l.match.away_team : l.match.home_team;
+            const homeTeam = l.match.home_team;
             return (
               <MatchListItem
                 key={l.id}
                 token={params.token}
                 matchId={l.match_id}
                 opponentName={opp?.name ?? "—"}
+                opponentLogoUrl={opp?.logo_url}
+                homeTeamName={homeTeam?.name}
+                competitionName={l.match.competition?.name}
                 matchDate={l.match.match_date}
                 matchTime={l.match.match_time}
                 status={l.status}
+                index={i}
               />
             );
           })}
@@ -137,11 +171,29 @@ export default async function DashboardPage({ params }: { params: { token: strin
   );
 }
 
-function QuickAction({ href, icon: Icon, label }: { href: string; icon: any; label: string }) {
+function TeamBadge({ t }: { t: Team | null }) {
+  if (!t) return <div className="h-16 w-16" />;
+  return (
+    <div className="flex flex-1 flex-col items-center gap-2 text-center">
+      {t.logo_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={t.logo_url} alt="" className="h-16 w-16 rounded-full bg-white/10 object-cover ring-2 ring-white/30" />
+      ) : (
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 font-display text-lg ring-2 ring-white/30">
+          {t.name.slice(0, 2).toUpperCase()}
+        </div>
+      )}
+      <span className="max-w-[6.5rem] truncate text-xs font-semibold">{t.name}</span>
+    </div>
+  );
+}
+
+function QuickAction({ href, icon: Icon, label, index = 0 }: { href: string; icon: any; label: string; index?: number }) {
   return (
     <Link
       href={href}
-      className="flex flex-col items-center gap-2 rounded-2xl bg-coach-card p-4 text-center shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md"
+      style={{ "--stagger": index } as React.CSSProperties}
+      className="animate-fade-up flex flex-col items-center gap-2 rounded-2xl bg-coach-card p-4 text-center shadow-sm ring-1 ring-black/5 transition-all hover:-translate-y-0.5 hover:shadow-lg active:scale-95"
     >
       <span className="flex h-11 w-11 items-center justify-center rounded-full bg-status-submitted/10 text-status-submitted">
         <Icon size={20} />

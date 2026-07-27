@@ -12,7 +12,9 @@ instant, structured export ready to paste into vMix.
 
 > **Coach Portal redesign (Sprint 1)?** See
 > **[SPRINT_1_COACH_PORTAL.md](./SPRINT_1_COACH_PORTAL.md)** for what changed,
-> why, and the schema-safe design decisions behind coach login.
+> why, and the schema-safe design decisions behind coach login, and
+> **[SPRINT_1_UI_POLISH.md](./SPRINT_1_UI_POLISH.md)** for the follow-up
+> visual polish pass (dynamic team theming, premium match cards, animations).
 
 ---
 

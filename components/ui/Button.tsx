@@ -32,7 +32,7 @@ const Button = forwardRef<HTMLButtonElement, Props>(
       <button
         ref={ref}
         className={`inline-flex items-center justify-center gap-2 rounded-xl font-semibold
-          transition-colors disabled:cursor-not-allowed ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+          transition-all duration-150 active:scale-[0.97] disabled:cursor-not-allowed disabled:active:scale-100 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
         {...props}
       />
     );

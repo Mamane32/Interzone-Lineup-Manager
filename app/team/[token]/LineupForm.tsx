@@ -102,7 +102,7 @@ function ConfirmedView({
 
   return (
     <div className="flex flex-col gap-4 pb-10">
-      <div className="animate-fade-up rounded-2xl border border-status-submitted/30 bg-status-submitted/10 p-5 text-center">
+      <div className="animate-success-pop rounded-2xl border border-status-submitted/30 bg-status-submitted/10 p-5 text-center">
         <p className="text-lg font-semibold text-status-submitted">✅ Lis ekip la voye avèk siksè.</p>
         <p className="mt-1 text-ink/70">Mèsi.</p>
       </div>

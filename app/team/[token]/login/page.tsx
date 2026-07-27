@@ -4,6 +4,7 @@ import { Lock, Mail, ShieldCheck } from "lucide-react";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { coachLogin } from "./actions";
 import Button from "@/components/ui/Button";
+import { getTheme } from "@/lib/team-theme";
 
 export const dynamic = "force-dynamic";
 
@@ -24,22 +25,23 @@ export default async function CoachLoginPage({
   if (!team) notFound();
 
   const errorMessage = searchParams.error ? ERRORS[searchParams.error] ?? "Gen yon erè." : null;
+  const theme = getTheme(team.name);
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-4 py-12">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,176,32,0.12),transparent_60%)]" />
+      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-b ${theme.heroFrom}/20 via-transparent to-transparent`} />
 
-      <div className="relative w-full max-w-sm">
+      <div className="animate-fade-up relative w-full max-w-sm">
         <div className="mb-8 text-center">
           {team.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={team.logo_url}
               alt=""
-              className="mx-auto h-16 w-16 rounded-full object-cover ring-4 ring-amber-signal/20"
+              className={`mx-auto h-16 w-16 rounded-full object-cover ring-4 ${theme.ring}`}
             />
           ) : (
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-ink-panel to-ink text-lg font-display text-amber-signal ring-4 ring-amber-signal/20">
+            <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br ${theme.heroFrom} ${theme.heroTo} text-lg font-display text-white ring-4 ${theme.ring}`}>
               {team.name.slice(0, 2).toUpperCase()}
             </div>
           )}
