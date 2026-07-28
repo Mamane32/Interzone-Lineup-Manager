@@ -98,10 +98,148 @@ export type MatchEventType =
   | "match_resume"
   | "match_end";
 
+export type FoundationStatus = "active" | "archived";
+
+export type CompetitionType =
+  | "league"
+  | "cup"
+  | "knockout"
+  | "round_robin"
+  | "league_playoffs"
+  | "group_knockout"
+  | "friendly_tournament"
+  | "custom";
+
+export type CompetitionGender = "male" | "female" | "mixed" | "open";
+
+export type StageType =
+  | "regular_season"
+  | "group_stage"
+  | "knockout"
+  | "quarterfinal"
+  | "semifinal"
+  | "third_place"
+  | "final"
+  | "custom";
+
+export type VenueSurfaceType = "grass" | "artificial_turf" | "hybrid" | "other";
+
 export interface Competition {
   id: string;
   name: string;
   created_at: string;
+  // Sprint 2.0 — Competition Foundation (supabase/migrations/006_competition_foundation.sql).
+  // Optional so pre-migration records / older code paths still type-check.
+  organization_id?: string | null;
+  short_name?: string | null;
+  slug?: string | null;
+  description?: string | null;
+  logo_url?: string | null;
+  competition_type?: CompetitionType | null;
+  sport?: string;
+  gender?: CompetitionGender | null;
+  age_category?: string | null;
+  timezone?: string | null;
+  match_duration?: number;
+  halftime_duration?: number;
+  extra_time_enabled?: boolean;
+  penalties_enabled?: boolean;
+  points_win?: number;
+  points_draw?: number;
+  points_loss?: number;
+  status?: FoundationStatus;
+  updated_at?: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  short_name: string | null;
+  slug: string;
+  description: string | null;
+  logo_url: string | null;
+  banner_url: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+  country: string | null;
+  city: string | null;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  timezone: string | null;
+  currency: string | null;
+  status: FoundationStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Season {
+  id: string;
+  competition_id: string;
+  name: string;
+  year: number | null;
+  registration_start: string | null;
+  registration_end: string | null;
+  season_start: string | null;
+  season_end: string | null;
+  status: FoundationStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Division {
+  id: string;
+  season_id: string;
+  name: string;
+  abbreviation: string | null;
+  display_order: number;
+  status: FoundationStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Stage {
+  id: string;
+  division_id: string;
+  name: string;
+  stage_type: StageType | null;
+  display_order: number;
+  status: FoundationStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompetitionGroup {
+  id: string;
+  stage_id: string;
+  name: string;
+  display_order: number;
+  status: FoundationStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Venue {
+  id: string;
+  organization_id: string | null;
+  name: string;
+  short_name: string | null;
+  slug: string | null;
+  address: string | null;
+  city: string | null;
+  country: string | null;
+  gps_latitude: number | null;
+  gps_longitude: number | null;
+  capacity: number | null;
+  surface_type: VenueSurfaceType | null;
+  lighting: boolean;
+  home_team_supported: boolean;
+  google_maps_url: string | null;
+  photo_url: string | null;
+  status: FoundationStatus;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Team {

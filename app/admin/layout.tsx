@@ -19,6 +19,11 @@ const IAM_NAV = [
   { href: "/admin/audit-log", label: "Audit Log" },
 ];
 
+const FOUNDATION_NAV = [
+  { href: "/admin/organizations", label: "Organizations" },
+  { href: "/admin/venues", label: "Venues" },
+];
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-ink text-white">
@@ -52,6 +57,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             Identity &amp; Access
           </span>
           {IAM_NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium text-ink-muted hover:bg-white/5 hover:text-white"
+            >
+              {item.label}
+            </Link>
+          ))}
+          <span className="mx-1 h-4 w-px flex-none bg-ink-line" aria-hidden="true" />
+          <span className="flex-none whitespace-nowrap px-1 text-[11px] font-semibold uppercase tracking-wide text-ink-muted/60">
+            Competition Management
+          </span>
+          {FOUNDATION_NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
