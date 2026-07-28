@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import Button from "@/components/ui/Button";
 
+type ActionResult = { ok: true } | { ok: false; error: string } | void;
+
 export default function ConfirmActionDialog({
   triggerLabel,
   triggerVariant = "secondary",
@@ -17,21 +19,32 @@ export default function ConfirmActionDialog({
   title: string;
   body: string;
   confirmLabel: string;
-  action: () => Promise<void>;
+  action: () => Promise<ActionResult>;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   function confirm() {
+    setError(null);
     startTransition(async () => {
-      await action();
+      const result = await action();
+      if (result && result.ok === false) {
+        setError(result.error);
+        return;
+      }
       setOpen(false);
     });
   }
 
+  function openDialog() {
+    setError(null);
+    setOpen(true);
+  }
+
   return (
     <>
-      <Button type="button" variant={triggerVariant} size="md" onClick={() => setOpen(true)}>
+      <Button type="button" variant={triggerVariant} size="md" onClick={openDialog}>
         {triggerLabel}
       </Button>
 
@@ -60,6 +73,11 @@ export default function ConfirmActionDialog({
               {title}
             </h2>
             <p className="mt-1.5 text-sm text-ink-muted">{body}</p>
+            {error && (
+              <p role="alert" className="mt-3 rounded-lg bg-status-correction/10 px-3 py-2 text-sm font-medium text-status-correction">
+                {error}
+              </p>
+            )}
             <div className="mt-4 flex gap-2">
               <Button type="button" variant="secondary" size="md" onClick={() => setOpen(false)} className="flex-1">
                 Cancel

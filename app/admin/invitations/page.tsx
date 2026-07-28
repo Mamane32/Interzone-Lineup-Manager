@@ -7,14 +7,18 @@ import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import InvitationStatusBadge from "@/components/iam/InvitationStatusBadge";
 import RoleBadge from "@/components/iam/RoleBadge";
-import type { Competition, Invitation, PlatformRole, Team } from "@/lib/types";
+import { PLATFORM_ROLES } from "@/lib/validation";
+import type { Competition, Invitation, Team } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const ROLES: PlatformRole[] = ["admin", "competition_manager", "broadcast_operator", "coach", "referee", "media", "viewer"];
-
 const ERROR_MESSAGES: Record<string, string> = {
   "missing-fields": "Email and role are required.",
+  forbidden: "You don't have permission to grant that role.",
+  "invalid-scope": "That team/competition combination isn't valid.",
+  "setup-failed": "The invite email was sent, but finishing account setup failed — check the audit log and try again.",
+  "not-found": "That invitation no longer exists.",
+  "not-pending": "Only a pending invitation can be resent or revoked.",
   "save-failed": "Could not save the invitation. Please try again.",
   "email-failed":
     "The invitation record was saved, but the email could not be sent — check that Supabase Auth email is configured (Authentication → Email Templates / SMTP settings).",
@@ -23,9 +27,10 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default async function InvitationsPage({
   searchParams,
 }: {
-  searchParams: { sent?: string; error?: string };
+  searchParams: { sent?: string; resent?: string; revoked?: string; error?: string };
 }) {
-  await requireAdmin();
+  const { role: actorRole } = await requireAdmin();
+  const invitableRoles = actorRole === "super_admin" ? PLATFORM_ROLES : PLATFORM_ROLES.filter((r) => r !== "super_admin");
 
   const admin = supabaseAdmin();
   const [{ data: invitations }, { data: competitions }, { data: teams }] = await Promise.all([
@@ -50,6 +55,16 @@ export default async function InvitationsPage({
             Invitation sent.
           </p>
         )}
+        {searchParams.resent && (
+          <p className="mb-4 rounded-lg bg-status-submitted/10 px-3 py-2 text-sm font-medium text-status-submitted">
+            Invitation resent.
+          </p>
+        )}
+        {searchParams.revoked && (
+          <p className="mb-4 rounded-lg bg-status-submitted/10 px-3 py-2 text-sm font-medium text-status-submitted">
+            Invitation revoked.
+          </p>
+        )}
         {searchParams.error && (
           <p className="mb-4 rounded-lg bg-status-correction/10 px-3 py-2 text-sm font-medium text-status-correction">
             {ERROR_MESSAGES[searchParams.error] ?? "Something went wrong."}
@@ -60,7 +75,7 @@ export default async function InvitationsPage({
           <Input id="email" name="email" type="email" label="Email" required />
           <Select id="role_key" name="role_key" label="Role" tone="dark" required>
             <option value="">Select role</option>
-            {ROLES.map((r) => (
+            {invitableRoles.map((r) => (
               <option key={r} value={r}>
                 {r.replace("_", " ")}
               </option>

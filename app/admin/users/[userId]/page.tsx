@@ -11,13 +11,26 @@ import Button from "@/components/ui/Button";
 import UserStatusBadge from "@/components/iam/StatusBadge";
 import RoleBadge from "@/components/iam/RoleBadge";
 import ConfirmActionDialog from "@/components/iam/ConfirmActionDialog";
-import type { AccessStatus, AuditLogEntry, Competition, PlatformRole, Team } from "@/lib/types";
+import { PLATFORM_ROLES } from "@/lib/validation";
+import type { AccessStatus, AuditLogEntry, Competition, Team } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const ROLES: PlatformRole[] = ["super_admin", "admin", "competition_manager", "broadcast_operator", "coach", "referee", "media", "viewer"];
+const ERROR_MESSAGES: Record<string, string> = {
+  "not-found": "That user no longer exists.",
+  "save-failed": "Could not save that change. Please try again.",
+  "invalid-role": "Select a valid role.",
+  forbidden: "You don't have permission to make that change.",
+  "invalid-scope": "That team/competition combination isn't valid.",
+};
 
-export default async function UserDetailPage({ params }: { params: { userId: string } }) {
+export default async function UserDetailPage({
+  params,
+  searchParams,
+}: {
+  params: { userId: string };
+  searchParams: { saved?: string; error?: string };
+}) {
   await requireAdmin();
 
   const user = await getUserWithAssignments(params.userId);
@@ -50,6 +63,15 @@ export default async function UserDetailPage({ params }: { params: { userId: str
           <StatusActions userId={user.id} status={user.status} />
         </div>
       </div>
+
+      {searchParams.saved && (
+        <p className="rounded-lg bg-status-submitted/10 px-3 py-2 text-sm font-medium text-status-submitted">Saved.</p>
+      )}
+      {searchParams.error && (
+        <p className="rounded-lg bg-status-correction/10 px-3 py-2 text-sm font-medium text-status-correction">
+          {ERROR_MESSAGES[searchParams.error] ?? "Something went wrong."}
+        </p>
+      )}
 
       {/* Overview */}
       <Card>
@@ -85,17 +107,21 @@ export default async function UserDetailPage({ params }: { params: { userId: str
               </div>
               <div className="flex gap-2">
                 {a.status === "active" ? (
-                  <form action={setAssignmentStatus.bind(null, user.id, a.id, "suspended" as AccessStatus)}>
-                    <Button type="submit" variant="secondary" size="md">
-                      Suspend
-                    </Button>
-                  </form>
+                  <ConfirmActionDialog
+                    triggerLabel="Suspend"
+                    title="Suspend this assignment?"
+                    body={`${user.full_name || user.email} will immediately lose access to this workspace. This can be reversed.`}
+                    confirmLabel="Suspend"
+                    action={setAssignmentStatus.bind(null, user.id, a.id, "suspended" as AccessStatus)}
+                  />
                 ) : (
-                  <form action={setAssignmentStatus.bind(null, user.id, a.id, "active" as AccessStatus)}>
-                    <Button type="submit" variant="secondary" size="md">
-                      Reactivate
-                    </Button>
-                  </form>
+                  <ConfirmActionDialog
+                    triggerLabel="Reactivate"
+                    title="Reactivate this assignment?"
+                    body={`Restores ${user.full_name || user.email}'s access to this workspace.`}
+                    confirmLabel="Reactivate"
+                    action={setAssignmentStatus.bind(null, user.id, a.id, "active" as AccessStatus)}
+                  />
                 )}
                 <ConfirmActionDialog
                   triggerLabel="Revoke"
@@ -115,7 +141,7 @@ export default async function UserDetailPage({ params }: { params: { userId: str
           <form action={addAssignment.bind(null, user.id)} className="mt-3 grid gap-3 sm:grid-cols-3">
             <Select id="role_key" name="role_key" label="Role" tone="dark" required>
               <option value="">Select role</option>
-              {ROLES.map((r) => (
+              {PLATFORM_ROLES.map((r) => (
                 <option key={r} value={r}>
                   {r.replace("_", " ")}
                 </option>
@@ -168,11 +194,13 @@ function StatusActions({ userId, status }: { userId: string; status: AccessStatu
   if (status === "active") {
     return (
       <div className="flex gap-2">
-        <form action={updateUserStatus.bind(null, userId, "suspended" as AccessStatus)}>
-          <Button type="submit" variant="secondary" size="md">
-            Suspend
-          </Button>
-        </form>
+        <ConfirmActionDialog
+          triggerLabel="Suspend"
+          title="Suspend this account?"
+          body="They will lose access to every workspace immediately. This can be reversed."
+          confirmLabel="Suspend"
+          action={updateUserStatus.bind(null, userId, "suspended" as AccessStatus)}
+        />
         <ConfirmActionDialog
           triggerLabel="Disable"
           triggerVariant="danger"
@@ -187,11 +215,13 @@ function StatusActions({ userId, status }: { userId: string; status: AccessStatu
 
   return (
     <div className="flex gap-2">
-      <form action={updateUserStatus.bind(null, userId, "active" as AccessStatus)}>
-        <Button type="submit" variant="secondary" size="md">
-          Reactivate
-        </Button>
-      </form>
+      <ConfirmActionDialog
+        triggerLabel="Reactivate"
+        title="Reactivate this account?"
+        body="Restores access to every currently-active assignment this account holds."
+        confirmLabel="Reactivate"
+        action={updateUserStatus.bind(null, userId, "active" as AccessStatus)}
+      />
       <ConfirmActionDialog
         triggerLabel="Archive"
         triggerVariant="danger"

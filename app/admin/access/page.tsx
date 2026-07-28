@@ -2,20 +2,32 @@ import { AlertTriangle } from "lucide-react";
 import { requireAdmin } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getLegacyCoachTeams } from "@/lib/iam";
-import type { AssignmentWithScope } from "@/lib/iam";
 import { createAssignment, updateAssignmentStatus } from "./actions";
 import Card from "@/components/ui/Card";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import RoleBadge from "@/components/iam/RoleBadge";
 import UserStatusBadge from "@/components/iam/StatusBadge";
+import ConfirmActionDialog from "@/components/iam/ConfirmActionDialog";
+import { PLATFORM_ROLES } from "@/lib/validation";
 import type { AccessStatus, Competition, Profile, Team } from "@/lib/types";
+import type { AssignmentWithScope } from "@/lib/iam";
 
 export const dynamic = "force-dynamic";
 
-const ROLES = ["super_admin", "admin", "competition_manager", "broadcast_operator", "coach", "referee", "media", "viewer"] as const;
+const ERROR_MESSAGES: Record<string, string> = {
+  "missing-fields": "Select a user and a valid role.",
+  "not-found": "That user no longer exists.",
+  forbidden: "You don't have permission to make that change.",
+  "invalid-scope": "That team/competition combination isn't valid.",
+  "save-failed": "Could not save that assignment. Please try again.",
+};
 
-export default async function AccessAssignmentsPage() {
+export default async function AccessAssignmentsPage({
+  searchParams,
+}: {
+  searchParams: { saved?: string; error?: string };
+}) {
   await requireAdmin();
 
   const admin = supabaseAdmin();
@@ -39,6 +51,15 @@ export default async function AccessAssignmentsPage() {
         <h1 className="font-display text-3xl font-semibold">Access Assignments</h1>
         <p className="text-ink-muted">Every role grant across the platform.</p>
       </div>
+
+      {searchParams.saved && (
+        <p className="rounded-lg bg-status-submitted/10 px-3 py-2 text-sm font-medium text-status-submitted">Saved.</p>
+      )}
+      {searchParams.error && (
+        <p className="rounded-lg bg-status-correction/10 px-3 py-2 text-sm font-medium text-status-correction">
+          {ERROR_MESSAGES[searchParams.error] ?? "Something went wrong."}
+        </p>
+      )}
 
       {legacyTeams.length > 0 && (
         <Card className="border-status-waiting/30 bg-status-waiting/5">
@@ -82,7 +103,7 @@ export default async function AccessAssignmentsPage() {
           </Select>
           <Select id="role_key" name="role_key" label="Role" tone="dark" required>
             <option value="">Select role</option>
-            {ROLES.map((r) => (
+            {PLATFORM_ROLES.map((r) => (
               <option key={r} value={r}>
                 {r.replace("_", " ")}
               </option>
@@ -138,21 +159,25 @@ export default async function AccessAssignmentsPage() {
                       {!a.team && !a.competition && "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <UserStatusBadge status={a.status as AccessStatus} />
+                      <UserStatusBadge status={a.status} />
                     </td>
                     <td className="px-4 py-3">
                       {a.status === "active" ? (
-                        <form action={updateAssignmentStatus.bind(null, a.id, "suspended" as AccessStatus)}>
-                          <Button type="submit" variant="secondary" size="md">
-                            Suspend
-                          </Button>
-                        </form>
+                        <ConfirmActionDialog
+                          triggerLabel="Suspend"
+                          title="Suspend this assignment?"
+                          body={`${profile?.full_name || profile?.email || "This user"} will immediately lose access to this workspace.`}
+                          confirmLabel="Suspend"
+                          action={updateAssignmentStatus.bind(null, a.id, "suspended" as AccessStatus)}
+                        />
                       ) : (
-                        <form action={updateAssignmentStatus.bind(null, a.id, "active" as AccessStatus)}>
-                          <Button type="submit" variant="secondary" size="md">
-                            Reactivate
-                          </Button>
-                        </form>
+                        <ConfirmActionDialog
+                          triggerLabel="Reactivate"
+                          title="Reactivate this assignment?"
+                          body={`Restores ${profile?.full_name || profile?.email || "this user"}'s access to this workspace.`}
+                          confirmLabel="Reactivate"
+                          action={updateAssignmentStatus.bind(null, a.id, "active" as AccessStatus)}
+                        />
                       )}
                     </td>
                   </tr>

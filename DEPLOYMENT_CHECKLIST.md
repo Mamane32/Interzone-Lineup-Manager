@@ -13,10 +13,13 @@ Full context for each step is in `README.md`.
       login's role model — additive only)
 - [ ] Then run `supabase/migrations/004_iam_foundation.sql` (Identity &
       Access Management — additive only, seeds `role_metadata`)
+- [ ] Then run `supabase/migrations/005_iam_hardening.sql` (invitation
+      traceability + audit-log immutability trigger — additive only)
 - [ ] Confirm these exist afterward:
   - [ ] Tables: `competitions`, `teams`, `players`, `matches`, `lineups`, `match_events`, `profiles`, `user_access_assignments`, `invitations`, `audit_logs`, `role_metadata`
   - [ ] Enum types `lineup_status`, `match_live_status`, `match_event_type`, `access_status`, `platform_role`, `invitation_status`
-  - [ ] Trigger `matches_create_lineups` (Database → Triggers)
+  - [ ] Triggers `matches_create_lineups`, `audit_logs_no_update`,
+        `audit_logs_no_delete` (Database → Triggers)
   - [ ] Storage bucket `team-logos`, marked **public** (Storage tab)
   - [ ] RLS shows **enabled** with **0 policies** on every table, including
         `profiles`, `user_access_assignments`, `invitations`, `audit_logs`,

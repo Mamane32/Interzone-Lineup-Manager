@@ -29,6 +29,7 @@ export interface UserAccessAssignment {
   competition_id: string | null;
   team_id: string | null;
   status: AccessStatus;
+  invitation_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -45,6 +46,7 @@ export interface Invitation {
   status: InvitationStatus;
   message: string | null;
   invited_by: string | null;
+  invited_user_id: string | null;
   accepted_user_id: string | null;
   expires_at: string | null;
   created_at: string;

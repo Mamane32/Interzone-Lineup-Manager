@@ -1,6 +1,7 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import type { AccessStatus, PlatformRole, Profile, UserAccessAssignment } from "@/lib/types";
+import { ROLES_ALLOWING_COMPETITION, ROLES_ALLOWING_TEAM, ROLES_REQUIRING_TEAM } from "@/lib/validation";
 
 export type AssignmentWithScope = UserAccessAssignment & {
   team: { id: string; name: string } | null;
@@ -83,6 +84,57 @@ export async function getUserWithAssignments(userId: string): Promise<ProfileWit
   if (!profile) return null;
   const [withAssignments] = await attachAssignments([profile as Profile]);
   return withAssignments;
+}
+
+/**
+ * Server-side scope validation for a new/edited assignment (hardening
+ * item 6). Never trusts that a submitted competition/team combination is
+ * meaningful just because it round-tripped through a <select> — re-checks
+ * against the database on every call.
+ */
+export type ScopeResolution =
+  | { ok: true; competitionId: string | null; teamId: string | null }
+  | { ok: false; error: string };
+
+export async function resolveAssignmentScope(
+  roleKey: PlatformRole,
+  competitionId: string | null,
+  teamId: string | null
+): Promise<ScopeResolution> {
+  const admin = supabaseAdmin();
+
+  // Strip scope a role has no business holding, regardless of what was submitted.
+  const allowTeam = ROLES_ALLOWING_TEAM.includes(roleKey);
+  const allowCompetition = ROLES_ALLOWING_COMPETITION.includes(roleKey);
+  const effectiveTeamId = allowTeam ? teamId : null;
+  const effectiveCompetitionId = allowCompetition ? competitionId : null;
+
+  if (ROLES_REQUIRING_TEAM.includes(roleKey) && !effectiveTeamId) {
+    return { ok: false, error: `Role '${roleKey}' requires an assigned team.` };
+  }
+
+  if (effectiveTeamId) {
+    const { data: team } = await admin.from("teams").select("id, competition_id").eq("id", effectiveTeamId).maybeSingle();
+    if (!team) return { ok: false, error: "The selected team does not exist." };
+    if (effectiveCompetitionId && team.competition_id !== effectiveCompetitionId) {
+      return { ok: false, error: "The selected team does not belong to the selected competition." };
+    }
+    // Team implies its own competition even if none was explicitly submitted.
+    return { ok: true, competitionId: team.competition_id ?? effectiveCompetitionId, teamId: effectiveTeamId };
+  }
+
+  if (effectiveCompetitionId) {
+    const { data: competition } = await admin.from("competitions").select("id").eq("id", effectiveCompetitionId).maybeSingle();
+    if (!competition) return { ok: false, error: "The selected competition does not exist." };
+  }
+
+  return { ok: true, competitionId: effectiveCompetitionId, teamId: null };
+}
+
+export async function userExists(userId: string): Promise<boolean> {
+  const admin = supabaseAdmin();
+  const { data } = await admin.from("profiles").select("id").eq("id", userId).maybeSingle();
+  return !!data;
 }
 
 /** Live user count per role, for the Roles page. */

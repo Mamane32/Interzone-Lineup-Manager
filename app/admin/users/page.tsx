@@ -9,12 +9,10 @@ import Button from "@/components/ui/Button";
 import UserStatusBadge from "@/components/iam/StatusBadge";
 import RoleBadge from "@/components/iam/RoleBadge";
 import Pagination from "@/components/iam/Pagination";
+import { PLATFORM_ROLES, ACCESS_STATUSES } from "@/lib/validation";
 import type { AccessStatus, Competition, PlatformRole } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-const ROLES: PlatformRole[] = ["super_admin", "admin", "competition_manager", "broadcast_operator", "coach", "referee", "media", "viewer"];
-const STATUSES: AccessStatus[] = ["invited", "active", "suspended", "disabled", "archived"];
 
 export default async function UsersPage({
   searchParams,
@@ -48,7 +46,7 @@ export default async function UsersPage({
           <Input id="q" name="q" label="Search" placeholder="Name or email" defaultValue={searchParams.q ?? ""} />
           <Select id="role" name="role" label="Role" tone="dark" defaultValue={searchParams.role ?? ""}>
             <option value="">Any role</option>
-            {ROLES.map((r) => (
+            {PLATFORM_ROLES.map((r) => (
               <option key={r} value={r}>
                 {r.replace("_", " ")}
               </option>
@@ -56,7 +54,7 @@ export default async function UsersPage({
           </Select>
           <Select id="status" name="status" label="Status" tone="dark" defaultValue={searchParams.status ?? ""}>
             <option value="">Any status</option>
-            {STATUSES.map((s) => (
+            {ACCESS_STATUSES.map((s) => (
               <option key={s} value={s}>
                 {s}
               </option>

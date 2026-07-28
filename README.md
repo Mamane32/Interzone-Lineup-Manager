@@ -35,7 +35,11 @@ instant, structured export ready to paste into vMix.
 > **Identity & Access Management (Sprint 1.3)?** See
 > **[SPRINT_1_3_IAM_FOUNDATION.md](./SPRINT_1_3_IAM_FOUNDATION.md)** for
 > the Users/Invitations/Roles/Access/Audit Log module now in the Admin
-> Portal.
+> Portal, and
+> **[SPRINT_1_3_IAM_HARDENING.md](./SPRINT_1_3_IAM_HARDENING.md)** for
+> the security-hardening pass on top of it (invitation lifecycle,
+> super_admin protections, self-lockout guards, real audit-log
+> immutability).
 
 ---
 
@@ -86,6 +90,11 @@ Then run `supabase/migrations/004_iam_foundation.sql` (adds `invitations`,
 `audit_logs`, and `role_metadata` — the Identity & Access Management
 module in the Admin Portal; additive only, seeds `role_metadata` with the
 8 existing roles).
+
+Then run `supabase/migrations/005_iam_hardening.sql` (invitation
+traceability, and a real database trigger enforcing that `audit_logs` can
+never be updated or deleted by any code path — additive only; see
+`SPRINT_1_3_IAM_HARDENING.md`).
 
 ## 3. Create the administrator account
 
