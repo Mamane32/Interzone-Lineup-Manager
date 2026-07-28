@@ -15,9 +15,12 @@ Full context for each step is in `README.md`.
       Access Management — additive only, seeds `role_metadata`)
 - [ ] Then run `supabase/migrations/005_iam_hardening.sql` (invitation
       traceability + audit-log immutability trigger — additive only)
+- [ ] Then run `supabase/migrations/006_competition_foundation.sql`
+      (Organizations/Seasons/Divisions/Stages/Groups/Venues + extends
+      `competitions` — additive only)
 - [ ] Confirm these exist afterward:
-  - [ ] Tables: `competitions`, `teams`, `players`, `matches`, `lineups`, `match_events`, `profiles`, `user_access_assignments`, `invitations`, `audit_logs`, `role_metadata`
-  - [ ] Enum types `lineup_status`, `match_live_status`, `match_event_type`, `access_status`, `platform_role`, `invitation_status`
+  - [ ] Tables: `competitions`, `teams`, `players`, `matches`, `lineups`, `match_events`, `profiles`, `user_access_assignments`, `invitations`, `audit_logs`, `role_metadata`, `organizations`, `seasons`, `divisions`, `stages`, `competition_groups`, `venues`
+  - [ ] Enum types `lineup_status`, `match_live_status`, `match_event_type`, `access_status`, `platform_role`, `invitation_status`, `foundation_status`, `competition_type`, `competition_gender`, `stage_type`, `venue_surface_type`
   - [ ] Triggers `matches_create_lineups`, `audit_logs_no_update`,
         `audit_logs_no_delete` (Database → Triggers)
   - [ ] Storage bucket `team-logos`, marked **public** (Storage tab)

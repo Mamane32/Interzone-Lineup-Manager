@@ -24,14 +24,14 @@ export function slugify(input: string): string {
  * competitions/venues; globally unique for organizations themselves).
  */
 export async function isSlugAvailable(
-  table: "organizations" | "venues",
+  table: "organizations" | "venues" | "competitions",
   slug: string,
   opts: { organizationId?: string | null; excludeId?: string } = {}
 ): Promise<boolean> {
   const admin = supabaseAdmin();
   let query = admin.from(table).select("id").eq("slug", slug);
 
-  if (table === "venues") {
+  if (table === "venues" || table === "competitions") {
     query = query.eq("organization_id", opts.organizationId ?? null);
   }
   if (opts.excludeId) {
@@ -100,4 +100,10 @@ export async function searchVenues(
 
   const { data, count } = await query.order("created_at", { ascending: false }).range(from, to);
   return { venues: (data ?? []) as Venue[], total: count ?? 0, page, pageSize: PAGE_SIZE };
+}
+
+export async function existsById(table: "competitions" | "seasons" | "divisions" | "stages", id: string): Promise<boolean> {
+  const admin = supabaseAdmin();
+  const { data } = await admin.from(table).select("id").eq("id", id).maybeSingle();
+  return !!data;
 }

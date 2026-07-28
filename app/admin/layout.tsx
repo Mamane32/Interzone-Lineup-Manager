@@ -3,7 +3,6 @@ import { logout } from "./login/actions";
 
 const NAV = [
   { href: "/admin/dashboard", label: "Dashboard" },
-  { href: "/admin/competitions", label: "Competitions" },
   { href: "/admin/matches", label: "Matches" },
   { href: "/admin/teams", label: "Teams" },
   { href: "/admin/lineups", label: "Lineups" },
@@ -21,6 +20,11 @@ const IAM_NAV = [
 
 const FOUNDATION_NAV = [
   { href: "/admin/organizations", label: "Organizations" },
+  { href: "/admin/competitions", label: "Competitions" },
+  { href: "/admin/seasons", label: "Seasons" },
+  { href: "/admin/divisions", label: "Divisions" },
+  { href: "/admin/stages", label: "Stages" },
+  { href: "/admin/groups", label: "Groups" },
   { href: "/admin/venues", label: "Venues" },
 ];
 

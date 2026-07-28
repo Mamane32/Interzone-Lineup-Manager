@@ -41,6 +41,11 @@ instant, structured export ready to paste into vMix.
 > super_admin protections, self-lockout guards, real audit-log
 > immutability).
 
+> **Competition & Organization Foundation (Sprint 2.0)?** See
+> **[SPRINT_2_0_COMPETITION_FOUNDATION.md](./SPRINT_2_0_COMPETITION_FOUNDATION.md)**
+> for the Organization/Competition/Season/Division/Stage/Group/Venue
+> hierarchy now in the Admin Portal.
+
 ---
 
 ## Stack
@@ -95,6 +100,12 @@ Then run `supabase/migrations/005_iam_hardening.sql` (invitation
 traceability, and a real database trigger enforcing that `audit_logs` can
 never be updated or deleted by any code path — additive only; see
 `SPRINT_1_3_IAM_HARDENING.md`).
+
+Then run `supabase/migrations/006_competition_foundation.sql` (adds
+`organizations`, extends the existing `competitions` table in place, and
+adds `seasons`/`divisions`/`stages`/`competition_groups`/`venues` — the
+full organizational hierarchy; additive only, see
+`SPRINT_2_0_COMPETITION_FOUNDATION.md`).
 
 ## 3. Create the administrator account
 
