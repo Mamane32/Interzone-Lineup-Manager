@@ -45,6 +45,7 @@ export default async function RolesPage() {
             <form action={updateRoleDescription.bind(null, r.role_key)} className="flex flex-col gap-2">
               <textarea
                 name="description"
+                aria-label={`${r.name} description`}
                 defaultValue={r.description ?? ""}
                 rows={2}
                 className="rounded-xl border border-ink-line bg-ink px-3 py-2 text-sm text-white focus:border-amber-signal focus:outline-none"

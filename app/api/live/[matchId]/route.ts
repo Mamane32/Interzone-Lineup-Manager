@@ -1,20 +1,33 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-/**
- * API PLACEHOLDER — scaffolding for future external integrations (vMix
- * overlays, website embeds, UTC feeds), per the Sprint 2 brief: "Build the
- * architecture... so they are ready for future integration" while
- * explicitly NOT implementing real vMix communication yet.
- *
- * This is intentionally minimal and read-only. Before connecting any real
- * external system, this route needs actual authentication (an API key or
- * signed token) — right now it has none, so treat it as a contract shape,
- * not a production endpoint. Do not point real broadcast infrastructure at
- * this without adding auth first.
- */
 export async function GET(_request: Request, { params }: { params: { matchId: string } }) {
+  const auth = createClient();
+  const {
+    data: { user },
+  } = await auth.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
   const supabase = supabaseAdmin();
+  const [{ data: profile }, { data: assignment }] = await Promise.all([
+    supabase.from("profiles").select("status").eq("id", user.id).maybeSingle(),
+    supabase
+      .from("user_access_assignments")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .in("role_key", ["broadcast_operator", "admin", "super_admin"])
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  if (!profile || profile.status !== "active" || !assignment) {
+    return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
+  }
 
   const { data: match } = await supabase
     .from("matches")
@@ -34,11 +47,5 @@ export async function GET(_request: Request, { params }: { params: { matchId: st
     .eq("match_id", params.matchId)
     .order("created_at");
 
-  return NextResponse.json({
-    match,
-    events: events ?? [],
-    meta: {
-      note: "Placeholder API — no authentication implemented. Not for production external use yet.",
-    },
-  });
+  return NextResponse.json({ match, events: events ?? [] });
 }

@@ -93,10 +93,15 @@ export async function addMatchEvent(
 export async function deleteMatchEvent(matchId: string, eventId: string) {
   await requireRole(["broadcast_operator", "admin", "super_admin"]);
   const supabase = supabaseAdmin();
-  const { data: event } = await supabase.from("match_events").select("*").eq("id", eventId).single();
+  const { data: event } = await supabase
+    .from("match_events")
+    .select("*")
+    .eq("id", eventId)
+    .eq("match_id", matchId)
+    .single();
   if (!event) return;
 
-  await supabase.from("match_events").delete().eq("id", eventId);
+  await supabase.from("match_events").delete().eq("id", eventId).eq("match_id", matchId);
 
   if (GOAL_TYPES.includes(event.type)) {
     const { data: match } = await supabase.from("matches").select("home_team_id, away_team_id, home_score, away_score").eq("id", matchId).single();
@@ -131,7 +136,8 @@ export async function updateMatchEvent(
   await supabase
     .from("match_events")
     .update({ minute, team_id: teamId, player_id: playerId, description })
-    .eq("id", eventId);
+    .eq("id", eventId)
+    .eq("match_id", matchId);
   revalidateMatch(matchId);
 }
 

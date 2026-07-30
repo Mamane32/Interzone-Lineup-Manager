@@ -2,8 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requireCoach } from "@/lib/coach-auth";
 
 export async function changePassword(token: string, formData: FormData) {
+  await requireCoach(token);
   const password = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirm") ?? "");
 

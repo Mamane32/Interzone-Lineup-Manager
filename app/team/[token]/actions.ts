@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { requireCoach } from "@/lib/coach-auth";
 
 export type SubmitResult = { ok: true } | { ok: false; error: string };
 
@@ -11,6 +12,7 @@ export type SubmitResult = { ok: true } | { ok: false; error: string };
  * control for everything in this file.
  */
 export async function submitLineup(token: string, formData: FormData): Promise<SubmitResult> {
+  await requireCoach(token);
   const supabase = supabaseAdmin();
 
   const { data: team } = await supabase.from("teams").select("*").eq("token", token).single();

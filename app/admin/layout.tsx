@@ -1,5 +1,4 @@
-import AppShell from "@/components/shell/AppShell";
-import { ADMIN_NAVIGATION } from "@/components/shell/admin-navigation";
+import AdminShell from "@/components/shell/AdminShell";
 import { getProfile, requireAdmin } from "@/lib/access";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -7,9 +6,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const profile = await getProfile(userId);
 
   return (
-    <AppShell
-      nav={ADMIN_NAVIGATION}
-      workspaceLabel="Platform Administration"
+    <AdminShell
       user={{
         name: profile?.full_name || "GGSP Administrator",
         email: profile?.email || "",
@@ -17,6 +14,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       }}
     >
       {children}
-    </AppShell>
+    </AdminShell>
   );
 }

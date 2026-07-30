@@ -42,12 +42,14 @@ export default function MatchHeaderPanel({ bundle, branding }: { bundle: LiveMat
         <form action={updateMatchHeaderInfo.bind(null, match.id)} className="mt-3 flex flex-wrap gap-2">
           <input
             name="venue"
+            aria-label="Venue"
             defaultValue={match.venue ?? ""}
             placeholder={`Teren ${match.home_team.name} (default)`}
             className="h-9 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-white/30 focus:border-white/30 focus:outline-none"
           />
           <input
             name="refereeName"
+            aria-label="Referee name"
             defaultValue={match.referee_name ?? ""}
             placeholder="Referee name"
             className="h-9 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-white/30 focus:border-white/30 focus:outline-none"

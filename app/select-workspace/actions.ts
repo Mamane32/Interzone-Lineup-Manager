@@ -28,8 +28,8 @@ export async function selectWorkspace(formData: FormData) {
   }
 
   const STATIC_DESTINATION: Record<string, string> = {
-    super_admin: "/admin",
-    admin: "/admin",
+    super_admin: "/admin/dashboard",
+    admin: "/admin/dashboard",
     broadcast_operator: "/live",
     competition_manager: "/competition",
     referee: "/referee",

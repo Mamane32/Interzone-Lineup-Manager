@@ -62,7 +62,10 @@ export default function AppShell({
     const parts = pathname.split("/").filter(Boolean);
     return parts.map((part, index) => ({
       label: part.replace(/-/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()),
-      href: `/${parts.slice(0, index + 1).join("/")}`,
+      href:
+        index === 0 && part === "admin"
+          ? "/admin/dashboard"
+          : `/${parts.slice(0, index + 1).join("/")}`,
     }));
   }, [pathname]);
 
@@ -131,7 +134,7 @@ export default function AppShell({
           <div className="hidden min-w-0 flex-1 items-center gap-2 text-xs sm:flex">
             <Link href="/admin/dashboard" className="text-white/30 transition hover:text-white">GGSP</Link>
             {breadcrumbs.map((item, index) => (
-              <span key={item.href} className="flex min-w-0 items-center gap-2">
+              <span key={`${item.href}-${index}`} className="flex min-w-0 items-center gap-2">
                 <ChevronRight size={12} className="text-white/15" />
                 <Link href={item.href} className={`truncate ${index === breadcrumbs.length - 1 ? "font-medium text-white/70" : "text-white/30 hover:text-white"}`}>{item.label}</Link>
               </span>

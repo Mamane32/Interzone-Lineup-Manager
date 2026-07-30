@@ -101,7 +101,7 @@ export default async function DashboardPage() {
 
 function TeamRow({ team, lineup }: { team: Team; lineup?: Lineup }) {
   return (
-    <Link href={lineup ? `/admin/lineups/${lineup.id}` : "#"} className="flex items-center justify-between rounded-lg px-1 py-2 hover:bg-white/5">
+    <Link href={lineup ? `/admin/lineups/${lineup.id}` : "/admin/matches"} className="flex items-center justify-between rounded-lg px-1 py-2 hover:bg-white/5">
       <span className="font-medium">{team?.name ?? "Unknown team"}</span>
       {lineup ? (
         <div className="flex items-center gap-3">

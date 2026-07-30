@@ -7,8 +7,8 @@ import type { PlatformRole, Profile, UserAccessAssignment } from "@/lib/types";
 
 // Static destination for roles that don't need per-assignment scope lookup.
 const ROLE_DESTINATION: Partial<Record<PlatformRole, string>> = {
-  super_admin: "/admin",
-  admin: "/admin",
+  super_admin: "/admin/dashboard",
+  admin: "/admin/dashboard",
   broadcast_operator: "/live",
   competition_manager: "/competition",
   referee: "/referee",

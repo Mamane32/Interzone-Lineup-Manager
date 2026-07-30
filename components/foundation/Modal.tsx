@@ -6,6 +6,8 @@ export default function Modal({ children, onClose }: { children: React.ReactNode
       <div
         className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-ink-line bg-ink-panel p-5"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
       >
         {children}
       </div>

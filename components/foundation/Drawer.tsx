@@ -18,6 +18,8 @@ export default function Drawer({
       <div
         className="h-full w-full max-w-md overflow-y-auto border-l border-ink-line bg-ink-panel p-5"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
       >
         <div className="mb-4 flex items-start justify-between">
           <div>

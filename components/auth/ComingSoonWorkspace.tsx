@@ -1,3 +1,5 @@
+"use client";
+
 import { Activity, CalendarDays, LayoutDashboard, Sparkles, Users2 } from "lucide-react";
 import AppShell, { type ShellNavGroup } from "@/components/shell/AppShell";
 import EmptyState from "@/components/ui/EmptyState";
@@ -40,8 +42,12 @@ export default function ComingSoonWorkspace({
       />
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Assigned workspace" value="1" detail="Verified access scope" icon={Users2} tone="brand" />
-        <StatCard label="Open activities" value="0" detail="Nothing needs attention" icon={Activity} tone="success" />
-        <StatCard label="Upcoming events" value="0" detail="Module activation pending" icon={CalendarDays} tone="neutral" />
+        <div id="activity">
+          <StatCard label="Open activities" value="0" detail="Nothing needs attention" icon={Activity} tone="success" />
+        </div>
+        <div id="calendar">
+          <StatCard label="Upcoming events" value="0" detail="Module activation pending" icon={CalendarDays} tone="neutral" />
+        </div>
       </div>
       <div className="mt-6" id="overview">
         <EmptyState
