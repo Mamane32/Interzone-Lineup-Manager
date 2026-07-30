@@ -70,8 +70,8 @@ export default async function AccessAssignmentsPage({
                 {legacyTeams.length} team{legacyTeams.length === 1 ? "" : "s"} still on legacy email-based coach access
               </p>
               <p className="mt-1 text-sm text-ink-muted">
-                These teams' coach login still relies on matching <code>coach_email</code> to the signed-in user —
-                there's no real assignment row yet (see <code>lib/coach-auth.ts</code>). Send a fresh invite from the{" "}
+                These teams&apos; coach login still relies on matching <code>coach_email</code> to the signed-in user —
+                there&apos;s no real assignment row yet (see <code>lib/coach-auth.ts</code>). Send a fresh invite from the{" "}
                 <a href="/admin/invitations" className="text-amber-signal hover:underline">
                   Invitations
                 </a>{" "}

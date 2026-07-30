@@ -7,14 +7,12 @@ import { recordAuditEvent } from "@/lib/audit";
 import { isPlatformRole } from "@/lib/validation";
 import type { PlatformRole } from "@/lib/types";
 
-export type ActionResult = { ok: true } | { ok: false; error: string };
-
-export async function updateRoleDescription(roleKey: PlatformRole, formData: FormData): Promise<ActionResult> {
+export async function updateRoleDescription(roleKey: PlatformRole, formData: FormData): Promise<void> {
   await requireAdmin();
   const actor = await getSessionUser();
 
   if (!isPlatformRole(roleKey)) {
-    return { ok: false, error: "Invalid role." };
+    return;
   }
 
   const description = String(formData.get("description") ?? "").trim() || null;
@@ -23,7 +21,7 @@ export async function updateRoleDescription(roleKey: PlatformRole, formData: For
   const { error } = await admin.from("role_metadata").update({ description }).eq("role_key", roleKey);
   if (error) {
     console.error("updateRoleDescription failed", roleKey, error);
-    return { ok: false, error: "Could not save that description." };
+    return;
   }
 
   if (actor) {
@@ -37,5 +35,4 @@ export async function updateRoleDescription(roleKey: PlatformRole, formData: For
   }
 
   revalidatePath("/admin/roles");
-  return { ok: true };
 }

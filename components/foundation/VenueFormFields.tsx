@@ -41,7 +41,7 @@ export default function VenueFormFields({ venue, organizations }: { venue?: Venu
         </label>
         <label className="flex items-center gap-2 text-sm text-ink-muted">
           <input type="checkbox" name="home_team_supported" defaultChecked={venue?.home_team_supported ?? true} className="h-4 w-4 rounded" />
-          Can be a team's home venue
+          Can be a team&apos;s home venue
         </label>
       </div>
     </div>

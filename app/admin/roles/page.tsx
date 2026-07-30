@@ -24,7 +24,7 @@ export default async function RolesPage() {
       <div>
         <h1 className="font-display text-3xl font-semibold">Roles</h1>
         <p className="text-ink-muted">
-          System roles are fixed (they gate real routes in code) — you can edit each description for your team's
+          System roles are fixed (they gate real routes in code) — you can edit each description for your team&apos;s
           reference.
         </p>
       </div>

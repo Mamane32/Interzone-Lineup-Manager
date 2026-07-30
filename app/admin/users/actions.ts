@@ -12,7 +12,6 @@ const ACTION_BY_STATUS: Record<AccessStatus, string> = {
   active: "user.activated",
   suspended: "user.suspended",
   disabled: "user.disabled",
-  archived: "user.archived",
   invited: "user.invited",
 };
 
@@ -32,7 +31,7 @@ export async function updateUserStatus(userId: string, status: AccessStatus): Pr
     return { ok: false, error: "That user no longer exists." };
   }
 
-  if (actor && (status === "disabled" || status === "archived" || status === "suspended")) {
+  if (actor && (status === "disabled" || status === "suspended")) {
     const guard = await assertNotSelfLockout(actor.id, userId, "account");
     if (!guard.ok) return { ok: false, error: guard.error };
   }

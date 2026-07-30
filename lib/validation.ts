@@ -11,7 +11,7 @@ export const PLATFORM_ROLES: PlatformRole[] = [
   "viewer",
 ];
 
-export const ACCESS_STATUSES: AccessStatus[] = ["invited", "active", "suspended", "disabled", "archived"];
+export const ACCESS_STATUSES: AccessStatus[] = ["invited", "active", "suspended", "disabled"];
 
 export const INVITATION_STATUSES: InvitationStatus[] = ["pending", "accepted", "expired", "revoked"];
 
