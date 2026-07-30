@@ -5,9 +5,13 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
   }
   body {
-    @apply font-body antialiased;
+    @apply font-body antialiased selection:bg-brand-400/25 selection:text-white;
+    background:
+      radial-gradient(circle at 10% -10%, rgba(245, 158, 11, 0.11), transparent 32rem),
+      #07090d;
   }
   :focus-visible {
     outline: 2px solid #ffb020;
@@ -16,6 +20,18 @@
 }
 
 @layer components {
+  .surface-panel {
+    @apply rounded-2xl border border-white/[0.08] bg-white/[0.035] shadow-panel backdrop-blur-xl;
+  }
+  .surface-subtle {
+    @apply rounded-xl border border-white/[0.07] bg-white/[0.025];
+  }
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-400;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
   /* Jersey-number badge — the signature element, reused everywhere a player
      appears: coach dropdowns, admin lineup view, and text exports preview. */
   .jersey-badge {
@@ -33,6 +49,15 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes soft-pulse {
+  0%, 100% { opacity: .45; }
+  50% { opacity: .8; }
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 3s ease-in-out infinite;
 }
 
 .animate-fade-up {

@@ -16,8 +16,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Interzone Lineup Manager",
-  description: "Lineup collection for football broadcast production.",
+  title: {
+    default: "GoodGrafik Sports Platform",
+    template: "%s · GGSP",
+  },
+  description: "The operating system for modern sports organizations.",
 };
 
 export default function RootLayout({
@@ -26,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${oswald.variable} ${inter.variable}`}>
-      <body>{children}</body>
+    <html lang="en" className={`${oswald.variable} ${inter.variable}`} suppressHydrationWarning>
+      <body className="min-h-screen bg-surface-950 text-white">{children}</body>
     </html>
   );
 }
