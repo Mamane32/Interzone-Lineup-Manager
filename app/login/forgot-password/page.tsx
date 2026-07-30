@@ -1,56 +1,50 @@
-import Link from "next/link";
-import { Mail, ArrowLeft } from "lucide-react";
+import { CheckCircle2, Mail } from "lucide-react";
+import AuthFrame from "@/components/auth/AuthFrame";
 import Button from "@/components/ui/Button";
-import { getBaseBranding } from "@/lib/branding";
 import { requestUnifiedPasswordReset } from "../actions";
 
 export const dynamic = "force-dynamic";
 
 export default function ForgotPasswordPage({ searchParams }: { searchParams: { sent?: string } }) {
-  const branding = getBaseBranding();
-
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#05070a] px-4">
-      <div className="w-full max-w-sm">
-        <Link href="/login" className="mb-6 inline-flex items-center gap-1 text-sm text-white/40 hover:text-white">
-          <ArrowLeft size={14} /> Back to sign in
-        </Link>
-
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)]">
-          {searchParams.sent ? (
-            <div className="text-center">
-              <p className="font-display text-lg font-semibold text-white">Check your email</p>
-              <p className="mt-2 text-sm text-white/40">
-                If that address has an account, we&apos;ve sent a link to reset your password.
-              </p>
-            </div>
-          ) : (
-            <form action={requestUnifiedPasswordReset} className="flex flex-col gap-4">
-              <div>
-                <p className="font-display text-lg font-semibold text-white">Reset your password</p>
-                <p className="mt-1 text-sm text-white/40">{branding.organizationName}</p>
-              </div>
-              <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-white/60">Email</span>
-                <span className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 focus-within:border-white/30">
-                  <Mail size={16} className="text-white/30" />
-                  <input
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    placeholder="you@example.com"
-                    className="h-12 flex-1 bg-transparent text-white placeholder:text-white/25 focus:outline-none"
-                  />
-                </span>
-              </label>
-              <Button type="submit" size="lg" className="w-full">
-                Send reset link
-              </Button>
-            </form>
-          )}
+    <AuthFrame
+      eyebrow="Account recovery"
+      title={searchParams.sent ? "Check your inbox" : "Reset your password"}
+      description={
+        searchParams.sent
+          ? "If an account matches that address, a secure recovery link is on its way."
+          : "Enter the email attached to your GGSP identity and we’ll send a secure recovery link."
+      }
+      backHref="/login"
+    >
+      {searchParams.sent ? (
+        <div className="py-3 text-center">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.08] text-emerald-300">
+            <CheckCircle2 size={25} />
+          </span>
+          <p className="mt-5 text-sm leading-6 text-white/45">
+            For your security, we don&apos;t confirm whether an account exists. Check your inbox and spam folder.
+          </p>
         </div>
-      </div>
-    </main>
+      ) : (
+        <form action={requestUnifiedPasswordReset} className="flex flex-col gap-5">
+          <label className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-white/70">Email address</span>
+            <span className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.035] px-3 transition focus-within:border-brand-400/45 focus-within:bg-white/[0.05]">
+              <Mail size={17} className="text-white/30" aria-hidden="true" />
+              <input
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                placeholder="name@organization.com"
+                className="min-w-0 flex-1 bg-transparent py-3.5 text-sm text-white placeholder:text-white/25 focus:outline-none"
+              />
+            </span>
+          </label>
+          <Button type="submit" size="lg" className="w-full">Send recovery link</Button>
+        </form>
+      )}
+    </AuthFrame>
   );
 }
