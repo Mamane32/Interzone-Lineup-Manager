@@ -1,7 +1,20 @@
-import { Construction } from "lucide-react";
-import { unifiedSignOut } from "@/app/login/actions";
-import Button from "@/components/ui/Button";
+import { Activity, CalendarDays, LayoutDashboard, Sparkles, Users2 } from "lucide-react";
+import AppShell, { type ShellNavGroup } from "@/components/shell/AppShell";
+import EmptyState from "@/components/ui/EmptyState";
+import PageHeader from "@/components/ui/PageHeader";
+import StatCard from "@/components/ui/StatCard";
 import type { Profile } from "@/lib/types";
+
+const WORKSPACE_NAVIGATION: ShellNavGroup[] = [
+  {
+    label: "Workspace",
+    items: [
+      { href: "#overview", label: "Overview", icon: LayoutDashboard },
+      { href: "#activity", label: "Activity", icon: Activity },
+      { href: "#calendar", label: "Schedule", icon: CalendarDays },
+    ],
+  },
+];
 
 export default function ComingSoonWorkspace({
   roleLabel,
@@ -11,23 +24,32 @@ export default function ComingSoonWorkspace({
   profile: Profile | null;
 }) {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#05070a] px-4 text-center text-white">
-      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/5 text-white/40">
-        <Construction size={24} />
-      </span>
-      <div>
-        <p className="text-xs uppercase tracking-[0.2em] text-white/30">{roleLabel} Workspace</p>
-        <h1 className="mt-1 font-display text-xl font-semibold">Coming soon</h1>
-        <p className="mt-2 max-w-xs text-sm text-white/40">
-          You&apos;re signed in{profile?.email ? ` as ${profile.email}` : ""} with {roleLabel.toLowerCase()} access.
-          This workspace is still being built.
-        </p>
+    <AppShell
+      nav={WORKSPACE_NAVIGATION}
+      workspaceLabel={`${roleLabel} Workspace`}
+      user={{
+        name: profile?.full_name || roleLabel,
+        email: profile?.email || "",
+        role: roleLabel,
+      }}
+    >
+      <PageHeader
+        eyebrow="Role workspace"
+        title={`Welcome to your ${roleLabel} workspace`}
+        description="The shared GGSP application framework is ready. Business capabilities will be activated through the approved roadmap."
+      />
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="Assigned workspace" value="1" detail="Verified access scope" icon={Users2} tone="brand" />
+        <StatCard label="Open activities" value="0" detail="Nothing needs attention" icon={Activity} tone="success" />
+        <StatCard label="Upcoming events" value="0" detail="Module activation pending" icon={CalendarDays} tone="neutral" />
       </div>
-      <form action={unifiedSignOut}>
-        <Button type="submit" variant="ghost" size="md">
-          Sign out
-        </Button>
-      </form>
-    </main>
+      <div className="mt-6" id="overview">
+        <EmptyState
+          icon={Sparkles}
+          title="Your workspace foundation is ready"
+          description="Navigation, notifications, profile controls, responsive layouts, and shared states are in place. Role-specific business modules will arrive in future approved sprints."
+        />
+      </div>
+    </AppShell>
   );
 }
