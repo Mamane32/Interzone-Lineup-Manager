@@ -15,7 +15,7 @@ export default function GroupRow({ group, stages, stageName }: { group: Competit
     <>
       <tr className="hover:bg-white/[0.03]">
         <td className="px-4 py-3 font-medium">{group.name}</td>
-        <td className="px-4 py-3 text-ink-muted">{stageName}</td>
+        <td className="px-4 py-3 text-white/40">{stageName}</td>
         <td className="px-4 py-3"><UserStatusBadge status={group.status} /></td>
         <td className="px-4 py-3">
           <Button type="button" variant="secondary" size="md" onClick={() => setOpen(true)}>View</Button>
@@ -27,7 +27,7 @@ export default function GroupRow({ group, stages, stageName }: { group: Competit
             <GroupFormFields group={group} stages={stages} />
             <Button type="submit" className="w-fit">Save changes</Button>
           </form>
-          <div className="mt-5 border-t border-ink-line pt-4">
+          <div className="mt-5 border-t border-white/[0.08] pt-4">
             {group.status === "active" ? (
               <ConfirmActionDialog triggerLabel="Archive group" triggerVariant="danger" title="Archive this group?" body="Hidden from active lists, not deleted." confirmLabel="Archive" action={setGroupStatus.bind(null, group.id, "archived")} />
             ) : (

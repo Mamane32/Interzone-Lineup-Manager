@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { MapPin, Clock } from "lucide-react";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { getTheme } from "@/lib/team-theme";
@@ -62,8 +63,7 @@ export default function MatchListItem({
           )}
           <div className="flex items-center gap-2">
             {opponentLogoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={opponentLogoUrl} alt="" className={`h-6 w-6 flex-none rounded-full object-cover ring-1 ${theme.ring}`} />
+              <Image src={opponentLogoUrl} alt="" width={24} height={24} className={`h-6 w-6 flex-none rounded-full object-cover ring-1 ${theme.ring}`} />
             ) : (
               <span className={`flex h-6 w-6 flex-none items-center justify-center rounded-full text-[9px] font-bold ${theme.chipBg} ${theme.chipText}`}>
                 {opponentName.slice(0, 2).toUpperCase()}

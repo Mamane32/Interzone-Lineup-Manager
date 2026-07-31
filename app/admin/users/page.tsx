@@ -1,11 +1,14 @@
 import Link from "next/link";
+import { Users2 } from "lucide-react";
 import { requireAdmin } from "@/lib/access";
-import { searchUsers } from "@/lib/iam";
+import { searchUsers, type ProfileWithAssignments } from "@/lib/iam";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
+import PageHeader from "@/components/ui/PageHeader";
+import DataTable, { type DataTableColumn } from "@/components/ui/DataTable";
 import UserStatusBadge from "@/components/iam/StatusBadge";
 import RoleBadge from "@/components/iam/RoleBadge";
 import Pagination from "@/components/iam/Pagination";
@@ -34,12 +37,53 @@ export default async function UsersPage({
 
   const hasFilters = !!(searchParams.q || searchParams.status || searchParams.role || searchParams.competition);
 
+  const columns: DataTableColumn<ProfileWithAssignments>[] = [
+    {
+      key: "name",
+      header: "User",
+      cardRole: "title",
+      render: (u) => (
+        <div>
+          <p className="font-medium text-white">{u.full_name || "—"}</p>
+          <p className="text-xs text-white/35">{u.email}</p>
+        </div>
+      ),
+    },
+    {
+      key: "roles",
+      header: "Roles",
+      render: (u) => (
+        <div className="flex flex-wrap justify-end gap-1 md:justify-start">
+          {u.assignments.length === 0 && <span className="text-xs text-white/40">No assignments</span>}
+          {u.assignments.slice(0, 2).map((a) => (
+            <RoleBadge key={a.id} role={a.role_key} />
+          ))}
+          {u.assignments.length > 2 && <span className="text-xs text-white/40">+{u.assignments.length - 2}</span>}
+        </div>
+      ),
+    },
+    { key: "status", header: "Status", render: (u) => <UserStatusBadge status={u.status} /> },
+    {
+      key: "created",
+      header: "Created",
+      render: (u) => <span className="text-xs text-white/40">{new Date(u.created_at).toLocaleDateString()}</span>,
+    },
+    {
+      key: "actions",
+      header: "",
+      cardRole: "actions",
+      className: "text-right",
+      render: (u) => (
+        <Link href={`/admin/users/${u.id}`} className="text-sm font-medium text-brand-400 hover:underline">
+          View
+        </Link>
+      ),
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl font-semibold">Users</h1>
-        <p className="text-ink-muted">Platform users and their access assignments.</p>
-      </div>
+      <PageHeader eyebrow="Identity & access" title="Users" description="Platform users and their access assignments." />
 
       <Card>
         <form className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" method="get">
@@ -81,65 +125,27 @@ export default async function UsersPage({
         </form>
       </Card>
 
-      <Card className="p-0">
-        {users.length === 0 ? (
-          <div className="p-10 text-center text-ink-muted">
-            {hasFilters ? "No users match those filters." : "No users yet."}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-ink-line text-xs uppercase tracking-wide text-ink-muted">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Name</th>
-                  <th className="px-4 py-3 font-medium">Email</th>
-                  <th className="px-4 py-3 font-medium">Roles</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Created</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-ink-line">
-                {users.map((u) => (
-                  <tr key={u.id} className="hover:bg-white/[0.03]">
-                    <td className="px-4 py-3 font-medium">{u.full_name || "—"}</td>
-                    <td className="px-4 py-3 text-ink-muted">{u.email}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {u.assignments.length === 0 && <span className="text-xs text-ink-muted">No assignments</span>}
-                        {u.assignments.slice(0, 2).map((a) => (
-                          <RoleBadge key={a.id} role={a.role_key} />
-                        ))}
-                        {u.assignments.length > 2 && (
-                          <span className="text-xs text-ink-muted">+{u.assignments.length - 2}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <UserStatusBadge status={u.status} />
-                    </td>
-                    <td className="px-4 py-3 text-xs text-ink-muted">
-                      {new Date(u.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Link href={`/admin/users/${u.id}`} className="text-sm font-medium text-amber-signal hover:underline">
-                        View
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        <Pagination
-          page={page}
-          pageSize={pageSize}
-          total={total}
-          basePath="/admin/users"
-          searchParams={{ q: searchParams.q, status: searchParams.status, role: searchParams.role, competition: searchParams.competition }}
-        />
-      </Card>
+      <DataTable
+        columns={columns}
+        rows={users}
+        rowKey={(u) => u.id}
+        empty={{
+          title: hasFilters ? "No matches" : "No users yet",
+          description: hasFilters ? "No users match those filters." : "Invited users will appear here.",
+          icon: Users2,
+        }}
+      />
+      {total > 0 && (
+        <Card className="p-0">
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            basePath="/admin/users"
+            searchParams={{ q: searchParams.q, status: searchParams.status, role: searchParams.role, competition: searchParams.competition }}
+          />
+        </Card>
+      )}
     </div>
   );
 }

@@ -1,8 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { requireFoundationAccess, slugify, isSlugAvailable } from "@/lib/foundation";
+import { requireFoundationAccess, slugify, isSlugAvailable, revalidateFoundation } from "@/lib/foundation";
 import { getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
@@ -71,7 +70,7 @@ export async function createVenue(formData: FormData) {
     });
   }
 
-  revalidatePath("/admin/venues");
+  revalidateFoundation();
   redirect("/admin/venues?saved=1");
 }
 
@@ -111,7 +110,7 @@ export async function updateVenue(id: string, formData: FormData) {
     });
   }
 
-  revalidatePath("/admin/venues");
+  revalidateFoundation();
   redirect("/admin/venues?saved=1");
 }
 
@@ -141,6 +140,6 @@ export async function setVenueStatus(id: string, status: "active" | "archived"):
     });
   }
 
-  revalidatePath("/admin/venues");
+  revalidateFoundation();
   return { ok: true };
 }

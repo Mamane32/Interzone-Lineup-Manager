@@ -24,6 +24,10 @@ describe("migration integrity", () => {
       "004_iam_foundation.sql",
       "005_iam_hardening.sql",
       "006_competition_foundation.sql",
+      "007_tactical_formations.sql",
+      "008_competition_completion.sql",
+      "009_formation_engine.sql",
+      "010_coach_photo.sql",
     ]);
   });
 

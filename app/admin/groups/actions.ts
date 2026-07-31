@@ -1,8 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { requireFoundationAccess, existsById } from "@/lib/foundation";
+import { requireFoundationAccess, existsById, revalidateFoundation } from "@/lib/foundation";
 import { getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
@@ -34,7 +33,7 @@ export async function createGroup(formData: FormData) {
   if (actor) {
     await recordAuditEvent({ actorUserId: actor.id, action: "group.created", targetType: "group", targetId: data?.id ?? null, metadata: { name: fields.name } });
   }
-  revalidatePath("/admin/groups");
+  revalidateFoundation();
   redirect("/admin/groups?saved=1");
 }
 
@@ -57,7 +56,7 @@ export async function updateGroup(id: string, formData: FormData) {
   if (actor) {
     await recordAuditEvent({ actorUserId: actor.id, action: "group.updated", targetType: "group", targetId: id, metadata: { name: fields.name } });
   }
-  revalidatePath("/admin/groups");
+  revalidateFoundation();
   redirect("/admin/groups?saved=1");
 }
 
@@ -79,6 +78,6 @@ export async function setGroupStatus(id: string, status: "active" | "archived"):
   if (actor) {
     await recordAuditEvent({ actorUserId: actor.id, action: status === "archived" ? "group.archived" : "group.restored", targetType: "group", targetId: id });
   }
-  revalidatePath("/admin/groups");
+  revalidateFoundation();
   return { ok: true };
 }

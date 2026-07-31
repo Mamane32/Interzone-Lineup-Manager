@@ -28,7 +28,7 @@ export default function Pagination({
   }
 
   return (
-    <div className="flex items-center justify-between border-t border-ink-line px-4 py-3 text-sm text-ink-muted">
+    <div className="flex items-center justify-between border-t border-white/[0.08] px-4 py-3 text-sm text-white/40">
       <span>
         {total === 0 ? "No results" : `${from}–${to} of ${total}`}
       </span>

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Trophy, CalendarDays, Clock, MapPin } from "lucide-react";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import Button from "@/components/ui/Button";
@@ -131,8 +132,7 @@ function TeamBadge({ t }: { t: Team }) {
   return (
     <div className="flex flex-1 flex-col items-center gap-2 text-center">
       {t.logo_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={t.logo_url} alt="" className="h-14 w-14 rounded-full bg-white/10 object-cover ring-2 ring-white/30" />
+        <Image src={t.logo_url} alt="" width={56} height={56} className="h-14 w-14 rounded-full bg-white/10 object-cover ring-2 ring-white/30" />
       ) : (
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 font-display text-sm ring-2 ring-white/30">
           {t.name.slice(0, 2).toUpperCase()}

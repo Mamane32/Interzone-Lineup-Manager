@@ -26,10 +26,11 @@ export default function CompetitionFormFields({ competition, organizations }: { 
           ))}
         </Select>
         <Input id="slug" name="slug" label="Slug (auto-generated if blank)" defaultValue={competition?.slug ?? ""} />
+        <Input id="logo_url" name="logo_url" label="Logo URL" defaultValue={competition?.logo_url ?? ""} placeholder="https://..." className="sm:col-span-2" />
       </div>
 
-      <fieldset className="rounded-xl border border-ink-line p-3">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">Classification</legend>
+      <fieldset className="rounded-xl border border-white/[0.08] p-3">
+        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-white/35">Classification</legend>
         <div className="grid gap-3 sm:grid-cols-2">
           <Select id="competition_type" name="competition_type" label="Type" tone="dark" defaultValue={competition?.competition_type ?? ""}>
             <option value="">Unspecified</option>
@@ -47,8 +48,8 @@ export default function CompetitionFormFields({ competition, organizations }: { 
         </div>
       </fieldset>
 
-      <fieldset className="rounded-xl border border-ink-line p-3">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">Match format</legend>
+      <fieldset className="rounded-xl border border-white/[0.08] p-3">
+        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-white/35">Match format</legend>
         <div className="grid gap-3 sm:grid-cols-3">
           <Input id="match_duration" name="match_duration" label="Match minutes" type="number" defaultValue={competition?.match_duration ?? 90} />
           <Input id="halftime_duration" name="halftime_duration" label="Half-time minutes" type="number" defaultValue={competition?.halftime_duration ?? 15} />
@@ -58,11 +59,11 @@ export default function CompetitionFormFields({ competition, organizations }: { 
           <Input id="points_loss" name="points_loss" label="Points — loss" type="number" defaultValue={competition?.points_loss ?? 0} />
         </div>
         <div className="mt-3 flex gap-6">
-          <label className="flex items-center gap-2 text-sm text-ink-muted">
+          <label className="flex items-center gap-2 text-sm text-white/45">
             <input type="checkbox" name="extra_time_enabled" defaultChecked={competition?.extra_time_enabled ?? false} className="h-4 w-4 rounded" />
             Extra time
           </label>
-          <label className="flex items-center gap-2 text-sm text-ink-muted">
+          <label className="flex items-center gap-2 text-sm text-white/45">
             <input type="checkbox" name="penalties_enabled" defaultChecked={competition?.penalties_enabled ?? false} className="h-4 w-4 rounded" />
             Penalties
           </label>
@@ -70,12 +71,12 @@ export default function CompetitionFormFields({ competition, organizations }: { 
       </fieldset>
 
       <label className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium text-ink-muted">Description</span>
+        <span className="text-sm font-medium text-white/45">Description</span>
         <textarea
           name="description"
           defaultValue={competition?.description ?? ""}
           rows={2}
-          className="rounded-xl border border-ink-line bg-ink px-3 py-2 text-sm text-white focus:border-amber-signal focus:outline-none"
+          className="rounded-xl border border-white/[0.08] bg-white/[0.035] px-3 py-2 text-sm text-white transition-colors focus:border-brand-400/60 focus:bg-white/[0.05] focus:outline-none"
         />
       </label>
     </div>

@@ -24,8 +24,8 @@ export default function SeasonRow({
     <>
       <tr className="hover:bg-white/[0.03]">
         <td className="px-4 py-3 font-medium">{season.name}</td>
-        <td className="px-4 py-3 text-ink-muted">{competitionName}</td>
-        <td className="px-4 py-3 text-ink-muted">{season.year ?? "—"}</td>
+        <td className="px-4 py-3 text-white/40">{competitionName}</td>
+        <td className="px-4 py-3 text-white/40">{season.year ?? "—"}</td>
         <td className="px-4 py-3">
           <UserStatusBadge status={season.status} />
         </td>
@@ -45,7 +45,7 @@ export default function SeasonRow({
             </Button>
           </form>
 
-          <div className="mt-5 flex flex-wrap gap-2 border-t border-ink-line pt-4">
+          <div className="mt-5 flex flex-wrap gap-2 border-t border-white/[0.08] pt-4">
             {season.status !== "active" && (
               <ConfirmActionDialog
                 triggerLabel="Set as active season"

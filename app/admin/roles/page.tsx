@@ -23,7 +23,7 @@ export default async function RolesPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-3xl font-semibold">Roles</h1>
-        <p className="text-ink-muted">
+        <p className="text-white/40">
           System roles are fixed (they gate real routes in code) — you can edit each description for your team&apos;s
           reference.
         </p>
@@ -35,11 +35,11 @@ export default async function RolesPage() {
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <h2 className="font-display text-lg font-semibold">{r.name}</h2>
-                <code className="text-xs text-ink-muted">{r.role_key}</code>
+                <code className="text-xs text-white/40">{r.role_key}</code>
               </div>
               <div className="text-right">
-                <p className="font-display text-2xl font-bold text-amber-signal">{counts[r.role_key] ?? 0}</p>
-                <p className="text-xs text-ink-muted">active users</p>
+                <p className="font-display text-2xl font-bold text-brand-400">{counts[r.role_key] ?? 0}</p>
+                <p className="text-xs text-white/40">active users</p>
               </div>
             </div>
             <form action={updateRoleDescription.bind(null, r.role_key)} className="flex flex-col gap-2">
@@ -48,14 +48,14 @@ export default async function RolesPage() {
                 aria-label={`${r.name} description`}
                 defaultValue={r.description ?? ""}
                 rows={2}
-                className="rounded-xl border border-ink-line bg-ink px-3 py-2 text-sm text-white focus:border-amber-signal focus:outline-none"
+                className="rounded-xl border border-white/[0.08] bg-surface-950 px-3 py-2 text-sm text-white focus:border-brand-400 focus:outline-none"
               />
               <Button type="submit" variant="secondary" size="md" className="w-fit">
                 Save description
               </Button>
             </form>
             {r.is_system && (
-              <p className="mt-3 text-xs text-ink-muted">System role — cannot be deleted or renamed.</p>
+              <p className="mt-3 text-xs text-white/40">System role — cannot be deleted or renamed.</p>
             )}
           </Card>
         ))}

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Download, Users2 } from "lucide-react";
 import { getLiveMatch } from "@/lib/live-match";
 import { formatMatchDate } from "@/lib/utils";
@@ -25,7 +26,7 @@ export default async function MatchReportPage({ params }: { params: { matchId: s
   return (
     <div className="mx-auto max-w-4xl pb-16">
       {/* Final score header */}
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center">
+      <div className="surface-panel p-6 text-center">
         <p className="text-xs uppercase tracking-[0.2em] text-white/40">
           {match.competition?.name ?? "No competition"} {match.round ? `· ${match.round}` : ""}
         </p>
@@ -108,8 +109,7 @@ function TeamCol({ name, logo }: { name: string; logo: string | null }) {
   return (
     <div className="flex flex-col items-center gap-2">
       {logo ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={logo} alt="" className="h-12 w-12 rounded-full object-cover" />
+        <Image src={logo} alt="" width={48} height={48} className="h-12 w-12 rounded-full object-cover" />
       ) : (
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-xs font-display">
           {name.slice(0, 2).toUpperCase()}

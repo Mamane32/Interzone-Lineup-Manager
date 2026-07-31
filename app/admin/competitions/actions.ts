@@ -1,8 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { requireFoundationAccess, slugify, isSlugAvailable } from "@/lib/foundation";
+import { requireFoundationAccess, slugify, isSlugAvailable, revalidateFoundation } from "@/lib/foundation";
 import { getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
@@ -84,7 +83,7 @@ export async function createCompetition(formData: FormData) {
     });
   }
 
-  revalidatePath("/admin/competitions");
+  revalidateFoundation();
   redirect("/admin/competitions?saved=1");
 }
 
@@ -121,7 +120,7 @@ export async function renameCompetition(id: string, formData: FormData) {
     });
   }
 
-  revalidatePath("/admin/competitions");
+  revalidateFoundation();
   redirect("/admin/competitions?saved=1");
 }
 
@@ -136,7 +135,7 @@ export async function deleteCompetition(id: string) {
     await recordAuditEvent({ actorUserId: actor.id, action: "competition.deleted", targetType: "competition", targetId: id });
   }
 
-  revalidatePath("/admin/competitions");
+  revalidateFoundation();
 }
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -165,6 +164,6 @@ export async function setCompetitionStatus(id: string, status: "active" | "archi
     });
   }
 
-  revalidatePath("/admin/competitions");
+  revalidateFoundation();
   return { ok: true };
 }

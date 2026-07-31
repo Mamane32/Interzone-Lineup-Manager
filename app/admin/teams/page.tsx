@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { createTeam } from "./actions";
 import Card from "@/components/ui/Card";
@@ -31,7 +32,7 @@ export default async function TeamsPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-3xl font-semibold">Teams</h1>
-        <p className="text-ink-muted">Create each team once. A private coach link is generated automatically.</p>
+        <p className="text-white/40">Create each team once. A private coach link is generated automatically.</p>
       </div>
 
       <Card className="max-w-2xl">
@@ -50,7 +51,7 @@ export default async function TeamsPage() {
           <Input id="coach_phone" name="coach_phone" label="Coach telephone" required />
           <Input id="coach_email" name="coach_email" label="Coach email (used for Coach Portal login)" type="email" required />
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="logo" className="text-sm font-medium text-ink-muted">
+            <label htmlFor="logo" className="text-sm font-medium text-white/40">
               Team logo (PNG)
             </label>
             <input
@@ -58,7 +59,7 @@ export default async function TeamsPage() {
               name="logo"
               type="file"
               accept="image/png"
-              className="text-sm text-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-white"
+              className="text-sm text-white/40 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-white"
             />
           </div>
           <Button type="submit" className="sm:col-span-2 mt-2">
@@ -68,21 +69,20 @@ export default async function TeamsPage() {
       </Card>
 
       <div className="flex flex-col gap-3">
-        {teamList.length === 0 && <p className="text-ink-muted">No teams yet.</p>}
+        {teamList.length === 0 && <p className="text-white/40">No teams yet.</p>}
         {teamList.map((t) => (
           <Card key={t.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               {t.logo_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={t.logo_url} alt="" className="h-10 w-10 rounded-full object-cover" />
+                <Image src={t.logo_url} alt="" width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
               ) : (
                 <div className="h-10 w-10 rounded-full bg-white/10" />
               )}
               <div>
-                <Link href={`/admin/teams/${t.id}`} className="font-semibold hover:text-amber-signal">
+                <Link href={`/admin/teams/${t.id}`} className="font-semibold hover:text-brand-400">
                   {t.name}
                 </Link>
-                <p className="text-xs text-ink-muted">
+                <p className="text-xs text-white/40">
                   {t.coach_name} · {t.coach_phone}
                   {t.competition_id ? ` · ${competitionName.get(t.competition_id) ?? ""}` : ""}
                 </p>

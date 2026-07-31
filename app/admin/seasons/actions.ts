@@ -1,8 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { requireFoundationAccess, existsById } from "@/lib/foundation";
+import { requireFoundationAccess, existsById, revalidateFoundation } from "@/lib/foundation";
 import { getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
@@ -50,7 +49,7 @@ export async function createSeason(formData: FormData) {
     });
   }
 
-  revalidatePath("/admin/seasons");
+  revalidateFoundation();
   redirect("/admin/seasons?saved=1");
 }
 
@@ -81,7 +80,7 @@ export async function updateSeason(id: string, formData: FormData) {
     });
   }
 
-  revalidatePath("/admin/seasons");
+  revalidateFoundation();
   redirect("/admin/seasons?saved=1");
 }
 
@@ -105,7 +104,7 @@ export async function archiveSeason(id: string): Promise<ActionResult> {
     await recordAuditEvent({ actorUserId: actor.id, action: "season.archived", targetType: "season", targetId: id });
   }
 
-  revalidatePath("/admin/seasons");
+  revalidateFoundation();
   return { ok: true };
 }
 
@@ -152,6 +151,6 @@ export async function activateSeason(id: string): Promise<ActionResult> {
     });
   }
 
-  revalidatePath("/admin/seasons");
+  revalidateFoundation();
   return { ok: true };
 }

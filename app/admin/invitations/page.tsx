@@ -45,7 +45,7 @@ export default async function InvitationsPage({
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-3xl font-semibold">Invitations</h1>
-        <p className="text-ink-muted">Invite platform users and track invitation status.</p>
+        <p className="text-white/40">Invite platform users and track invitation status.</p>
       </div>
 
       <Card className="max-w-3xl">
@@ -99,14 +99,14 @@ export default async function InvitationsPage({
             ))}
           </Select>
           <div className="sm:col-span-2 flex flex-col gap-1.5">
-            <label htmlFor="message" className="text-sm font-medium text-ink-muted">
+            <label htmlFor="message" className="text-sm font-medium text-white/40">
               Message (optional)
             </label>
             <textarea
               id="message"
               name="message"
               rows={2}
-              className="rounded-xl border border-ink-line bg-ink px-3 py-2 text-white focus:border-amber-signal focus:outline-none"
+              className="rounded-xl border border-white/[0.08] bg-surface-950 px-3 py-2 text-white focus:border-brand-400 focus:outline-none"
             />
           </div>
           <Button type="submit" className="sm:col-span-2 w-fit">
@@ -117,11 +117,11 @@ export default async function InvitationsPage({
 
       <Card className="p-0">
         {list.length === 0 ? (
-          <div className="p-10 text-center text-ink-muted">No invitations yet.</div>
+          <div className="p-10 text-center text-white/40">No invitations yet.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-ink-line text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="border-b border-white/[0.08] text-xs uppercase tracking-wide text-white/40">
                 <tr>
                   <th className="px-4 py-3 font-medium">Email</th>
                   <th className="px-4 py-3 font-medium">Role</th>
@@ -130,12 +130,12 @@ export default async function InvitationsPage({
                   <th className="px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-line">
+              <tbody className="divide-y divide-white/[0.08]">
                 {list.map((inv) => (
                   <tr key={inv.id} className="hover:bg-white/[0.03]">
                     <td className="px-4 py-3">
                       <p className="font-medium">{inv.full_name || inv.email}</p>
-                      <p className="text-xs text-ink-muted">{inv.email}</p>
+                      <p className="text-xs text-white/40">{inv.email}</p>
                     </td>
                     <td className="px-4 py-3">
                       <RoleBadge role={inv.role_key} />
@@ -143,7 +143,7 @@ export default async function InvitationsPage({
                     <td className="px-4 py-3">
                       <InvitationStatusBadge status={inv.status} />
                     </td>
-                    <td className="px-4 py-3 text-xs text-ink-muted">{new Date(inv.created_at).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-xs text-white/40">{new Date(inv.created_at).toLocaleDateString()}</td>
                     <td className="px-4 py-3">
                       {inv.status === "pending" && (
                         <div className="flex gap-2">

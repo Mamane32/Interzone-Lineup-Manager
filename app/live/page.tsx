@@ -41,7 +41,7 @@ export default async function BroadcastControlCenterIndexPage() {
   const branding = getBaseBranding();
 
   return (
-    <div className="min-h-screen bg-[#05070a] px-4 py-10 text-white">
+    <div className="min-h-screen bg-surface-950 px-4 py-10 text-white">
       <div className="mx-auto max-w-3xl">
         <div className="mb-8 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -62,7 +62,7 @@ export default async function BroadcastControlCenterIndexPage() {
             <Link
               key={m.id}
               href={`/live/${m.id}`}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:border-white/25 hover:bg-white/[0.06]"
+              className="flex items-center justify-between gap-3 surface-panel p-4 transition-colors hover:border-white/25 hover:bg-white/[0.06]"
             >
               <div>
                 <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-white/40">

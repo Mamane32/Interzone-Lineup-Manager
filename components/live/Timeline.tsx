@@ -70,7 +70,7 @@ export default function Timeline({
   const periods = groupByPeriod(filtered);
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/[0.03]">
+    <div className="flex h-full flex-col surface-panel">
       <div className="flex items-center justify-between border-b border-white/10 p-4 pb-3">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-white/40">Match Timeline</h2>
       </div>

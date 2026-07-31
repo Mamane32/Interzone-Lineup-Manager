@@ -1,8 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { requireFoundationAccess, existsById } from "@/lib/foundation";
+import { requireFoundationAccess, existsById, revalidateFoundation } from "@/lib/foundation";
 import { getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
@@ -35,7 +34,7 @@ export async function createDivision(formData: FormData) {
   if (actor) {
     await recordAuditEvent({ actorUserId: actor.id, action: "division.created", targetType: "division", targetId: data?.id ?? null, metadata: { name: fields.name } });
   }
-  revalidatePath("/admin/divisions");
+  revalidateFoundation();
   redirect("/admin/divisions?saved=1");
 }
 
@@ -58,7 +57,7 @@ export async function updateDivision(id: string, formData: FormData) {
   if (actor) {
     await recordAuditEvent({ actorUserId: actor.id, action: "division.updated", targetType: "division", targetId: id, metadata: { name: fields.name } });
   }
-  revalidatePath("/admin/divisions");
+  revalidateFoundation();
   redirect("/admin/divisions?saved=1");
 }
 
@@ -80,6 +79,6 @@ export async function setDivisionStatus(id: string, status: "active" | "archived
   if (actor) {
     await recordAuditEvent({ actorUserId: actor.id, action: status === "archived" ? "division.archived" : "division.restored", targetType: "division", targetId: id });
   }
-  revalidatePath("/admin/divisions");
+  revalidateFoundation();
   return { ok: true };
 }

@@ -17,6 +17,7 @@ export type LiveMatchBundle = {
     captain_id: string | null;
     coach_name: string;
     status: LineupStatus;
+    submitted_at: string | null;
   } | null;
   awayLineup: {
     starting_xi: string[];
@@ -24,6 +25,7 @@ export type LiveMatchBundle = {
     captain_id: string | null;
     coach_name: string;
     status: LineupStatus;
+    submitted_at: string | null;
   } | null;
   homePlayers: Player[];
   awayPlayers: Player[];
@@ -69,6 +71,7 @@ export const getLiveMatch = cache(async (matchId: string): Promise<LiveMatchBund
           captain_id: homeLineupRow.captain_id,
           coach_name: match.home_team.coach_name,
           status: homeLineupRow.status,
+          submitted_at: homeLineupRow.submitted_at,
         }
       : null,
     awayLineup: awayLineupRow
@@ -78,6 +81,7 @@ export const getLiveMatch = cache(async (matchId: string): Promise<LiveMatchBund
           captain_id: awayLineupRow.captain_id,
           coach_name: match.away_team.coach_name,
           status: awayLineupRow.status,
+          submitted_at: awayLineupRow.submitted_at,
         }
       : null,
     homePlayers: (homePlayers ?? []) as Player[],

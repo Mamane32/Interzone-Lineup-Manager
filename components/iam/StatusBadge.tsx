@@ -7,7 +7,7 @@ const STYLE: Record<StatusBadgeValue, string> = {
   active: "bg-status-submitted/10 text-status-submitted",
   suspended: "bg-status-waiting/10 text-status-waiting",
   disabled: "bg-status-correction/10 text-status-correction",
-  archived: "bg-white/5 text-ink-muted",
+  archived: "bg-white/5 text-white/40",
 };
 
 const LABEL: Record<StatusBadgeValue, string> = {

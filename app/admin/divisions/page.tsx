@@ -41,7 +41,7 @@ export default async function DivisionsPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-semibold">Divisions</h1>
-          <p className="text-ink-muted">Senior, Women, Veterans, U23, and similar splits within a season.</p>
+          <p className="text-white/40">Senior, Women, Veterans, U23, and similar splits within a season.</p>
         </div>
         <CreateDivisionButton seasons={seasonList} />
       </div>
@@ -75,11 +75,11 @@ export default async function DivisionsPage({
 
       <Card className="p-0">
         {divisionList.length === 0 ? (
-          <div className="p-10 text-center text-ink-muted">{hasFilters ? "No divisions match those filters." : "No divisions yet."}</div>
+          <div className="p-10 text-center text-white/40">{hasFilters ? "No divisions match those filters." : "No divisions yet."}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-ink-line text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="border-b border-white/[0.08] text-xs uppercase tracking-wide text-white/40">
                 <tr>
                   <th className="px-4 py-3 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Season</th>
@@ -88,7 +88,7 @@ export default async function DivisionsPage({
                   <th className="px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-line">
+              <tbody className="divide-y divide-white/[0.08]">
                 {divisionList.map((d) => (
                   <DivisionRow key={d.id} division={d} seasons={seasonList} seasonName={seasonsById.get(d.season_id) ?? "—"} />
                 ))}

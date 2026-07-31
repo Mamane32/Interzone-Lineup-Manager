@@ -252,6 +252,9 @@ export interface Team {
   coach_email: string | null;
   token: string;
   created_at: string;
+  // Sprint 2 — Coach Experience (supabase/migrations/010_coach_photo.sql).
+  // Optional so pre-migration records still type-check.
+  coach_photo_url?: string | null;
 }
 
 export interface Player {
@@ -278,6 +281,16 @@ export interface Match {
   away_score?: number;
   referee_name?: string | null;
   venue?: string | null;
+  // Sprint 2 — Competition Completion (supabase/migrations/008_competition_completion.sql).
+  // All nullable — a match can be scheduled with as little as a competition,
+  // or scoped all the way down to a specific group. Setting the most
+  // specific one (e.g. group_id) auto-fills its ancestors via a database
+  // trigger, so these are rarely all set by application code directly.
+  season_id?: string | null;
+  division_id?: string | null;
+  stage_id?: string | null;
+  group_id?: string | null;
+  venue_id?: string | null;
 }
 
 export interface MatchEvent {
@@ -315,4 +328,36 @@ export interface LineupWithRelations extends Lineup {
   team: Team;
   match: MatchWithTeams;
   players: Player[];
+}
+
+// Tactical Formation Panel (supabase/migrations/007_tactical_formations.sql).
+// Broadcast Control Center only — never read from the Coach Portal, the
+// public site, or any public API route.
+export type FormationName = "4-4-2" | "4-3-3" | "3-5-2" | "3-4-3" | "4-2-3-1" | "4-1-4-1" | "5-3-2" | "5-4-1" | "4-5-1" | "custom";
+
+export interface TacticalFormation {
+  id: string;
+  match_id: string;
+  team_id: string;
+  formation: FormationName;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TacticalPosition {
+  id: string;
+  tactical_formation_id: string;
+  player_id: string;
+  tactical_position: string;
+  x_coordinate: number;
+  y_coordinate: number;
+  shirt_number: number;
+  captain: boolean;
+  goalkeeper: boolean;
+  created_at: string;
+  updated_at: string;
+  // Sprint 2 — Formation Engine (supabase/migrations/009_formation_engine.sql).
+  // Optional so pre-migration records still type-check. The stable slot
+  // identity ("CB-1" vs "CB-2") — see lib/formation-engine.ts.
+  slot_key?: string | null;
 }

@@ -15,22 +15,15 @@ export default function CompetitionRow({ competition, organizations, organizatio
 
   return (
     <>
-      <tr className="hover:bg-white/[0.03]">
-        <td className="px-4 py-3 font-medium">{competition.name}</td>
-        <td className="px-4 py-3 text-ink-muted">{organizationName}</td>
-        <td className="px-4 py-3 text-ink-muted">{competition.competition_type ?? "—"}</td>
-        <td className="px-4 py-3"><UserStatusBadge status={status} /></td>
-        <td className="px-4 py-3">
-          <Button type="button" variant="secondary" size="md" onClick={() => setOpen(true)}>View</Button>
-        </td>
-      </tr>
+      <Button type="button" variant="secondary" size="md" onClick={() => setOpen(true)}>Manage</Button>
       {open && (
         <Drawer title={competition.name} subtitle={organizationName} onClose={() => setOpen(false)}>
+          <div className="mb-4"><UserStatusBadge status={status} /></div>
           <form action={renameCompetition.bind(null, competition.id)} className="flex flex-col gap-4">
             <CompetitionFormFields competition={competition} organizations={organizations} />
             <Button type="submit" className="w-fit">Save changes</Button>
           </form>
-          <div className="mt-5 flex flex-wrap gap-2 border-t border-ink-line pt-4">
+          <div className="mt-5 flex flex-wrap gap-2 border-t border-white/[0.08] pt-4">
             {status === "active" ? (
               <ConfirmActionDialog triggerLabel="Archive competition" triggerVariant="danger" title="Archive this competition?" body="Hidden from active lists, not deleted. Seasons and teams underneath are unaffected." confirmLabel="Archive" action={setCompetitionStatus.bind(null, competition.id, "archived")} />
             ) : (

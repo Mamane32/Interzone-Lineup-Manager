@@ -1,10 +1,19 @@
 import Link from "next/link";
-import { ArrowLeft, FileText, Radio } from "lucide-react";
+import { ArrowLeft, FileText, Gauge, Radio, Shirt } from "lucide-react";
 import BrandBar from "./BrandBar";
-import LiveStatusBadge from "./LiveStatusBadge";
 import DateTimeClock from "./DateTimeClock";
+import LiveAlerts from "./LiveAlerts";
+import { deriveLiveAlerts, type LiveAlert } from "@/lib/live-alerts";
+import { systemsWithVMixState, STATE_TONE, STATE_LABEL, type SystemState } from "./ProductionStatusPanel";
 import type { BrandingConfiguration } from "@/lib/branding";
-import type { MatchLiveStatus } from "@/lib/types";
+import type { LineupStatus, MatchLiveStatus } from "@/lib/types";
+import type { MatchdayStatus, ReadinessReport } from "@/lib/readiness";
+
+const READINESS_META: Record<MatchdayStatus, { chipClass: string; dot: string }> = {
+  ready: { chipClass: "bg-emerald-400/15 text-emerald-300", dot: "bg-emerald-400" },
+  attention: { chipClass: "bg-amber-signal/15 text-amber-signal", dot: "bg-amber-signal" },
+  not_ready: { chipClass: "bg-red-500/15 text-red-400", dot: "bg-red-500" },
+};
 
 const STATUS_LABEL: Record<MatchLiveStatus, string> = {
   pre_match: "Scheduled",
@@ -19,13 +28,18 @@ const STATUS_LABEL: Record<MatchLiveStatus, string> = {
 
 const LIVE_STATUSES = new Set<MatchLiveStatus>(["kickoff", "first_half", "second_half", "extra_time", "penalty_shootout"]);
 
+// The condensed, always-visible subset of ProductionStatusPanel's full
+// system list — the Mission Control strip; the full panel is still one tab
+// away for detail, this is "can I trust what's on air right now, at a
+// glance."
+const STRIP_SYSTEM_KEYS = ["stream", "graphics", "vmix", "recording"];
+
 /**
- * Top Control Header — kept compact per the brief ("should not consume too
- * much vertical space"). System status chips are truthful placeholders:
- * "System Online" and "Database" are genuinely accurate (this page only
- * renders because both are true), "Graphics" and "Stream" are honestly
- * "not configured" / "offline" since no real integration exists yet — see
- * ProductionStatusPanel for the fuller, same-vocabulary breakdown.
+ * Top Control Header — two rows. Row one is match identity + navigation
+ * (kept exactly as compact as the original brief asked). Row two is the
+ * Mission Control strip: system health and live alerts, always visible,
+ * not buried behind a tab click — this is what makes the console readable
+ * at a glance instead of requiring a click to know if you're safe to go live.
  */
 export default function BroadcastHeader({
   branding,
@@ -34,6 +48,10 @@ export default function BroadcastHeader({
   awayTeamName,
   status,
   round,
+  homeLineupStatus,
+  awayLineupStatus,
+  vmixState,
+  readiness,
 }: {
   branding: BrandingConfiguration;
   matchToken: string;
@@ -41,11 +59,24 @@ export default function BroadcastHeader({
   awayTeamName: string;
   status: MatchLiveStatus;
   round: string | null;
+  homeLineupStatus: LineupStatus | null;
+  awayLineupStatus: LineupStatus | null;
+  vmixState: SystemState;
+  readiness: ReadinessReport;
 }) {
   const isLive = LIVE_STATUSES.has(status);
+  const matchAlerts = deriveLiveAlerts({ isLive, homeTeamName, awayTeamName, homeLineupStatus, awayLineupStatus, vmixState });
+  // Readiness warnings surface inside the same Mission Control alerts feed
+  // — one alerts UI, fed by two real sources, not a second alerts system.
+  const readinessAlerts: LiveAlert[] = readiness.checks
+    .filter((c) => c.status === "warning")
+    .map((c) => ({ id: `readiness-${c.id}`, label: c.warningLabel ?? c.label, severity: "warning" }));
+  const alerts = [...matchAlerts, ...readinessAlerts];
+  const readinessMeta = READINESS_META[readiness.matchdayStatus];
+  const stripSystems = systemsWithVMixState(vmixState).filter((s) => STRIP_SYSTEM_KEYS.includes(s.key));
 
   return (
-    <header className="sticky top-0 z-30 border-b border-white/10 bg-[#05070a]/95 backdrop-blur">
+    <header className={`sticky top-0 z-30 border-b bg-black/90 backdrop-blur-xl transition-colors ${isLive ? "border-red-500/25" : "border-white/10"}`}>
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-2.5">
         <div className="flex items-center gap-3">
           <Link href="/live" className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white">
@@ -65,28 +96,64 @@ export default function BroadcastHeader({
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden items-center gap-1.5 lg:flex">
-            <LiveStatusBadge label="System Online" tone="positive" />
-            <LiveStatusBadge label="Database" tone="positive" />
-            <LiveStatusBadge label="Graphics" tone="neutral" />
-            <LiveStatusBadge label="Stream" tone="negative" />
-          </div>
+          <Link
+            href={`/live/${matchToken}/readiness`}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold transition hover:brightness-110 ${readinessMeta.chipClass}`}
+          >
+            <Gauge size={11} />
+            {readiness.scorePercent}% Ready
+          </Link>
           <span
             className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide ${
               isLive ? "bg-red-500/15 text-red-400" : "bg-white/10 text-white/50"
             }`}
           >
-            <Radio size={11} className={isLive ? "animate-pulse" : ""} />
+            {isLive ? (
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+              </span>
+            ) : (
+              <Radio size={11} />
+            )}
             {isLive && "LIVE · "}
             {STATUS_LABEL[status]}
           </span>
           <DateTimeClock />
+          <Link
+            href={`/live/${matchToken}/formation`}
+            className="flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white"
+          >
+            <Shirt size={13} /> Formation
+          </Link>
           <Link
             href={`/live/${matchToken}/report`}
             className="flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white"
           >
             <FileText size={13} /> Report
           </Link>
+        </div>
+      </div>
+
+      {/* Mission Control strip */}
+      <div className="border-t border-white/[0.06] bg-white/[0.015]">
+        <div className="mx-auto flex max-w-[1600px] items-center gap-4 overflow-x-auto px-4 py-1.5">
+          <span className="flex-none text-[9px] font-bold uppercase tracking-[0.2em] text-white/25">On Air</span>
+          <div className="flex flex-none items-center gap-3">
+            {stripSystems.map((s) => (
+              <span key={s.key} className="flex items-center gap-1.5 whitespace-nowrap text-[10px] font-medium text-white/45">
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    STATE_TONE[s.state] === "positive" ? "bg-emerald-400" : STATE_TONE[s.state] === "negative" ? "bg-red-500" : "bg-white/25"
+                  }`}
+                />
+                {s.label} <span className="text-white/25">{STATE_LABEL[s.state]}</span>
+              </span>
+            ))}
+          </div>
+          <span className="ml-auto flex-none">
+            <LiveAlerts alerts={alerts} />
+          </span>
         </div>
       </div>
     </header>

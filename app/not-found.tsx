@@ -6,7 +6,7 @@ export default function NotFound() {
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-16">
       <div className="w-full max-w-xl text-center">
-        <div className="mb-12 flex justify-center"><BrandMark /></div>
+        <div className="mb-12 flex justify-center"><BrandMark size="lg" /></div>
         <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-brand-400/15 bg-brand-400/[0.07] text-brand-400"><SearchX size={27} /></span>
         <p className="eyebrow mt-7">Error 404</p>
         <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight sm:text-5xl">This page is off the field.</h1>

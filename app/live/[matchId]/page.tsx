@@ -1,5 +1,8 @@
 import { getLiveMatch } from "@/lib/live-match";
 import { getBaseBranding, withCompetition } from "@/lib/branding";
+import { getVMixStatus } from "@/lib/vmix/client";
+import { WebsiteSync } from "@/lib/broadcast/WebsiteSync";
+import { connectionStateToSystemState } from "@/components/live/vmix-status";
 import MatchHeaderPanel from "@/components/live/MatchHeaderPanel";
 import MatchScorePanel from "@/components/live/MatchScorePanel";
 import StatusControls from "@/components/live/StatusControls";
@@ -42,6 +45,10 @@ export default async function LiveControlRoomPage({ params }: { params: { matchI
   const { match, events, homePlayers, awayPlayers } = bundle;
   const status = match.live_status ?? "pre_match";
   const branding = withCompetition(getBaseBranding(), match.competition);
+  const vmixStatus = await getVMixStatus();
+  const vmixState = connectionStateToSystemState(vmixStatus.state);
+  const [websiteSyncStatus] = await WebsiteSync.getProvidersStatus();
+  const websiteSyncState = connectionStateToSystemState(websiteSyncStatus.state);
 
   return (
     <div className="flex flex-col gap-4">
@@ -105,7 +112,7 @@ export default async function LiveControlRoomPage({ params }: { params: { matchI
           tabs={[
             { key: "broadcast", label: "Broadcast", content: <BroadcastPanel /> },
             { key: "ads", label: "Advertising", content: <AdvertisingPanel /> },
-            { key: "status", label: "Production Status", content: <ProductionStatusPanel /> },
+            { key: "status", label: "Production Status", content: <ProductionStatusPanel vmixState={vmixState} websiteSyncState={websiteSyncState} /> },
           ]}
         />
       </div>

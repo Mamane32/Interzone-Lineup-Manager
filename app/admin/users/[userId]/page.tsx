@@ -56,7 +56,7 @@ export default async function UserDetailPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-semibold">{user.full_name || user.email}</h1>
-          <p className="text-ink-muted">{user.email}</p>
+          <p className="text-white/40">{user.email}</p>
         </div>
         <div className="flex items-center gap-3">
           <UserStatusBadge status={user.status} />
@@ -79,7 +79,7 @@ export default async function UserDetailPage({
         <form action={updateProfile.bind(null, user.id)} className="grid gap-4 sm:grid-cols-2">
           <Input id="full_name" name="full_name" label="Full name" defaultValue={user.full_name ?? ""} />
           <Input id="email" name="email" label="Email" defaultValue={user.email} disabled />
-          <div className="sm:col-span-2 flex gap-6 text-sm text-ink-muted">
+          <div className="sm:col-span-2 flex gap-6 text-sm text-white/40">
             <span>Created {new Date(user.created_at).toLocaleString()}</span>
             <span>Updated {new Date(user.updated_at).toLocaleString()}</span>
             <span>Last login {lastSignInAt ? new Date(lastSignInAt).toLocaleString() : "—"}</span>
@@ -93,16 +93,16 @@ export default async function UserDetailPage({
       {/* Access */}
       <Card>
         <h2 className="mb-1 font-display text-lg font-semibold">Access</h2>
-        <p className="mb-4 text-sm text-ink-muted">Every workspace this user is authorized to enter.</p>
+        <p className="mb-4 text-sm text-white/40">Every workspace this user is authorized to enter.</p>
 
         <div className="mb-4 flex flex-col gap-2">
-          {user.assignments.length === 0 && <p className="text-sm text-ink-muted">No assignments yet.</p>}
+          {user.assignments.length === 0 && <p className="text-sm text-white/40">No assignments yet.</p>}
           {user.assignments.map((a) => (
-            <div key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-line px-3 py-2.5">
+            <div key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/[0.08] px-3 py-2.5">
               <div className="flex flex-wrap items-center gap-2">
                 <RoleBadge role={a.role_key} />
-                {a.team && <span className="text-sm text-ink-muted">{a.team.name}</span>}
-                {a.competition && <span className="text-xs text-ink-muted">· {a.competition.name}</span>}
+                {a.team && <span className="text-sm text-white/40">{a.team.name}</span>}
+                {a.competition && <span className="text-xs text-white/40">· {a.competition.name}</span>}
                 <UserStatusBadge status={a.status} />
               </div>
               <div className="flex gap-2">
@@ -136,8 +136,8 @@ export default async function UserDetailPage({
           ))}
         </div>
 
-        <details className="rounded-xl border border-ink-line px-3 py-2.5">
-          <summary className="cursor-pointer text-sm font-medium text-amber-signal">Add assignment</summary>
+        <details className="rounded-xl border border-white/[0.08] px-3 py-2.5">
+          <summary className="cursor-pointer text-sm font-medium text-brand-400">Add assignment</summary>
           <form action={addAssignment.bind(null, user.id)} className="mt-3 grid gap-3 sm:grid-cols-3">
             <Select id="role_key" name="role_key" label="Role" tone="dark" required>
               <option value="">Select role</option>
@@ -174,13 +174,13 @@ export default async function UserDetailPage({
       <Card>
         <h2 className="mb-4 font-display text-lg font-semibold">Activity</h2>
         {(!auditRows || auditRows.length === 0) ? (
-          <p className="text-sm text-ink-muted">No recorded activity yet.</p>
+          <p className="text-sm text-white/40">No recorded activity yet.</p>
         ) : (
-          <div className="flex flex-col divide-y divide-ink-line">
+          <div className="flex flex-col divide-y divide-white/[0.08]">
             {(auditRows as AuditLogEntry[]).map((e) => (
               <div key={e.id} className="flex items-center justify-between gap-3 py-2 text-sm">
                 <span className="text-white/80">{e.action.replace(/_/g, " ").replace(/\./g, " · ")}</span>
-                <span className="text-xs text-ink-muted">{new Date(e.created_at).toLocaleString()}</span>
+                <span className="text-xs text-white/40">{new Date(e.created_at).toLocaleString()}</span>
               </div>
             ))}
           </div>

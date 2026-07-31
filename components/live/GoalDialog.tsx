@@ -59,7 +59,7 @@ export default function GoalDialog({
           <select
             value={playerId}
             onChange={(e) => setPlayerId(e.target.value)}
-            className="h-11 w-full rounded-lg border border-white/10 bg-white/5 px-3 text-sm focus:border-white/30 focus:outline-none"
+            className="h-11 w-full rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white focus:border-white/30 focus:outline-none [&>option]:bg-surface-900 [&>option]:text-white"
           >
             <option value="">— Unspecified —</option>
             {players.map((p) => (

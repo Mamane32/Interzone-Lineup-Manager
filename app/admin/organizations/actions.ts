@@ -1,8 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { requireFoundationAccess, slugify, isSlugAvailable } from "@/lib/foundation";
+import { requireFoundationAccess, slugify, isSlugAvailable, revalidateFoundation } from "@/lib/foundation";
 import { getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
@@ -64,7 +63,9 @@ export async function createOrganization(formData: FormData) {
     });
   }
 
-  revalidatePath("/admin/organizations");
+  // Organizations feed the Competition create/edit dropdown among other
+  // pages — revalidate the whole tree, not just this one page.
+  revalidateFoundation();
   redirect("/admin/organizations?saved=1");
 }
 
@@ -101,7 +102,7 @@ export async function updateOrganization(id: string, formData: FormData) {
     });
   }
 
-  revalidatePath("/admin/organizations");
+  revalidateFoundation();
   redirect("/admin/organizations?saved=1");
 }
 
@@ -131,6 +132,6 @@ export async function setOrganizationStatus(id: string, status: "active" | "arch
     });
   }
 
-  revalidatePath("/admin/organizations");
+  revalidateFoundation();
   return { ok: true };
 }

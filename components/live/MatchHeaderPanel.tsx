@@ -13,7 +13,7 @@ export default function MatchHeaderPanel({ bundle, branding }: { bundle: LiveMat
   const { match } = bundle;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+    <div className="surface-panel overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-5 py-2.5 text-[11px] uppercase tracking-wide text-white/40">
         <span className="flex items-center gap-1.5">
           <Trophy size={12} /> {branding.competitionName ?? "No competition"}

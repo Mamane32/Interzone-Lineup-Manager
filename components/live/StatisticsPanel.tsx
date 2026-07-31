@@ -1,4 +1,5 @@
 import SectionHeader from "./SectionHeader";
+import { getTheme } from "@/lib/team-theme";
 import type { Team } from "@/lib/types";
 
 // Per the brief: "Statistics may use placeholder values for now" / "The
@@ -22,8 +23,11 @@ const PLACEHOLDER_STATS: { label: string; home: number; away: number; suffix?: s
 ];
 
 export default function StatisticsPanel({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team }) {
+  const homeTheme = getTheme(homeTeam.name);
+  const awayTheme = getTheme(awayTeam.name);
+
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <div className="surface-panel p-4">
       <SectionHeader
         title="Match Statistics"
         badge={<span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-medium text-white/30">Placeholder data</span>}
@@ -52,8 +56,8 @@ export default function StatisticsPanel({ homeTeam, awayTeam }: { homeTeam: Team
                 </span>
               </div>
               <div className="flex h-1.5 overflow-hidden rounded-full bg-white/5">
-                <div className="bg-blue-500" style={{ width: `${homePct}%` }} />
-                <div className="flex-1 bg-red-500" />
+                <div className={homeTheme.solid} style={{ width: `${homePct}%` }} />
+                <div className={`flex-1 ${awayTheme.solid}`} />
               </div>
             </div>
           );

@@ -49,7 +49,7 @@ export default async function AccessAssignmentsPage({
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-3xl font-semibold">Access Assignments</h1>
-        <p className="text-ink-muted">Every role grant across the platform.</p>
+        <p className="text-white/40">Every role grant across the platform.</p>
       </div>
 
       {searchParams.saved && (
@@ -69,10 +69,10 @@ export default async function AccessAssignmentsPage({
               <p className="font-semibold text-status-waiting">
                 {legacyTeams.length} team{legacyTeams.length === 1 ? "" : "s"} still on legacy email-based coach access
               </p>
-              <p className="mt-1 text-sm text-ink-muted">
+              <p className="mt-1 text-sm text-white/40">
                 These teams&apos; coach login still relies on matching <code>coach_email</code> to the signed-in user —
                 there&apos;s no real assignment row yet (see <code>lib/coach-auth.ts</code>). Send a fresh invite from the{" "}
-                <a href="/admin/invitations" className="text-amber-signal hover:underline">
+                <a href="/admin/invitations" className="text-brand-400 hover:underline">
                   Invitations
                 </a>{" "}
                 page for each to create a real assignment; once every team here is gone, the email fallback can be
@@ -80,7 +80,7 @@ export default async function AccessAssignmentsPage({
               </p>
               <ul className="mt-2 flex flex-wrap gap-2">
                 {legacyTeams.map((t) => (
-                  <li key={t.id} className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-ink-muted">
+                  <li key={t.id} className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-white/40">
                     {t.name}
                   </li>
                 ))}
@@ -134,7 +134,7 @@ export default async function AccessAssignmentsPage({
       <Card className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-ink-line text-xs uppercase tracking-wide text-ink-muted">
+            <thead className="border-b border-white/[0.08] text-xs uppercase tracking-wide text-white/40">
               <tr>
                 <th className="px-4 py-3 font-medium">User</th>
                 <th className="px-4 py-3 font-medium">Role</th>
@@ -143,7 +143,7 @@ export default async function AccessAssignmentsPage({
                 <th className="px-4 py-3 font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink-line">
+            <tbody className="divide-y divide-white/[0.08]">
               {((assignments ?? []) as AssignmentWithScope[]).map((a) => {
                 const profile = profilesById.get(a.user_id);
                 return (
@@ -152,7 +152,7 @@ export default async function AccessAssignmentsPage({
                     <td className="px-4 py-3">
                       <RoleBadge role={a.role_key} />
                     </td>
-                    <td className="px-4 py-3 text-xs text-ink-muted">
+                    <td className="px-4 py-3 text-xs text-white/40">
                       {a.team?.name}
                       {a.team && a.competition ? " · " : ""}
                       {a.competition?.name}

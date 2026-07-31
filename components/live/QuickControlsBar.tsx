@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Undo2, ChevronRight } from "lucide-react";
+import Modal from "./Modal";
 import GoalDialog from "./GoalDialog";
 import EventDialog from "./EventDialog";
 import ConfirmDialog from "./ConfirmDialog";
@@ -13,7 +14,7 @@ type QuickAction =
   | { kind: "event"; type: MatchEventType; label: string; needsTeamPlayer: boolean }
   | { kind: "status"; status: MatchLiveStatus; label: string; confirm?: boolean };
 
-const ACTIONS: (QuickAction & { display: string })[] = [
+const EVENT_ACTIONS: (QuickAction & { display: string })[] = [
   { kind: "goal", display: "⚽ Goal" },
   { kind: "event", type: "yellow_card", label: "Yellow Card", needsTeamPlayer: true, display: "🟨 Yellow Card" },
   { kind: "event", type: "red_card", label: "Red Card", needsTeamPlayer: true, display: "🟥 Red Card" },
@@ -21,6 +22,9 @@ const ACTIONS: (QuickAction & { display: string })[] = [
   { kind: "event", type: "var", label: "VAR", needsTeamPlayer: false, display: "📺 VAR" },
   { kind: "event", type: "penalty_missed", label: "Penalty", needsTeamPlayer: true, display: "🥅 Penalty" },
   { kind: "event", type: "var", label: "Additional Time", needsTeamPlayer: false, display: "➕ Additional Time" },
+];
+
+const STATUS_ACTIONS: (Extract<QuickAction, { kind: "status" }> & { display: string })[] = [
   { kind: "status", status: "half_time", label: "Half Time", display: "⏸️ Half Time" },
   { kind: "status", status: "full_time", label: "Full Time", display: "⏹️ End Match", confirm: true },
 ];
@@ -89,22 +93,40 @@ export default function QuickControlsBar({
 
   return (
     <>
-      <div className="sticky bottom-0 z-20 mt-4 rounded-2xl border border-white/10 bg-[#0b0e13]/95 p-2.5 backdrop-blur">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {ACTIONS.map((a, i) => (
-            <button
-              key={i}
-              onClick={() => handle(a)}
-              disabled={pendingStatus}
-              className="flex-none whitespace-nowrap rounded-xl bg-white/5 px-3.5 py-2.5 text-xs font-bold text-white/80 transition-all hover:bg-white/10 active:scale-95 disabled:opacity-30"
-            >
-              {a.display}
-            </button>
-          ))}
+      <div className="surface-panel sticky bottom-0 z-20 mt-4 p-2.5 shadow-[0_-20px_50px_-20px_rgba(0,0,0,0.6)]">
+        <div className="flex items-center gap-3 overflow-x-auto pb-1">
+          <span className="flex-none whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.2em] text-white/25">Operator Shortcuts</span>
+          <div className="flex flex-none items-center gap-1.5">
+            {EVENT_ACTIONS.map((a, i) => (
+              <button
+                key={i}
+                onClick={() => handle(a)}
+                disabled={pendingStatus}
+                className="flex-none whitespace-nowrap rounded-xl bg-white/5 px-3.5 py-2.5 text-xs font-bold text-white/80 transition-all hover:-translate-y-0.5 hover:bg-white/10 active:scale-95 active:translate-y-0 disabled:opacity-30"
+              >
+                {a.display}
+              </button>
+            ))}
+          </div>
+          <span className="h-6 w-px flex-none bg-white/10" />
+          <div className="flex flex-none items-center gap-1.5">
+            {STATUS_ACTIONS.map((a, i) => (
+              <button
+                key={i}
+                onClick={() => handle(a)}
+                disabled={pendingStatus}
+                className={`flex-none whitespace-nowrap rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all hover:-translate-y-0.5 active:scale-95 active:translate-y-0 disabled:opacity-30 ${
+                  a.confirm ? "bg-red-500/10 text-red-300 hover:bg-red-500/20" : "bg-white/5 text-white/80 hover:bg-white/10"
+                }`}
+              >
+                {a.display}
+              </button>
+            ))}
+          </div>
           <button
             onClick={() => setConfirmingUndo(true)}
             disabled={pendingUndo}
-            className="flex flex-none items-center gap-1.5 whitespace-nowrap rounded-xl bg-red-500/15 px-3.5 py-2.5 text-xs font-bold text-red-400 transition-all hover:bg-red-500/25 active:scale-95 disabled:opacity-30"
+            className="ml-auto flex flex-none items-center gap-1.5 whitespace-nowrap rounded-xl bg-red-500/15 px-3.5 py-2.5 text-xs font-bold text-red-400 transition-all hover:-translate-y-0.5 hover:bg-red-500/25 active:scale-95 active:translate-y-0 disabled:opacity-30"
           >
             <Undo2 size={13} /> Undo Last Action
           </button>
@@ -192,26 +214,21 @@ function QuickGoalTeamPicker({
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/60 p-4 sm:items-center" onClick={onClose}>
-      <div
-        className="animate-fade-up w-full max-w-sm rounded-2xl border border-white/10 bg-[#0b0e13] p-5"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="mb-4 flex items-center gap-1.5 font-display text-base font-semibold">
-          <ChevronRight size={16} /> Which team scored?
-        </h3>
-        <div className="grid grid-cols-2 gap-2">
-          {[homeTeam, awayTeam].map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setChosen(t)}
-              className="truncate rounded-xl bg-white/5 py-4 text-sm font-semibold hover:bg-white/10"
-            >
-              {t.name}
-            </button>
-          ))}
-        </div>
+    <Modal onClose={onClose}>
+      <h3 className="mb-4 flex items-center gap-1.5 font-display text-base font-semibold">
+        <ChevronRight size={16} /> Which team scored?
+      </h3>
+      <div className="grid grid-cols-2 gap-2">
+        {[homeTeam, awayTeam].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setChosen(t)}
+            className="truncate rounded-xl bg-white/5 py-4 text-sm font-semibold transition hover:bg-white/10"
+          >
+            {t.name}
+          </button>
+        ))}
       </div>
-    </div>
+    </Modal>
   );
 }

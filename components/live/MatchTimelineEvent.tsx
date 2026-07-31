@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import { Pencil, Trash2, X } from "lucide-react";
 import Modal from "./Modal";
 import { deleteMatchEvent, updateMatchEvent } from "@/app/live/[matchId]/actions";
@@ -70,8 +71,7 @@ export default function MatchTimelineEvent({
 
       {team && (
         team.logo_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={team.logo_url} alt="" className={`h-5 w-5 flex-none rounded-full object-cover ring-1 ${theme?.ring ?? ""}`} />
+          <Image src={team.logo_url} alt="" width={20} height={20} className={`h-5 w-5 flex-none rounded-full object-cover ring-1 ${theme?.ring ?? ""}`} />
         ) : (
           <span className={`flex h-5 w-5 flex-none items-center justify-center rounded-full text-[8px] font-bold ${theme?.chipBg ?? "bg-white/10"} ${theme?.chipText ?? "text-white/50"}`}>
             {team.name.slice(0, 2).toUpperCase()}
@@ -203,7 +203,7 @@ function EditEventDialog({
             value={playerId}
             onChange={(e) => setPlayerId(e.target.value)}
             disabled={!teamId}
-            className="h-11 rounded-lg border border-white/10 bg-white/5 px-3 text-sm focus:border-white/30 focus:outline-none disabled:opacity-40"
+            className="h-11 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white focus:border-white/30 focus:outline-none disabled:opacity-40 [&>option]:bg-surface-900 [&>option]:text-white"
           >
             <option value="">— Unspecified —</option>
             {players.map((p) => (

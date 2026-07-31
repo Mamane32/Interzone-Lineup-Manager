@@ -1,8 +1,10 @@
+import { Building2, CheckCircle2, Trophy } from "lucide-react";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireFoundationAccess } from "@/lib/foundation";
-import Card from "@/components/ui/Card";
+import PageHeader from "@/components/ui/PageHeader";
+import StatCard from "@/components/ui/StatCard";
 import CreateCompetitionButton from "@/components/foundation/CreateCompetitionButton";
-import CompetitionRow from "@/components/foundation/CompetitionRow";
+import CompetitionsExplorer from "@/components/foundation/CompetitionsExplorer";
 import type { Competition, Organization } from "@/lib/types";
 
 // Always render on request — this page reads live data via the service-role
@@ -30,17 +32,17 @@ export default async function CompetitionsPage({
 
   const list = (competitions ?? []) as Competition[];
   const orgList = (organizations ?? []) as Organization[];
-  const orgsById = new Map(orgList.map((o) => [o.id, o.name]));
+  const activeCount = list.filter((c) => (c.status ?? "active") === "active").length;
+  const linkedOrgCount = new Set(list.map((c) => c.organization_id).filter(Boolean)).size;
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-display text-3xl font-semibold">Competitions</h1>
-          <p className="text-ink-muted">Group matches and teams under a competition.</p>
-        </div>
-        <CreateCompetitionButton organizations={orgList} />
-      </div>
+      <PageHeader
+        eyebrow="Competition management"
+        title="Competitions"
+        description="Group matches and teams under a competition, and control how each one is structured."
+        actions={<CreateCompetitionButton organizations={orgList} />}
+      />
 
       {searchParams.saved && <p className="rounded-lg bg-status-submitted/10 px-3 py-2 text-sm font-medium text-status-submitted">Saved.</p>}
       {searchParams.error && (
@@ -49,30 +51,13 @@ export default async function CompetitionsPage({
         </p>
       )}
 
-      <Card className="p-0">
-        {list.length === 0 ? (
-          <div className="p-10 text-center text-ink-muted">No competitions yet.</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-ink-line text-xs uppercase tracking-wide text-ink-muted">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Name</th>
-                  <th className="px-4 py-3 font-medium">Organization</th>
-                  <th className="px-4 py-3 font-medium">Type</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-ink-line">
-                {list.map((c) => (
-                  <CompetitionRow key={c.id} competition={c} organizations={orgList} organizationName={(c.organization_id && orgsById.get(c.organization_id)) || "—"} />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="Total competitions" value={list.length} icon={Trophy} />
+        <StatCard label="Active" value={activeCount} detail={`${list.length - activeCount} archived`} icon={CheckCircle2} tone="success" />
+        <StatCard label="Organizations linked" value={linkedOrgCount} icon={Building2} tone="neutral" />
+      </div>
+
+      <CompetitionsExplorer competitions={list} organizations={orgList} />
     </div>
   );
 }

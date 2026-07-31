@@ -41,7 +41,7 @@ export default async function GroupsPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-semibold">Groups</h1>
-          <p className="text-ink-muted">Group A, Group B, North, South, and similar splits within a stage.</p>
+          <p className="text-white/40">Group A, Group B, North, South, and similar splits within a stage.</p>
         </div>
         <CreateGroupButton stages={stageList} />
       </div>
@@ -75,11 +75,11 @@ export default async function GroupsPage({
 
       <Card className="p-0">
         {groupList.length === 0 ? (
-          <div className="p-10 text-center text-ink-muted">{hasFilters ? "No groups match those filters." : "No groups yet."}</div>
+          <div className="p-10 text-center text-white/40">{hasFilters ? "No groups match those filters." : "No groups yet."}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-ink-line text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="border-b border-white/[0.08] text-xs uppercase tracking-wide text-white/40">
                 <tr>
                   <th className="px-4 py-3 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Stage</th>
@@ -87,7 +87,7 @@ export default async function GroupsPage({
                   <th className="px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-line">
+              <tbody className="divide-y divide-white/[0.08]">
                 {groupList.map((g) => (
                   <GroupRow key={g.id} group={g} stages={stageList} stageName={stagesById.get(g.stage_id) ?? "—"} />
                 ))}

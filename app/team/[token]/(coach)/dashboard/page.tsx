@@ -1,10 +1,12 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ClipboardList, History, CalendarDays, UserCircle2, Trophy, MapPin } from "lucide-react";
 import { requireCoach } from "@/lib/coach-auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import CountdownTimer from "@/components/coach/CountdownTimer";
 import MatchListItem from "@/components/coach/MatchListItem";
 import NotificationsPanel, { type NotificationItem } from "@/components/coach/NotificationsPanel";
+import CoachProfileCard from "@/components/coach/CoachProfileCard";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { getTheme } from "@/lib/team-theme";
 import type { Team } from "@/lib/types";
@@ -73,19 +75,21 @@ export default async function DashboardPage({ params }: { params: { token: strin
 
   const competitionTheme = getTheme(next?.match?.competition?.id ?? team.competition_id);
   const matchTheme = getTheme(nextOpponent?.name ?? team.name);
+  const ownTheme = getTheme(team.name);
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Top bar — greeting + notifications */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-ink font-display text-sm text-white">
-            {team.coach_name.slice(0, 2).toUpperCase()}
-          </div>
-          <div>
-            <p className="text-xs text-ink/40">Byenveni,</p>
-            <p className="font-display text-base font-semibold text-ink">{team.coach_name}</p>
-          </div>
+      {/* Top bar — profile card + notifications */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1">
+          <CoachProfileCard
+            token={params.token}
+            coachName={team.coach_name}
+            teamName={team.name}
+            competitionName={next?.match?.competition?.name ?? null}
+            photoUrl={team.coach_photo_url ?? null}
+            theme={ownTheme}
+          />
         </div>
         <NotificationsPanel items={notifications} />
       </div>
@@ -177,8 +181,7 @@ function TeamBadge({ t }: { t: Team | null }) {
   return (
     <div className="flex flex-1 flex-col items-center gap-2 text-center">
       {t.logo_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={t.logo_url} alt="" className="h-16 w-16 rounded-full bg-white/10 object-cover ring-2 ring-white/30" />
+        <Image src={t.logo_url} alt="" width={64} height={64} className="h-16 w-16 rounded-full bg-white/10 object-cover ring-2 ring-white/30" />
       ) : (
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 font-display text-lg ring-2 ring-white/30">
           {t.name.slice(0, 2).toUpperCase()}
