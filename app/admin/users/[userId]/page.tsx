@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/access";
+import { ShieldAlert } from "lucide-react";
+import { requireAdmin, getSessionUser } from "@/lib/access";
 import { getUserWithAssignments } from "@/lib/iam";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { countActiveUsersWithRole } from "@/lib/privilege";
 import { updateUserStatus } from "../actions";
 import { updateProfile, addAssignment, setAssignmentStatus } from "./actions";
 import Card from "@/components/ui/Card";
@@ -12,7 +14,9 @@ import UserStatusBadge from "@/components/iam/StatusBadge";
 import RoleBadge from "@/components/iam/RoleBadge";
 import ConfirmActionDialog from "@/components/iam/ConfirmActionDialog";
 import { PLATFORM_ROLES } from "@/lib/validation";
-import type { AccessStatus, AuditLogEntry, Competition, Team } from "@/lib/types";
+import type { AccessStatus, AuditLogEntry, Competition, PlatformRole, Team, UserAccessAssignment } from "@/lib/types";
+
+const ADMIN_CAPABLE_ROLES: PlatformRole[] = ["admin", "super_admin"];
 
 export const dynamic = "force-dynamic";
 
@@ -32,16 +36,41 @@ export default async function UserDetailPage({
   searchParams: { saved?: string; error?: string };
 }) {
   await requireAdmin();
+  const actor = await getSessionUser();
 
   const user = await getUserWithAssignments(params.userId);
   if (!user) notFound();
 
   const admin = supabaseAdmin();
-  const [{ data: competitions }, { data: teams }, { data: auditRows }] = await Promise.all([
+  const [{ data: competitions }, { data: teams }, { data: auditRows }, activeSuperAdminCount] = await Promise.all([
     admin.from("competitions").select("*").order("name"),
     admin.from("teams").select("*").order("name"),
     admin.from("audit_logs").select("*").eq("target_id", params.userId).order("created_at", { ascending: false }).limit(20),
+    countActiveUsersWithRole("super_admin"),
   ]);
+
+  // Platform Owner protection (Sprint 3 acceptance review): the server
+  // actions already refuse these changes (lib/privilege.ts's
+  // assertNotLastSuperAdmin / assertNotSelfLockout /
+  // assertAccountStatusChangeSafe) — this is the UI never offering a
+  // button that would only fail anyway.
+  const isViewingSelf = actor?.id === user.id;
+  const targetHoldsActiveSuperAdmin = user.assignments.some((a) => a.role_key === "super_admin" && a.status === "active");
+  const isLastSuperAdmin = targetHoldsActiveSuperAdmin && activeSuperAdminCount <= 1;
+  const ownActiveAdminAssignmentCount = isViewingSelf
+    ? user.assignments.filter((a) => a.status === "active" && ADMIN_CAPABLE_ROLES.includes(a.role_key)).length
+    : 0;
+
+  function protectedAssignmentReason(a: UserAccessAssignment): "last_super_admin" | "self_lockout" | null {
+    if (a.status !== "active") return null;
+    // Checked in this order deliberately: if it's genuinely the platform's
+    // last super_admin, say so even when the viewer also happens to be
+    // looking at their own account — that's the more specific, more
+    // useful reason for anyone else who reads this later.
+    if (a.role_key === "super_admin" && isLastSuperAdmin) return "last_super_admin";
+    if (isViewingSelf && ADMIN_CAPABLE_ROLES.includes(a.role_key) && ownActiveAdminAssignmentCount <= 1) return "self_lockout";
+    return null;
+  }
 
   let lastSignInAt: string | null = null;
   try {
@@ -60,9 +89,15 @@ export default async function UserDetailPage({
         </div>
         <div className="flex items-center gap-3">
           <UserStatusBadge status={user.status} />
-          <StatusActions userId={user.id} status={user.status} />
+          <StatusActions userId={user.id} status={user.status} isProtected={isViewingSelf || isLastSuperAdmin} />
         </div>
       </div>
+
+      {isLastSuperAdmin && (
+        <p className="flex items-center gap-2 rounded-lg bg-amber-signal/10 px-3 py-2 text-sm font-medium text-amber-signal">
+          <ShieldAlert size={15} /> This is the platform&apos;s last active super administrator — suspend/disable actions are unavailable until another account is granted super_admin.
+        </p>
+      )}
 
       {searchParams.saved && (
         <p className="rounded-lg bg-status-submitted/10 px-3 py-2 text-sm font-medium text-status-submitted">Saved.</p>
@@ -106,31 +141,47 @@ export default async function UserDetailPage({
                 <UserStatusBadge status={a.status} />
               </div>
               <div className="flex gap-2">
-                {a.status === "active" ? (
-                  <ConfirmActionDialog
-                    triggerLabel="Suspend"
-                    title="Suspend this assignment?"
-                    body={`${user.full_name || user.email} will immediately lose access to this workspace. This can be reversed.`}
-                    confirmLabel="Suspend"
-                    action={setAssignmentStatus.bind(null, user.id, a.id, "suspended" as AccessStatus)}
-                  />
+                {protectedAssignmentReason(a) ? (
+                  <span className="rounded-lg bg-white/[0.04] px-2.5 py-1.5 text-xs font-medium text-white/30">
+                    {protectedAssignmentReason(a) === "last_super_admin" ? "Last super admin — protected" : "Your last admin access — protected"}
+                  </span>
+                ) : a.status === "active" ? (
+                  <>
+                    <ConfirmActionDialog
+                      triggerLabel="Suspend"
+                      title="Suspend this assignment?"
+                      body={`${user.full_name || user.email} will immediately lose access to this workspace. This can be reversed.`}
+                      confirmLabel="Suspend"
+                      action={setAssignmentStatus.bind(null, user.id, a.id, "suspended" as AccessStatus)}
+                    />
+                    <ConfirmActionDialog
+                      triggerLabel="Revoke"
+                      triggerVariant="danger"
+                      title="Revoke this assignment?"
+                      body={`This immediately removes ${user.full_name || user.email}'s access to this workspace.`}
+                      confirmLabel="Revoke"
+                      action={setAssignmentStatus.bind(null, user.id, a.id, "disabled" as AccessStatus)}
+                    />
+                  </>
                 ) : (
-                  <ConfirmActionDialog
-                    triggerLabel="Reactivate"
-                    title="Reactivate this assignment?"
-                    body={`Restores ${user.full_name || user.email}'s access to this workspace.`}
-                    confirmLabel="Reactivate"
-                    action={setAssignmentStatus.bind(null, user.id, a.id, "active" as AccessStatus)}
-                  />
+                  <>
+                    <ConfirmActionDialog
+                      triggerLabel="Reactivate"
+                      title="Reactivate this assignment?"
+                      body={`Restores ${user.full_name || user.email}'s access to this workspace.`}
+                      confirmLabel="Reactivate"
+                      action={setAssignmentStatus.bind(null, user.id, a.id, "active" as AccessStatus)}
+                    />
+                    <ConfirmActionDialog
+                      triggerLabel="Revoke"
+                      triggerVariant="danger"
+                      title="Revoke this assignment?"
+                      body={`This immediately removes ${user.full_name || user.email}'s access to this workspace.`}
+                      confirmLabel="Revoke"
+                      action={setAssignmentStatus.bind(null, user.id, a.id, "disabled" as AccessStatus)}
+                    />
+                  </>
                 )}
-                <ConfirmActionDialog
-                  triggerLabel="Revoke"
-                  triggerVariant="danger"
-                  title="Revoke this assignment?"
-                  body={`This immediately removes ${user.full_name || user.email}'s access to this workspace.`}
-                  confirmLabel="Revoke"
-                  action={setAssignmentStatus.bind(null, user.id, a.id, "disabled" as AccessStatus)}
-                />
               </div>
             </div>
           ))}
@@ -190,8 +241,14 @@ export default async function UserDetailPage({
   );
 }
 
-function StatusActions({ userId, status }: { userId: string; status: AccessStatus }) {
+function StatusActions({ userId, status, isProtected }: { userId: string; status: AccessStatus; isProtected: boolean }) {
   if (status === "active") {
+    // Platform Owner protection: the platform's last active super admin,
+    // or the signed-in admin's own account, never gets a Suspend/Disable
+    // button — lib/privilege.ts's server-side guards would refuse the
+    // action anyway; this is the UI not offering one that can only fail.
+    if (isProtected) return null;
+
     return (
       <div className="flex gap-2">
         <ConfirmActionDialog

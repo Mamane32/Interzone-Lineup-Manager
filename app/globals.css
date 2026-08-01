@@ -37,6 +37,23 @@
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
     pointer-events: none;
   }
+  /* Same glass treatment as surface-panel, for floating menus (notification
+     bell, profile menu) that overlay page content directly with no backdrop
+     scrim behind them — surface-panel's 4.5% tint alone reads as fully
+     see-through there, since (unlike Modal.tsx) nothing dims the content
+     behind it first. Solid enough to read as opaque even where
+     backdrop-filter isn't rendered. */
+  .surface-panel-solid {
+    @apply relative overflow-hidden rounded-2xl border border-white/[0.09] bg-surface-900/95 shadow-panel backdrop-blur-xl transition-all duration-200;
+  }
+  .surface-panel-solid::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+    pointer-events: none;
+  }
   .surface-subtle {
     @apply rounded-xl border border-white/[0.07] bg-white/[0.025];
   }

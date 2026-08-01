@@ -5,6 +5,7 @@ import { requireFoundationAccess, slugify, isSlugAvailable, revalidateFoundation
 import { getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
+import { uploadImage, type ImageUploadResult } from "@/lib/image-upload";
 import type { VenueSurfaceType } from "@/lib/types";
 
 const SURFACE_TYPES: VenueSurfaceType[] = ["grass", "artificial_turf", "hybrid", "other"];
@@ -112,6 +113,11 @@ export async function updateVenue(id: string, formData: FormData) {
 
   revalidateFoundation();
   redirect("/admin/venues?saved=1");
+}
+
+export async function uploadVenuePhoto(formData: FormData): Promise<ImageUploadResult> {
+  await requireFoundationAccess();
+  return uploadImage("venue-photos", formData.get("file") as File | null);
 }
 
 export type ActionResult = { ok: true } | { ok: false; error: string };

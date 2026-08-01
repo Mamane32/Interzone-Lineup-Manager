@@ -11,6 +11,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         name: profile?.full_name || "GGSP Administrator",
         email: profile?.email || "",
         role: role === "super_admin" ? "Super Administrator" : "Administrator",
+        avatarUrl: profile?.avatar_url,
       }}
     >
       {children}

@@ -42,7 +42,7 @@ export default function GoLiveButton({
           {blockingChecks.map((c) => (
             <Link
               key={c.id}
-              href={c.actionHref ? c.actionHref(matchId) : `/live/${matchId}`}
+              href={c.actionHref ?? `/live/${matchId}`}
               className="flex items-center justify-between gap-2 rounded-lg bg-red-500/[0.06] px-3 py-2 text-xs text-red-300 transition hover:bg-red-500/10"
             >
               <span className="flex items-center gap-2"><AlertTriangle size={12} /> {c.warningLabel ?? c.label}</span>
@@ -74,7 +74,7 @@ export default function GoLiveButton({
       <div
         role="dialog"
         aria-hidden={!open}
-        className={`surface-panel absolute right-0 top-full z-50 mt-2 w-80 origin-top-right p-4 transition-all duration-150 ease-out ${
+        className={`surface-panel-solid absolute right-0 top-full z-50 mt-2 w-80 origin-top-right p-4 transition-all duration-150 ease-out ${
           open ? "pointer-events-auto scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"
         }`}
       >

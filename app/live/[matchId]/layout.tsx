@@ -29,6 +29,7 @@ export default async function BroadcastControlCenterLayout({
   ]);
 
   const readiness = buildReadinessReport({
+    matchId: params.matchId,
     competitionId: match.competition_id,
     refereeName: match.referee_name ?? null,
     home: teamReadinessFromData({

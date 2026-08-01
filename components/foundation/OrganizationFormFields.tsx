@@ -1,4 +1,6 @@
 import Input from "@/components/ui/Input";
+import ImageUpload from "@/components/ui/ImageUpload";
+import { uploadOrganizationLogo, uploadOrganizationBanner } from "@/app/admin/organizations/actions";
 import type { Organization } from "@/lib/types";
 
 export default function OrganizationFormFields({ org }: { org?: Organization }) {
@@ -31,9 +33,9 @@ export default function OrganizationFormFields({ org }: { org?: Organization }) 
 
       <fieldset className="rounded-xl border border-white/[0.08] p-3">
         <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-white/40">Branding</legend>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Input id="logo_url" name="logo_url" label="Logo URL" defaultValue={org?.logo_url ?? ""} />
-          <Input id="banner_url" name="banner_url" label="Banner URL" defaultValue={org?.banner_url ?? ""} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <ImageUpload label="Logo" name="logo_url" currentUrl={org?.logo_url ?? null} action={uploadOrganizationLogo} shape="circle" size={64} />
+          <ImageUpload label="Banner" name="banner_url" currentUrl={org?.banner_url ?? null} action={uploadOrganizationBanner} size={64} />
           <Input id="primary_color" name="primary_color" label="Primary color" defaultValue={org?.primary_color ?? ""} placeholder="#0B0F14" />
           <Input id="secondary_color" name="secondary_color" label="Secondary color" defaultValue={org?.secondary_color ?? ""} placeholder="#FFB020" />
         </div>

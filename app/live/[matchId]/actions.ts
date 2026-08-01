@@ -6,7 +6,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
 import { broadcastScoreUpdate } from "@/lib/broadcast/ScoreEngine";
 import { broadcastGoal, broadcastCard, broadcastSubstitution, broadcastStatusChange } from "@/lib/broadcast/EventEngine";
-import { takeGraphic } from "@/lib/broadcast/GraphicsEngine";
+import { autoTriggerGraphicForEvent } from "@/lib/broadcast/graphics-automation";
 import type { MatchLiveStatus, MatchEventType } from "@/lib/types";
 
 const GOAL_TYPES: MatchEventType[] = ["goal", "penalty_goal", "own_goal"];
@@ -120,6 +120,11 @@ export async function addGoalEvent(
       // the goal graphic are separate vMix inputs in the command map.
       await broadcastScoreUpdate({ matchId, homeScore, awayScore });
       await broadcastGoal({ matchId, team, playerName, minute });
+      // Sprint 3 Graphics Integration — the Production Queue, not this
+      // direct vMix data-sync call above, is what actually puts a "Goal"
+      // graphic on air; the two are complementary (scoreboard text vs.
+      // the graphic asset itself), not duplicates of each other.
+      await autoTriggerGraphicForEvent(matchId, type);
 
       await recordAuditEvent({
         actorUserId: userId,
@@ -175,6 +180,7 @@ export async function addMatchEvent(
         playerName,
         minute,
       });
+      await autoTriggerGraphicForEvent(matchId, type);
       await recordAuditEvent({
         actorUserId: userId,
         action: "match.card_issued",
@@ -192,6 +198,7 @@ export async function addMatchEvent(
       // of the change can be named here. Not a redesign of that schema,
       // just an honest limit of what's available to pass along.
       await broadcastSubstitution({ matchId, team, playerOutName: playerName, playerInName: null, minute });
+      await autoTriggerGraphicForEvent(matchId, type);
       await recordAuditEvent({
         actorUserId: userId,
         action: "match.substitution",
@@ -202,33 +209,24 @@ export async function addMatchEvent(
       return;
     }
 
-    if (type === "var") {
-      await takeGraphic({ matchId, graphicId: "var-review", category: "review" });
-      await recordAuditEvent({ actorUserId: userId, action: "match.var_review", targetType: "match", targetId: matchId, metadata: { minute } });
-      return;
-    }
-
-    if (type === "penalty_missed") {
-      await takeGraphic({ matchId, graphicId: "penalty-missed", category: "match-flow" });
+    // VAR, penalty missed, injury, and additional time all route through
+    // the Production Queue Engine now — Sprint 3's "single dispatch layer
+    // for graphics" rule. These three used to call GraphicsEngine's
+    // takeGraphic() directly, bypassing the queue entirely (no persisted
+    // row, invisible to Program/Preview and to BroadcastPanel's own
+    // state) — autoTriggerGraphicForEvent is the one path now, same as
+    // every other graphic-triggering event above.
+    if (type === "var" || type === "penalty_missed" || type === "injury" || type === "additional_time") {
+      await autoTriggerGraphicForEvent(matchId, type);
       await recordAuditEvent({
         actorUserId: userId,
-        action: "match.penalty_missed",
+        action:
+          type === "var" ? "match.var_review" : type === "penalty_missed" ? "match.penalty_missed" : type === "injury" ? "match.injury" : "match.additional_time",
         targetType: "match",
         targetId: matchId,
         metadata: { team_id: teamId, minute, player_id: playerId },
       });
       return;
-    }
-
-    if (type === "injury") {
-      await takeGraphic({ matchId, graphicId: "injury", category: "match-flow" });
-      await recordAuditEvent({
-        actorUserId: userId,
-        action: "match.injury",
-        targetType: "match",
-        targetId: matchId,
-        metadata: { team_id: teamId, minute, player_id: playerId },
-      });
     }
     // match_start / half_time / match_resume / match_end timeline markers:
     // the match-phase broadcast notification for these already happens
@@ -328,16 +326,34 @@ export async function setManualScore(matchId: string, homeScore: number, awaySco
   revalidateMatch(matchId);
 }
 
-/** Match Header — venue and referee are optional operator-entered fields (Sprint 2 addition). */
+/**
+ * Match Header — venue, referee, and the rest of the officiating crew
+ * (Sprint 3: assistant referees, fourth official, VAR official — plain
+ * nullable columns per product decision, not a separate entities table).
+ */
 export async function updateMatchHeaderInfo(matchId: string, formData: FormData) {
   const { userId } = await requireRole(["broadcast_operator", "admin", "super_admin"]);
-  const venue = String(formData.get("venue") ?? "").trim();
-  const refereeName = String(formData.get("refereeName") ?? "").trim();
+  const str = (name: string) => String(formData.get(name) ?? "").trim() || null;
+  const venue = str("venue");
+  const refereeName = str("refereeName");
+  const assistantReferee1Name = str("assistantReferee1Name");
+  const assistantReferee2Name = str("assistantReferee2Name");
+  const fourthOfficialName = str("fourthOfficialName");
+  const varOfficialName = str("varOfficialName");
+  const venueId = str("venueId");
 
   const supabase = supabaseAdmin();
   const { error } = await supabase
     .from("matches")
-    .update({ venue: venue || null, referee_name: refereeName || null })
+    .update({
+      venue,
+      venue_id: venueId,
+      referee_name: refereeName,
+      assistant_referee_1_name: assistantReferee1Name,
+      assistant_referee_2_name: assistantReferee2Name,
+      fourth_official_name: fourthOfficialName,
+      var_official_name: varOfficialName,
+    })
     .eq("id", matchId);
   revalidateMatch(matchId);
 
@@ -351,7 +367,7 @@ export async function updateMatchHeaderInfo(matchId: string, formData: FormData)
         action: "match.officials_updated",
         targetType: "match",
         targetId: matchId,
-        metadata: { referee_name: refereeName, venue: venue || null },
+        metadata: { referee_name: refereeName, venue },
       });
     });
   }

@@ -39,7 +39,7 @@ export type ReadinessCheck = {
   critical?: boolean;
   /** "One click to the right screen" — the operator never has to search for the fix. */
   actionLabel?: string;
-  actionHref?: (matchId: string) => string;
+  actionHref?: string;
 };
 
 export type MatchdayStatus = "ready" | "attention" | "not_ready";
@@ -65,6 +65,7 @@ export type TeamReadinessInput = {
 };
 
 export type ReadinessInput = {
+  matchId: string;
   competitionId: string | null;
   refereeName: string | null;
   home: TeamReadinessInput;
@@ -123,7 +124,7 @@ export function buildReadinessReport(input: ReadinessInput): ReadinessReport {
       status: input.competitionId ? "pass" : "warning",
       warningLabel: "No Competition Selected",
       actionLabel: "Open Matches",
-      actionHref: () => "/admin/matches",
+      actionHref: "/admin/matches",
     },
     { id: "match_created", label: "Match Created", category: "foundation", status: "pass" },
     { id: "teams_confirmed", label: "Teams Confirmed", category: "foundation", status: "pass" },
@@ -135,7 +136,7 @@ export function buildReadinessReport(input: ReadinessInput): ReadinessReport {
       warningLabel: "Starting XI Incomplete",
       critical: true,
       actionLabel: "Open Lineup Manager",
-      actionHref: () => "/admin/lineups",
+      actionHref: "/admin/lineups",
     },
     {
       id: "formation_selected",
@@ -145,7 +146,7 @@ export function buildReadinessReport(input: ReadinessInput): ReadinessReport {
       warningLabel: "Formation Not Saved",
       critical: true,
       actionLabel: "Open Formation Editor",
-      actionHref: (matchId) => `/live/${matchId}/formation`,
+      actionHref: `/live/${input.matchId}/formation`,
     },
     {
       id: "captain_verified",
@@ -155,7 +156,7 @@ export function buildReadinessReport(input: ReadinessInput): ReadinessReport {
       warningLabel: "No Captain Selected",
       critical: true,
       actionLabel: "Open Tactical Formation",
-      actionHref: (matchId) => `/live/${matchId}/formation`,
+      actionHref: `/live/${input.matchId}/formation`,
     },
     {
       id: "goalkeeper_verified",
@@ -165,7 +166,7 @@ export function buildReadinessReport(input: ReadinessInput): ReadinessReport {
       warningLabel: "Goalkeeper Missing",
       critical: true,
       actionLabel: "Open Tactical Formation",
-      actionHref: (matchId) => `/live/${matchId}/formation`,
+      actionHref: `/live/${input.matchId}/formation`,
     },
     { id: "team_colors_verified", label: "Team Colors Verified", category: "production", status: "pass" },
     {
@@ -175,7 +176,7 @@ export function buildReadinessReport(input: ReadinessInput): ReadinessReport {
       status: bothTeams((t) => t.substituteCount > 0) ? "pass" : "warning",
       warningLabel: "Bench Players Missing",
       actionLabel: "Open Lineup Manager",
-      actionHref: () => "/admin/lineups",
+      actionHref: "/admin/lineups",
     },
     { id: "coach_information_ready", label: "Coach Information Ready", category: "foundation", status: "pass" },
     {
@@ -186,7 +187,7 @@ export function buildReadinessReport(input: ReadinessInput): ReadinessReport {
       warningLabel: "Match Officials Not Set",
       critical: true,
       actionLabel: "Open Match Header",
-      actionHref: (matchId) => `/live/${matchId}`,
+      actionHref: `/live/${input.matchId}`,
     },
     { id: "broadcast_graphics_ready", label: "Broadcast Graphics Ready", category: "production", status: "not_tracked" },
     { id: "sponsor_graphics_ready", label: "Sponsor Graphics Ready", category: "production", status: "not_tracked" },
@@ -198,7 +199,7 @@ export function buildReadinessReport(input: ReadinessInput): ReadinessReport {
       status: tacticalLayoutReady ? "pass" : "warning",
       warningLabel: "Animation Package Not Ready",
       actionLabel: "Open Formation Editor",
-      actionHref: (matchId) => `/live/${matchId}/formation`,
+      actionHref: `/live/${input.matchId}/formation`,
     },
     {
       id: "tactical_layout_ready",
@@ -208,7 +209,7 @@ export function buildReadinessReport(input: ReadinessInput): ReadinessReport {
       warningLabel: "Tactical Layout Incomplete",
       critical: true,
       actionLabel: "Open Formation Editor",
-      actionHref: (matchId) => `/live/${matchId}/formation`,
+      actionHref: `/live/${input.matchId}/formation`,
     },
     {
       id: "broadcast_preview_ready",
@@ -217,7 +218,7 @@ export function buildReadinessReport(input: ReadinessInput): ReadinessReport {
       status: tacticalLayoutReady ? "pass" : "warning",
       warningLabel: "Broadcast Preview Not Ready",
       actionLabel: "Open Formation Editor",
-      actionHref: (matchId) => `/live/${matchId}/formation`,
+      actionHref: `/live/${input.matchId}/formation`,
     },
     {
       id: "vmix_configuration_ready",
@@ -226,7 +227,7 @@ export function buildReadinessReport(input: ReadinessInput): ReadinessReport {
       status: input.vmixConnected ? "pass" : "warning",
       warningLabel: "vMix Not Configured",
       actionLabel: "Open Broadcast Settings",
-      actionHref: (matchId) => `/live/${matchId}`,
+      actionHref: `/live/${input.matchId}`,
     },
     {
       id: "website_sync_ready",
@@ -235,7 +236,7 @@ export function buildReadinessReport(input: ReadinessInput): ReadinessReport {
       status: input.websiteSyncConnected ? "pass" : "warning",
       warningLabel: "Website Sync Not Configured",
       actionLabel: "Open Website Integration",
-      actionHref: (matchId) => `/live/${matchId}`,
+      actionHref: `/live/${input.matchId}`,
     },
   ];
 

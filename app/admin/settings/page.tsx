@@ -1,4 +1,3 @@
-import Image from "next/image";
 import {
   Bell,
   Building2,
@@ -10,10 +9,11 @@ import {
   UserRound,
 } from "lucide-react";
 import { requireAdmin, getProfile, getActiveAssignments } from "@/lib/access";
-import { updateOwnProfile, changeOwnPassword } from "./actions";
+import { updateOwnProfile, changeOwnPassword, uploadUserAvatar } from "./actions";
 import PageHeader from "@/components/ui/PageHeader";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import ImageUpload from "@/components/ui/ImageUpload";
 import RoleBadge from "@/components/iam/RoleBadge";
 
 export const dynamic = "force-dynamic";
@@ -81,18 +81,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: { s
           <section id="profile" className="surface-panel scroll-mt-24 p-6">
             <SectionTitle icon={UserRound} title="Profile" description="Your identity across the platform." />
             <form action={updateOwnProfile} className="mt-5 flex flex-col gap-5">
-              <div className="flex items-center gap-4">
-                <span className="flex h-16 w-16 flex-none items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-brand-100 to-brand-400 font-display text-xl font-bold text-surface-950">
-                  {profile?.avatar_url ? (
-                    <Image src={profile.avatar_url} alt="" width={64} height={64} className="h-full w-full object-cover" unoptimized />
-                  ) : (
-                    initials
-                  )}
-                </span>
-                <div className="flex-1">
-                  <Input id="avatar_url" name="avatar_url" label="Avatar URL" defaultValue={profile?.avatar_url ?? ""} placeholder="https://..." />
-                </div>
-              </div>
+              <ImageUpload label="Avatar" name="avatar_url" currentUrl={profile?.avatar_url ?? null} action={uploadUserAvatar} shape="circle" size={64} />
+              {!profile?.avatar_url && <p className="-mt-3 text-[11px] text-white/25">Showing your initials ({initials}) as the placeholder until you upload a photo.</p>}
               <div className="grid gap-4 sm:grid-cols-2">
                 <Input id="full_name" name="full_name" label="Full name" defaultValue={profile?.full_name ?? ""} placeholder="Your name" />
                 <Input id="email" label="Email" defaultValue={profile?.email ?? ""} disabled className="opacity-60" />

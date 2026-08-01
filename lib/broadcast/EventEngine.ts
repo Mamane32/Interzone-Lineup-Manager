@@ -4,11 +4,13 @@ import type { BroadcastCommandResult } from "./types";
 
 /**
  * Match-event domain's broadcast-dispatch boundary — the same pattern as
- * ScoreEngine.ts. app/live/[matchId]/actions.ts (GoalDialog, EventDialog,
- * the timeline's edit/delete actions) remains the source of truth for
- * event data; these functions are what a Server Action calls *after* an
- * event write succeeds, to notify every connected broadcast system.
- * Not called from any Server Action yet.
+ * ScoreEngine.ts. app/live/[matchId]/actions.ts (addGoalEvent,
+ * addMatchEvent) remains the source of truth for event data; these
+ * functions are what that Server Action calls *after* an event write
+ * succeeds, to notify every connected broadcast system (vMix's live data
+ * fields — distinct from the Production Queue's graphic-asset take/hide,
+ * which the same Server Actions also trigger via
+ * lib/broadcast/graphics-automation.ts).
  */
 
 export async function broadcastGoal(params: {

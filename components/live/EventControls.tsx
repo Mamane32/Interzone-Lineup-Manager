@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import EventDialog from "./EventDialog";
-import type { MatchEventType, Player, Team } from "@/lib/types";
+import type { MatchEvent, MatchEventType, MatchLiveStatus, Player, Team } from "@/lib/types";
 
 export const EVENT_TYPES: { value: MatchEventType; label: string; needsTeamPlayer: boolean; group: "discipline" | "flow" | "review" }[] = [
   { value: "yellow_card", label: "🟨 Yellow Card", needsTeamPlayer: true, group: "discipline" },
@@ -11,6 +11,7 @@ export const EVENT_TYPES: { value: MatchEventType; label: string; needsTeamPlaye
   { value: "penalty_missed", label: "❌ Penalty Missed", needsTeamPlayer: true, group: "discipline" },
   { value: "injury", label: "🩹 Injury", needsTeamPlayer: true, group: "discipline" },
   { value: "substitution", label: "🔁 Substitution", needsTeamPlayer: true, group: "flow" },
+  { value: "additional_time", label: "➕ Additional Time", needsTeamPlayer: false, group: "flow" },
   { value: "match_start", label: "▶️ Match Start", needsTeamPlayer: false, group: "flow" },
   { value: "half_time", label: "⏸️ Half Time", needsTeamPlayer: false, group: "flow" },
   { value: "match_resume", label: "▶️ Match Resume", needsTeamPlayer: false, group: "flow" },
@@ -30,12 +31,16 @@ export default function EventControls({
   awayTeam,
   homePlayers,
   awayPlayers,
+  status,
+  events,
 }: {
   matchId: string;
   homeTeam: Team;
   awayTeam: Team;
   homePlayers: Player[];
   awayPlayers: Player[];
+  status: MatchLiveStatus;
+  events: MatchEvent[];
 }) {
   const [active, setActive] = useState<MatchEventType | null>(null);
   const activeDef = EVENT_TYPES.find((e) => e.value === active);
@@ -73,6 +78,8 @@ export default function EventControls({
           awayTeam={awayTeam}
           homePlayers={homePlayers}
           awayPlayers={awayPlayers}
+          status={status}
+          events={events}
           onClose={() => setActive(null)}
         />
       )}

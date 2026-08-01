@@ -22,6 +22,7 @@ const LABEL: Record<MatchEventType, string> = {
   half_time: "",
   match_resume: "",
   match_end: "",
+  additional_time: "",
 };
 
 export default function HighlightsIndex({ bundle }: { bundle: LiveMatchBundle }) {

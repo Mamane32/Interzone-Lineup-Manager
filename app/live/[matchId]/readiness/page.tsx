@@ -32,6 +32,7 @@ export default async function ReadinessPage({ params }: { params: { matchId: str
   ]);
 
   const report = buildReadinessReport({
+    matchId: params.matchId,
     competitionId: match.competition_id,
     refereeName: match.referee_name ?? null,
     home: teamReadinessFromData({

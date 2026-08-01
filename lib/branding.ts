@@ -52,17 +52,35 @@ export function getBaseBranding(): BrandingConfiguration {
 }
 
 /**
- * Layers a specific match's competition (real Supabase data - name only
- * today; competitions has no logo column, see SPRINT_1_COACH_PORTAL.md)
- * onto the base org/partner branding. Components should call this rather
- * than reading env vars themselves.
+ * Layers a specific match's competition — and, through it, the real
+ * organization that owns the competition (the "League" tier: e.g. "League
+ * Football de Port-de-Paix (LFP)" owning the "Interzone" competition) —
+ * onto the base branding. Both `organizations.logo_url` and
+ * `competitions.logo_url` are real columns (migration 006); this is what
+ * actually reads them, rather than the League/Competition tiers only ever
+ * coming from env vars. Components should call this rather than reading
+ * env vars or Supabase rows directly.
  */
 export function withCompetition(
   base: BrandingConfiguration,
-  competition: { name: string | null | undefined } | null | undefined
+  competition:
+    | {
+        name: string | null | undefined;
+        logo_url?: string | null;
+        organization?: { name: string | null | undefined; logo_url: string | null } | null;
+      }
+    | null
+    | undefined
 ): BrandingConfiguration {
   return {
     ...base,
     competitionName: competition?.name ?? null,
+    competitionLogoUrl: competition?.logo_url ?? null,
+    // The competition's real owning organization ("League") outranks the
+    // env-var fallback organization identity once a match actually belongs
+    // to one — env vars remain the fallback for pages with no competition
+    // context (e.g. the unified login).
+    organizationName: competition?.organization?.name || base.organizationName,
+    organizationLogoUrl: competition?.organization?.logo_url ?? base.organizationLogoUrl,
   };
 }

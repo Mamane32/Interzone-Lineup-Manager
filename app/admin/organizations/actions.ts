@@ -5,6 +5,7 @@ import { requireFoundationAccess, slugify, isSlugAvailable, revalidateFoundation
 import { getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
+import { uploadImage, type ImageUploadResult } from "@/lib/image-upload";
 
 function fieldsFrom(formData: FormData) {
   const str = (name: string) => String(formData.get(name) ?? "").trim() || null;
@@ -104,6 +105,16 @@ export async function updateOrganization(id: string, formData: FormData) {
 
   revalidateFoundation();
   redirect("/admin/organizations?saved=1");
+}
+
+export async function uploadOrganizationLogo(formData: FormData): Promise<ImageUploadResult> {
+  await requireFoundationAccess();
+  return uploadImage("organization-logos", formData.get("file") as File | null);
+}
+
+export async function uploadOrganizationBanner(formData: FormData): Promise<ImageUploadResult> {
+  await requireFoundationAccess();
+  return uploadImage("organization-banners", formData.get("file") as File | null);
 }
 
 export type ActionResult = { ok: true } | { ok: false; error: string };

@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowLeft, FileText, Gauge, Radio, Shirt } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { FileText, Gauge, Radio, Shirt, LayoutGrid, ExternalLink } from "lucide-react";
+import BrandMark from "@/components/brand/BrandMark";
 import BrandBar from "./BrandBar";
 import DateTimeClock from "./DateTimeClock";
 import LiveAlerts from "./LiveAlerts";
@@ -35,11 +39,15 @@ const LIVE_STATUSES = new Set<MatchLiveStatus>(["kickoff", "first_half", "second
 const STRIP_SYSTEM_KEYS = ["stream", "graphics", "vmix", "recording"];
 
 /**
- * Top Control Header — two rows. Row one is match identity + navigation
- * (kept exactly as compact as the original brief asked). Row two is the
- * Mission Control strip: system health and live alerts, always visible,
- * not buried behind a tab click — this is what makes the console readable
- * at a glance instead of requiring a click to know if you're safe to go live.
+ * Top Control Header — shared by every module under /live/[matchId]/**
+ * (Control Room, Formation, Readiness, Report) via the layout that renders
+ * it, so this one header IS already the persistent cross-module nav — the
+ * Phase 4 review's finding was that it didn't *feel* like one: no
+ * permanent brand shortcut back to the Overview, and Formation/Readiness/
+ * Report read as three unrelated buttons rather than one nav cluster with
+ * a "you are here" state. Both fixed here: `BrandMark` (the same GG crest
+ * used everywhere else in the product, not a new one) links to /live, and
+ * all four modules now render as one active-state-aware nav group.
  */
 export default function BroadcastHeader({
   branding,
@@ -64,6 +72,7 @@ export default function BroadcastHeader({
   vmixState: SystemState;
   readiness: ReadinessReport;
 }) {
+  const pathname = usePathname();
   const isLive = LIVE_STATUSES.has(status);
   const matchAlerts = deriveLiveAlerts({ isLive, homeTeamName, awayTeamName, homeLineupStatus, awayLineupStatus, vmixState });
   // Readiness warnings surface inside the same Mission Control alerts feed
@@ -75,13 +84,19 @@ export default function BroadcastHeader({
   const readinessMeta = READINESS_META[readiness.matchdayStatus];
   const stripSystems = systemsWithVMixState(vmixState).filter((s) => STRIP_SYSTEM_KEYS.includes(s.key));
 
+  const base = `/live/${matchToken}`;
+  const modules = [
+    { href: base, label: "Control Room", icon: LayoutGrid },
+    { href: `${base}/formation`, label: "Formation", icon: Shirt },
+    { href: `${base}/readiness`, label: `Readiness · ${readiness.scorePercent}%`, icon: Gauge },
+    { href: `${base}/report`, label: "Report", icon: FileText },
+  ];
+
   return (
     <header className={`sticky top-0 z-30 border-b bg-black/90 backdrop-blur-xl transition-colors ${isLive ? "border-red-500/25" : "border-white/10"}`}>
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-2.5">
         <div className="flex items-center gap-3">
-          <Link href="/live" className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white">
-            <ArrowLeft size={14} /> Broadcast Control Center
-          </Link>
+          <BrandMark compact size="sm" href="/live" className="flex-none" />
           <span className="hidden h-4 w-px bg-white/10 sm:block" />
           <div className="hidden sm:block">
             <BrandBar branding={branding} compact />
@@ -96,13 +111,24 @@ export default function BroadcastHeader({
         </div>
 
         <div className="flex items-center gap-2">
-          <Link
-            href={`/live/${matchToken}/readiness`}
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold transition hover:brightness-110 ${readinessMeta.chipClass}`}
+          <a
+            href={`/broadcast-output/${matchToken}/program`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-semibold text-white/45 transition hover:bg-white/10 hover:text-white"
+            title="Open Program output in a new window — pop it out to a second monitor or external display"
           >
-            <Gauge size={11} />
-            {readiness.scorePercent}% Ready
-          </Link>
+            <ExternalLink size={10} /> Program
+          </a>
+          <a
+            href={`/broadcast-output/${matchToken}/preview`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-semibold text-white/45 transition hover:bg-white/10 hover:text-white"
+            title="Open Preview output in a new window"
+          >
+            <ExternalLink size={10} /> Preview
+          </a>
           <span
             className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide ${
               isLive ? "bg-red-500/15 text-red-400" : "bg-white/10 text-white/50"
@@ -120,18 +146,31 @@ export default function BroadcastHeader({
             {STATUS_LABEL[status]}
           </span>
           <DateTimeClock />
-          <Link
-            href={`/live/${matchToken}/formation`}
-            className="flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white"
-          >
-            <Shirt size={13} /> Formation
-          </Link>
-          <Link
-            href={`/live/${matchToken}/report`}
-            className="flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white"
-          >
-            <FileText size={13} /> Report
-          </Link>
+        </div>
+      </div>
+
+      {/* Module nav — one cluster, one "you are here" state, instead of a
+          readiness chip styled differently from Formation/Report buttons. */}
+      <div className="border-t border-white/[0.06] bg-white/[0.02]">
+        <div className="mx-auto flex max-w-[1600px] items-center gap-1 overflow-x-auto px-4 py-1.5">
+          {modules.map((m) => {
+            const active = m.href === base ? pathname === base : pathname.startsWith(m.href);
+            return (
+              <Link
+                key={m.href}
+                href={m.href}
+                className={`flex flex-none items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  active ? "bg-white text-black" : "text-white/60 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <m.icon size={13} />
+                {m.label}
+                {m.href === `${base}/readiness` && (
+                  <span className={`ml-1 flex h-1.5 w-1.5 rounded-full ${readinessMeta.dot}`} aria-label={`${readiness.scorePercent}% ready`} />
+                )}
+              </Link>
+            );
+          })}
         </div>
       </div>
 

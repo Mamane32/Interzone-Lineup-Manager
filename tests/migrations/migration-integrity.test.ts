@@ -28,6 +28,11 @@ describe("migration integrity", () => {
       "008_competition_completion.sql",
       "009_formation_engine.sql",
       "010_coach_photo.sql",
+      "011_additional_time_event.sql",
+      "012_image_upload_buckets.sql",
+      "013_production_queue.sql",
+      "014_match_officials.sql",
+      "015_match_statistics.sql",
     ]);
   });
 

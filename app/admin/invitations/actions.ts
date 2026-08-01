@@ -148,6 +148,20 @@ export async function resendInvitation(invitationId: string) {
     redirectTo: `${appUrl}/auth/callback?next=${encodeURIComponent("/team/reset-password")}`,
   });
 
+  // Resend doubles as "regenerate": Supabase issues a fresh invite link
+  // either way, but if the original had an expires_at, push it out from
+  // now by the same span it was originally given — otherwise a resend on
+  // an already-expired invitation would immediately display as "Expired"
+  // again despite the new email having just gone out.
+  if (!error && invite!.expires_at) {
+    const originalSpanMs = new Date(invite!.expires_at).getTime() - new Date(invite!.created_at).getTime();
+    const spanMs = originalSpanMs > 0 ? originalSpanMs : 7 * 24 * 60 * 60 * 1000;
+    await admin
+      .from("invitations")
+      .update({ expires_at: new Date(Date.now() + spanMs).toISOString() })
+      .eq("id", invitationId);
+  }
+
   if (actor) {
     await recordAuditEvent({
       actorUserId: actor.id,

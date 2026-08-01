@@ -138,4 +138,18 @@ describe("server action authorization coverage", () => {
     expect(source).toContain('status: 401');
     expect(source).toContain('status: 403');
   });
+
+  it("authenticates the production queue polling API the same way", () => {
+    const source = fs.readFileSync(path.join(ROOT, "app/api/live/[matchId]/production-queue/route.ts"), "utf8");
+    expect(source).toContain("auth.auth.getUser()");
+    expect(source).toContain('status: 401');
+    expect(source).toContain('status: 403');
+  });
+
+  it("gates both broadcast output pages (Program/Preview) behind the same broadcast role check", () => {
+    for (const mode of ["program", "preview"]) {
+      const source = fs.readFileSync(path.join(ROOT, `app/broadcast-output/[matchId]/${mode}/page.tsx`), "utf8");
+      expect(source).toMatch(/requireRole\(\["broadcast_operator", "admin", "super_admin"\]\)/);
+    }
+  });
 });

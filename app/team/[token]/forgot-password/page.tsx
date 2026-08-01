@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Mail, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requestPasswordReset } from "./actions";
-import Button from "@/components/ui/Button";
+import CoachForgotPasswordForm from "@/components/auth/CoachForgotPasswordForm";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,7 @@ export default async function ForgotPasswordPage({
   searchParams,
 }: {
   params: { token: string };
-  searchParams: { sent?: string };
+  searchParams: { sent?: string; error?: string };
 }) {
   const supabase = supabaseAdmin();
   const { data: team } = await supabase.from("teams").select("id, name").eq("token", params.token).single();
@@ -37,28 +37,17 @@ export default async function ForgotPasswordPage({
               </p>
             </div>
           ) : (
-            <form action={requestPasswordReset.bind(null, params.token)} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4">
               <div>
                 <p className="font-display text-lg font-semibold text-white">Modpas bliye</p>
                 <p className="mt-1 text-sm text-ink-muted">{team.name}</p>
               </div>
-              <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-ink-muted">Imèl</span>
-                <span className="flex items-center gap-2 rounded-xl border border-ink-line bg-ink px-3 focus-within:border-amber-signal">
-                  <Mail size={16} className="text-ink-muted" />
-                  <input
-                    name="email"
-                    type="email"
-                    required
-                    placeholder="antrenè@ekip.ht"
-                    className="h-12 flex-1 bg-transparent text-white placeholder:text-ink-muted focus:outline-none"
-                  />
-                </span>
-              </label>
-              <Button type="submit" size="lg" className="w-full">
-                Voye lyen
-              </Button>
-            </form>
+              <CoachForgotPasswordForm
+                action={requestPasswordReset.bind(null, params.token)}
+                error={searchParams.error}
+                scopeKey={`coach-${params.token}`}
+              />
+            </div>
           )}
         </div>
       </div>

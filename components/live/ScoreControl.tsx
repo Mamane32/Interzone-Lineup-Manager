@@ -5,7 +5,7 @@ import { Plus, Undo2, Pencil, X } from "lucide-react";
 import Modal from "./Modal";
 import GoalDialog from "./GoalDialog";
 import { deleteMatchEvent, setManualScore } from "@/app/live/[matchId]/actions";
-import type { MatchEvent, Player, Team } from "@/lib/types";
+import type { MatchEvent, MatchLiveStatus, Player, Team } from "@/lib/types";
 
 export default function ScoreControl({
   matchId,
@@ -15,6 +15,7 @@ export default function ScoreControl({
   awayScore,
   homePlayers,
   awayPlayers,
+  status,
   events,
 }: {
   matchId: string;
@@ -24,6 +25,7 @@ export default function ScoreControl({
   awayScore: number;
   homePlayers: Player[];
   awayPlayers: Player[];
+  status: MatchLiveStatus;
   events: MatchEvent[];
 }) {
   const [dialogTeam, setDialogTeam] = useState<"home" | "away" | null>(null);
@@ -72,6 +74,8 @@ export default function ScoreControl({
           team={dialogTeam === "home" ? homeTeam : awayTeam}
           opponent={dialogTeam === "home" ? awayTeam : homeTeam}
           players={dialogTeam === "home" ? homePlayers : awayPlayers}
+          status={status}
+          events={events}
           onClose={() => setDialogTeam(null)}
         />
       )}

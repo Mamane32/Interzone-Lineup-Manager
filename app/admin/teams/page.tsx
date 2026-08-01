@@ -1,11 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { createTeam } from "./actions";
+import { createTeam, uploadTeamLogo } from "./actions";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
+import ImageUpload from "@/components/ui/ImageUpload";
 import CopyLinkButton from "@/components/ui/CopyLinkButton";
 import { teamLink } from "@/lib/utils";
 import type { Team, Competition } from "@/lib/types";
@@ -37,7 +38,7 @@ export default async function TeamsPage() {
 
       <Card className="max-w-2xl">
         <h2 className="mb-4 font-display text-lg font-semibold">Add team</h2>
-        <form action={createTeam} className="grid gap-4 sm:grid-cols-2" encType="multipart/form-data">
+        <form action={createTeam} className="grid gap-4 sm:grid-cols-2">
           <Input id="name" name="name" label="Team name" required />
           <Select id="competition_id" name="competition_id" label="Competition" tone="dark">
             <option value="">— None —</option>
@@ -50,18 +51,7 @@ export default async function TeamsPage() {
           <Input id="coach_name" name="coach_name" label="Coach name" required />
           <Input id="coach_phone" name="coach_phone" label="Coach telephone" required />
           <Input id="coach_email" name="coach_email" label="Coach email (used for Coach Portal login)" type="email" required />
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="logo" className="text-sm font-medium text-white/40">
-              Team logo (PNG)
-            </label>
-            <input
-              id="logo"
-              name="logo"
-              type="file"
-              accept="image/png"
-              className="text-sm text-white/40 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-white"
-            />
-          </div>
+          <ImageUpload label="Team logo" name="logo_url" action={uploadTeamLogo} shape="circle" size={64} />
           <Button type="submit" className="sm:col-span-2 mt-2">
             Create team
           </Button>

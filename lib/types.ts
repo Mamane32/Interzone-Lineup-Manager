@@ -96,7 +96,9 @@ export type MatchEventType =
   | "match_start"
   | "half_time"
   | "match_resume"
-  | "match_end";
+  | "match_end"
+  // Sprint 2 — Phase 4 (supabase/migrations/011_additional_time_event.sql).
+  | "additional_time";
 
 export type FoundationStatus = "active" | "archived";
 
@@ -291,6 +293,13 @@ export interface Match {
   stage_id?: string | null;
   group_id?: string | null;
   venue_id?: string | null;
+  // Sprint 3 — Live Match Experience (supabase/migrations/014_match_officials.sql).
+  // A match has one officiating crew, not reusable entities — plain nullable
+  // columns, same pattern as referee_name above.
+  assistant_referee_1_name?: string | null;
+  assistant_referee_2_name?: string | null;
+  fourth_official_name?: string | null;
+  var_official_name?: string | null;
 }
 
 export interface MatchEvent {
@@ -302,6 +311,29 @@ export interface MatchEvent {
   player_id: string | null;
   description: string | null;
   created_at: string;
+}
+
+// Match Statistics Engine (supabase/migrations/015_match_statistics.sql).
+// One row per (match, team), operator-driven — never inferred from
+// match_events, even for Yellow/Red Cards (see the migration's own
+// comment for why). expected_goals is architecture only: always null
+// until a real calculation engine exists.
+export interface MatchStatistics {
+  id: string;
+  match_id: string;
+  team_id: string;
+  possession_percent: number;
+  shots: number;
+  shots_on_target: number;
+  corners: number;
+  fouls: number;
+  offside: number;
+  yellow_cards: number;
+  red_cards: number;
+  saves: number;
+  expected_goals: number | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Lineup {

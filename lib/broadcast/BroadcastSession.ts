@@ -65,7 +65,7 @@ export async function getBroadcastSession(matchId: string): Promise<BroadcastSes
       state: websiteSyncStatuses[0]?.state === "connected" ? "active" : "not_configured",
       detail: "No provider registered",
     },
-    { key: "graphics", label: "Graphics", state: "planned", detail: "Broadcast Graphics panel is UI-only today, no persisted state" },
+    { key: "graphics", label: "Graphics", state: "active", detail: "Persisted via the Production Queue Engine — survives refresh/reconnect/handoff" },
     { key: "animation", label: "Animation", state: "planned", detail: "Preview only, not exported anywhere yet" },
     { key: "statistics", label: "Statistics", state: "planned", detail: "Statistics panel is placeholder data" },
     { key: "replay", label: "Replay", state: "planned" },

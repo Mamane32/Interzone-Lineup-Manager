@@ -68,18 +68,10 @@ export default function MatchScorePanel({
         <TeamColumn team={awayTeam} align="right" />
       </div>
 
-      {/* Small statistic placeholder — possession, per the brief */}
-      <div className="mt-5 border-t border-white/10 pt-3">
-        <div className="mb-1 flex items-center justify-between text-[11px] font-semibold text-white/60">
-          <span>54%</span>
-          <span className="text-white/30">Possession</span>
-          <span>46%</span>
-        </div>
-        <div className="flex h-1 overflow-hidden rounded-full bg-white/5">
-          <div className="bg-blue-500" style={{ width: "54%" }} />
-          <div className="flex-1 bg-red-500" />
-        </div>
-      </div>
+      {/* Possession used to be a hardcoded 54/46 placeholder here — removed
+          rather than carried forward, since Sprint 3's Match Statistics
+          phase gives StatisticsPanel real data. One real number in one
+          place beats two components independently guessing the same stat. */}
     </div>
   );
 }

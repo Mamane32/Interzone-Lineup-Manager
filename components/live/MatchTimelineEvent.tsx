@@ -6,24 +6,10 @@ import { Pencil, Trash2, X } from "lucide-react";
 import Modal from "./Modal";
 import { deleteMatchEvent, updateMatchEvent } from "@/app/live/[matchId]/actions";
 import { getTheme } from "@/lib/team-theme";
-import type { MatchEvent, MatchEventType, Player, Team } from "@/lib/types";
+import { EVENT_META } from "@/lib/event-meta";
+import type { MatchEvent, Player, Team } from "@/lib/types";
 
-export const EVENT_META: Record<MatchEventType, { icon: string; label: string }> = {
-  goal: { icon: "⚽", label: "Goal" },
-  penalty_goal: { icon: "⚽", label: "Penalty Goal" },
-  own_goal: { icon: "⚽", label: "Own Goal" },
-  yellow_card: { icon: "🟨", label: "Yellow Card" },
-  second_yellow: { icon: "🟨🟥", label: "Second Yellow" },
-  red_card: { icon: "🟥", label: "Red Card" },
-  substitution: { icon: "🔁", label: "Substitution" },
-  var: { icon: "📺", label: "VAR" },
-  penalty_missed: { icon: "❌", label: "Penalty Missed" },
-  injury: { icon: "🩹", label: "Injury" },
-  match_start: { icon: "▶️", label: "Match Start" },
-  half_time: { icon: "⏸️", label: "Half Time" },
-  match_resume: { icon: "▶️", label: "Match Resume" },
-  match_end: { icon: "⏹️", label: "Match End" },
-};
+export { EVENT_META };
 
 export default function MatchTimelineEvent({
   matchId,
@@ -67,7 +53,9 @@ export default function MatchTimelineEvent({
       }`}
     >
       <span className="w-9 flex-none text-center font-display text-xs font-bold text-white/50">{event.minute}&apos;</span>
-      <span className="text-base leading-none">{meta.icon}</span>
+      <span className={`flex h-6 w-6 flex-none items-center justify-center rounded-full ${meta.tone}`}>
+        <meta.icon size={12} />
+      </span>
 
       {team && (
         team.logo_url ? (

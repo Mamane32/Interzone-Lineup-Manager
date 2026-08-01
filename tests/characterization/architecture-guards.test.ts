@@ -54,6 +54,31 @@ describe("Server/client module boundary (Sprint 1 closure — deriveLiveAlerts r
   });
 });
 
+describe("Server/client module boundary (Sprint 3 acceptance — EVENT_META/minuteSort regression)", () => {
+  it("lib/event-meta.ts has no \"use client\" directive, so Server Components can read/call its exports directly", () => {
+    // Regression guard for the Public Match Center and match report page
+    // crashing ("Cannot access second_yellow.tone on the server" /
+    // "minuteSort is not a function") — both read a data property or called
+    // a function that lived in components/live/MatchTimelineEvent.tsx and
+    // components/live/Timeline.tsx, both "use client". Same root cause as
+    // the deriveLiveAlerts regression above: Next's RSC compiler replaces
+    // every export of a "use client" module with a client-reference proxy
+    // for Server Components. The fix moved EVENT_META and minuteSort to
+    // this directive-free module; this test keeps them there.
+    const source = fs.readFileSync(path.join(ROOT, "lib/event-meta.ts"), "utf8");
+    expect(source).not.toMatch(/^["']use client["'];?/m);
+    expect(source).toContain("export const EVENT_META");
+    expect(source).toContain("export function minuteSort");
+  });
+
+  it("the public Match Center and match report page import EVENT_META/minuteSort from the shared lib, not a client component file", () => {
+    const publicMatchSource = fs.readFileSync(path.join(ROOT, "app/match/[matchId]/page.tsx"), "utf8");
+    const reportSource = fs.readFileSync(path.join(ROOT, "app/live/[matchId]/report/page.tsx"), "utf8");
+    expect(publicMatchSource).toMatch(/EVENT_META.*from ["']@\/lib\/event-meta["']/);
+    expect(reportSource).toMatch(/EVENT_META.*minuteSort.*from ["']@\/lib\/event-meta["']|minuteSort.*EVENT_META.*from ["']@\/lib\/event-meta["']/);
+  });
+});
+
 describe("Modal consolidation (Sprint 1 closure — High #3)", () => {
   it("components/foundation/Modal.tsx and components/live/Modal.tsx both delegate to the shared components/ui/Modal.tsx", () => {
     for (const relativePath of ["components/foundation/Modal.tsx", "components/live/Modal.tsx"]) {

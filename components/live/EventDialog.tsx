@@ -3,8 +3,10 @@
 import { useState, useTransition } from "react";
 import { X } from "lucide-react";
 import Modal from "./Modal";
+import MinutePicker from "./MinutePicker";
 import { addMatchEvent } from "@/app/live/[matchId]/actions";
-import type { MatchEventType, Player, Team } from "@/lib/types";
+import { deriveCurrentMinuteValue } from "@/lib/match-clock";
+import type { MatchEvent, MatchEventType, MatchLiveStatus, Player, Team } from "@/lib/types";
 
 export default function EventDialog({
   matchId,
@@ -15,6 +17,8 @@ export default function EventDialog({
   awayTeam,
   homePlayers,
   awayPlayers,
+  status,
+  events,
   onClose,
 }: {
   matchId: string;
@@ -25,9 +29,12 @@ export default function EventDialog({
   awayTeam: Team;
   homePlayers: Player[];
   awayPlayers: Player[];
+  status: MatchLiveStatus;
+  events: MatchEvent[];
   onClose: () => void;
 }) {
-  const [minute, setMinute] = useState("");
+  const currentMinute = deriveCurrentMinuteValue(status, events);
+  const [minute, setMinute] = useState(currentMinute ?? "");
   const [teamId, setTeamId] = useState("");
   const [playerId, setPlayerId] = useState("");
   const [description, setDescription] = useState("");
@@ -55,13 +62,7 @@ export default function EventDialog({
       <div className="flex flex-col gap-3">
         <label className="flex flex-col gap-1.5">
           <span className="text-[11px] font-medium text-white/40">Minute</span>
-          <input
-            value={minute}
-            onChange={(e) => setMinute(e.target.value)}
-            placeholder="e.g. 63"
-            autoFocus
-            className="h-11 rounded-lg border border-white/10 bg-white/5 px-3 text-sm focus:border-white/30 focus:outline-none"
-          />
+          <MinutePicker value={minute} onChange={setMinute} currentMinute={currentMinute} />
         </label>
 
         {needsTeamPlayer && (

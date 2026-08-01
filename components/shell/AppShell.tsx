@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useDismissableLayer, useEscapeKey } from "@/lib/hooks";
@@ -54,7 +55,7 @@ export default function AppShell({
 }: {
   children: React.ReactNode;
   nav: ShellNavGroup[];
-  user: { name: string; email: string; role: string };
+  user: { name: string; email: string; role: string; avatarUrl?: string | null };
   workspaceLabel: string;
 }) {
   const pathname = usePathname();
@@ -247,7 +248,7 @@ export default function AppShell({
             All systems operational
           </span>
 
-          <div className="relative" ref={notificationsRef}>
+          <div className="relative ml-auto sm:ml-0" ref={notificationsRef}>
             <button onClick={() => { setNotificationsOpen((value) => !value); setProfileOpen(false); }} className="relative flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-white/[0.07] text-white/50 transition hover:bg-white/5 hover:text-white" aria-label="Notifications" aria-expanded={notificationsOpen}>
               <Bell size={18} />
               <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-brand-400 ring-2 ring-surface-950" />
@@ -255,7 +256,7 @@ export default function AppShell({
             <div
               role="menu"
               aria-hidden={!notificationsOpen}
-              className={`surface-panel absolute right-0 top-12 w-[min(88vw,360px)] origin-top-right overflow-hidden p-0 transition-all duration-150 ease-out ${
+              className={`surface-panel-solid absolute right-0 top-12 w-[min(88vw,360px)] origin-top-right overflow-hidden p-0 transition-all duration-150 ease-out ${
                 notificationsOpen ? "pointer-events-auto scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"
               }`}
             >
@@ -274,14 +275,18 @@ export default function AppShell({
           </div>
           <div className="relative" ref={profileRef}>
             <button onClick={() => { setProfileOpen((value) => !value); setNotificationsOpen(false); }} className="flex h-10 flex-none items-center gap-2 rounded-xl border border-white/[0.07] px-1.5 pr-2 text-left transition hover:bg-white/5" aria-label="Open user menu" aria-expanded={profileOpen}>
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-400 text-[10px] font-bold text-surface-950">{initials(user.name)}</span>
+              {user.avatarUrl ? (
+                <Image src={user.avatarUrl} alt="" width={28} height={28} className="h-7 w-7 flex-none rounded-lg object-cover" />
+              ) : (
+                <span className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-brand-400 text-[10px] font-bold text-surface-950">{initials(user.name)}</span>
+              )}
               <span className="hidden max-w-28 truncate text-xs font-medium md:block">{user.name}</span>
               <ChevronDown size={13} className="text-white/30" />
             </button>
             <div
               role="menu"
               aria-hidden={!profileOpen}
-              className={`surface-panel absolute right-0 top-12 w-64 origin-top-right overflow-hidden p-2 transition-all duration-150 ease-out ${
+              className={`surface-panel-solid absolute right-0 top-12 w-64 origin-top-right overflow-hidden p-2 transition-all duration-150 ease-out ${
                 profileOpen ? "pointer-events-auto scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"
               }`}
             >

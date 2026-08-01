@@ -38,7 +38,7 @@ export default function LiveAlerts({ alerts }: { alerts: LiveAlert[] }) {
       <div
         role="menu"
         aria-hidden={!open}
-        className={`surface-panel absolute right-0 top-9 z-50 w-72 origin-top-right overflow-hidden p-0 transition-all duration-150 ease-out ${
+        className={`surface-panel-solid absolute right-0 top-9 z-50 w-72 origin-top-right overflow-hidden p-0 transition-all duration-150 ease-out ${
           open ? "pointer-events-auto scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"
         }`}
       >

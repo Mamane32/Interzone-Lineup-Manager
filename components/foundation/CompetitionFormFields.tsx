@@ -1,5 +1,7 @@
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import ImageUpload from "@/components/ui/ImageUpload";
+import { uploadCompetitionLogo } from "@/app/admin/competitions/actions";
 import type { Competition, Organization } from "@/lib/types";
 
 const TYPES = [
@@ -26,8 +28,9 @@ export default function CompetitionFormFields({ competition, organizations }: { 
           ))}
         </Select>
         <Input id="slug" name="slug" label="Slug (auto-generated if blank)" defaultValue={competition?.slug ?? ""} />
-        <Input id="logo_url" name="logo_url" label="Logo URL" defaultValue={competition?.logo_url ?? ""} placeholder="https://..." className="sm:col-span-2" />
       </div>
+
+      <ImageUpload label="Logo" name="logo_url" currentUrl={competition?.logo_url ?? null} action={uploadCompetitionLogo} shape="circle" size={64} />
 
       <fieldset className="rounded-xl border border-white/[0.08] p-3">
         <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-white/35">Classification</legend>

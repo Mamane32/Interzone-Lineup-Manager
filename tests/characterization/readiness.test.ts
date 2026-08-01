@@ -22,6 +22,7 @@ const EMPTY_TEAM: TeamReadinessInput = {
 describe("buildReadinessReport", () => {
   it("scores 100% and is Ready when both teams and both integrations are fully complete", () => {
     const report = buildReadinessReport({
+      matchId: "match-1",
       competitionId: "comp-1",
       refereeName: "J. Louis",
       home: COMPLETE_TEAM,
@@ -37,6 +38,7 @@ describe("buildReadinessReport", () => {
 
   it("excludes not_tracked checks (Broadcast Graphics, Sponsor Graphics) from the score denominator", () => {
     const report = buildReadinessReport({
+      matchId: "match-1",
       competitionId: "comp-1",
       refereeName: "J. Louis",
       home: COMPLETE_TEAM,
@@ -55,6 +57,7 @@ describe("buildReadinessReport", () => {
 
   it("requires BOTH teams to satisfy a per-team check, not just one", () => {
     const report = buildReadinessReport({
+      matchId: "match-1",
       competitionId: "comp-1",
       refereeName: "J. Louis",
       home: COMPLETE_TEAM,
@@ -70,6 +73,7 @@ describe("buildReadinessReport", () => {
 
   it("flags unconfigured integrations without claiming a false pass", () => {
     const report = buildReadinessReport({
+      matchId: "match-1",
       competitionId: null,
       refereeName: null,
       home: EMPTY_TEAM,
@@ -85,6 +89,7 @@ describe("buildReadinessReport", () => {
 
   it("classifies matchday status by score thresholds", () => {
     const attention = buildReadinessReport({
+      matchId: "match-1",
       competitionId: "comp-1",
       refereeName: "J. Louis",
       home: COMPLETE_TEAM,
@@ -105,6 +110,7 @@ describe("GO LIVE gate", () => {
     // blocked because a critical requirement is unmet.
     const almostComplete: TeamReadinessInput = { ...COMPLETE_TEAM, hasGoalkeeper: false };
     const report = buildReadinessReport({
+      matchId: "match-1",
       competitionId: "comp-1",
       refereeName: "J. Louis",
       home: almostComplete,
@@ -120,6 +126,7 @@ describe("GO LIVE gate", () => {
 
   it("allows Go Live once every critical check passes, even if non-critical items (vMix/Website Sync) are incomplete", () => {
     const report = buildReadinessReport({
+      matchId: "match-1",
       competitionId: "comp-1",
       refereeName: "J. Louis",
       home: COMPLETE_TEAM,
@@ -135,6 +142,7 @@ describe("GO LIVE gate", () => {
 
   it("every blocking check carries an actionable fix — the operator is never left without a next step", () => {
     const report = buildReadinessReport({
+      matchId: "match-1",
       competitionId: null,
       refereeName: null,
       home: EMPTY_TEAM,
@@ -145,7 +153,7 @@ describe("GO LIVE gate", () => {
 
     for (const check of report.blockingChecks) {
       expect(check.actionLabel).toBeTruthy();
-      expect(check.actionHref?.("match-1")).toMatch(/^\//);
+      expect(check.actionHref).toMatch(/^\//);
     }
   });
 });

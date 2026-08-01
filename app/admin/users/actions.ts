@@ -5,7 +5,7 @@ import { requireAdmin, getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
 import { isAccessStatus } from "@/lib/validation";
-import { assertNotSelfLockout } from "@/lib/privilege";
+import { assertNotSelfLockout, assertAccountStatusChangeSafe } from "@/lib/privilege";
 import type { AccessStatus } from "@/lib/types";
 
 const ACTION_BY_STATUS: Record<AccessStatus, string> = {
@@ -34,6 +34,9 @@ export async function updateUserStatus(userId: string, status: AccessStatus): Pr
   if (actor && (status === "disabled" || status === "suspended")) {
     const guard = await assertNotSelfLockout(actor.id, userId, "account");
     if (!guard.ok) return { ok: false, error: guard.error };
+
+    const lastAdminGuard = await assertAccountStatusChangeSafe(userId);
+    if (!lastAdminGuard.ok) return { ok: false, error: lastAdminGuard.error };
   }
 
   const { error } = await admin.from("profiles").update({ status }).eq("id", userId);

@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { effectiveInvitationStatus } from "@/lib/utils";
 import { inviteUser, resendInvitation, revokeInvitation } from "./actions";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
@@ -141,7 +142,7 @@ export default async function InvitationsPage({
                       <RoleBadge role={inv.role_key} />
                     </td>
                     <td className="px-4 py-3">
-                      <InvitationStatusBadge status={inv.status} />
+                      <InvitationStatusBadge status={effectiveInvitationStatus(inv)} />
                     </td>
                     <td className="px-4 py-3 text-xs text-white/40">{new Date(inv.created_at).toLocaleDateString()}</td>
                     <td className="px-4 py-3">

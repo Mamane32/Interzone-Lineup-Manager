@@ -46,6 +46,36 @@ export async function assertNotLastSuperAdmin(assignment: { role_key: PlatformRo
 }
 
 /**
+ * Whole-account suspend/disable (updateUserStatus) doesn't touch
+ * user_access_assignments rows directly, but has the same practical
+ * effect as revoking every assignment the account holds — including a
+ * super_admin one. Without this, assertNotLastSuperAdmin's protection
+ * (wired into the per-assignment path) could be bypassed entirely by
+ * suspending the account instead of the assignment.
+ */
+export async function assertAccountStatusChangeSafe(userId: string): Promise<PrivilegeCheckResult> {
+  const admin = supabaseAdmin();
+  const { data } = await admin
+    .from("user_access_assignments")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("role_key", "super_admin")
+    .eq("status", "active")
+    .limit(1);
+
+  if ((data ?? []).length === 0) return { ok: true };
+
+  const count = await countActiveUsersWithRole("super_admin");
+  if (count <= 1) {
+    return {
+      ok: false,
+      error: "This account is the platform's last active super administrator. Grant super_admin to another account before suspending or disabling this one.",
+    };
+  }
+  return { ok: true };
+}
+
+/**
  * Blocks an administrator from locking themselves out: disabling/archiving
  * their own account outright, or revoking/suspending their own last
  * admin-capable (admin/super_admin) assignment.

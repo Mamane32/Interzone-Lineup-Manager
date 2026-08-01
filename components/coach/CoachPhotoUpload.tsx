@@ -1,16 +1,25 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { Camera, Check } from "lucide-react";
+import { useImageUpload } from "@/components/ui/useImageUpload";
 import { uploadCoachPhoto } from "@/app/team/[token]/(coach)/profile/actions";
 
-/** Real file upload — not a URL field. Shows the current photo (or initials) with a camera badge; picking a file uploads immediately. */
+/**
+ * The Coach Portal's own presentation of GGSP's one shared upload workflow
+ * (components/ui/useImageUpload.ts) — a centered hero avatar with an
+ * initials fallback and Haitian Creole copy, immediate-mode (no
+ * surrounding form; picking a file uploads and persists in the same
+ * motion via uploadCoachPhoto). Same choose/preview/upload state machine
+ * as components/ui/ImageUpload.tsx, just a different, purpose-built shell
+ * — the Coach Portal's centered hero-avatar layout doesn't fit the
+ * generic field widget's inline icon+button treatment.
+ */
 export default function CoachPhotoUpload({ token, coachName, photoUrl }: { token: string; coachName: string; photoUrl: string | null }) {
-  const [preview, setPreview] = useState<string | null>(photoUrl);
-  const [pending, startUpload] = useTransition();
-  const [message, setMessage] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { preview, error, justUploaded, pending, inputRef, handleFile } = useImageUpload(
+    (formData) => uploadCoachPhoto(token, formData),
+    photoUrl
+  );
 
   const initials = coachName
     .split(/\s+/)
@@ -18,19 +27,6 @@ export default function CoachPhotoUpload({ token, coachName, photoUrl }: { token
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase())
     .join("");
-
-  function handleFile(file: File) {
-    setMessage(null);
-    const localPreview = URL.createObjectURL(file);
-    setPreview(localPreview);
-
-    const formData = new FormData();
-    formData.set("photo", file);
-    startUpload(async () => {
-      const result = await uploadCoachPhoto(token, formData);
-      setMessage(result.ok ? "Foto sove." : result.error);
-    });
-  }
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -56,13 +52,13 @@ export default function CoachPhotoUpload({ token, coachName, photoUrl }: { token
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) handleFile(file);
+          if (file) handleFile(file, "photo");
         }}
       />
       <p className="text-[11px] text-white/40">{pending ? "Ap telechaje..." : "Tape foto a pou chanje l"}</p>
-      {message && (
-        <p className={`flex items-center gap-1 text-[11px] font-medium ${message === "Foto sove." ? "text-status-submitted" : "text-status-correction"}`}>
-          <Check size={11} /> {message}
+      {(error || justUploaded) && (
+        <p className={`flex items-center gap-1 text-[11px] font-medium ${error ? "text-status-correction" : "text-status-submitted"}`}>
+          <Check size={11} /> {error || "Foto sove."}
         </p>
       )}
     </div>

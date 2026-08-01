@@ -1,28 +1,15 @@
 "use server";
 
 import { requireAdmin } from "@/lib/access";
-import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { generateTeamToken } from "@/lib/token";
+import { uploadImage, type ImageUploadResult } from "@/lib/image-upload";
 
-async function uploadLogoIfPresent(formData: FormData): Promise<string | null> {
-  const file = formData.get("logo") as File | null;
-  if (!file || file.size === 0) return null;
-
-  const supabase = supabaseAdmin();
-  const ext = file.name.split(".").pop() || "png";
-  const path = `${randomUUID()}.${ext}`;
-
-  const { error } = await supabase.storage.from("team-logos").upload(path, file, {
-    contentType: file.type || "image/png",
-    upsert: false,
-  });
-  if (error) return null;
-
-  const { data } = supabase.storage.from("team-logos").getPublicUrl(path);
-  return data.publicUrl;
+export async function uploadTeamLogo(formData: FormData): Promise<ImageUploadResult> {
+  await requireAdmin();
+  return uploadImage("team-logos", formData.get("file") as File | null);
 }
 
 export async function createTeam(formData: FormData) {
@@ -34,10 +21,9 @@ export async function createTeam(formData: FormData) {
   const coach_phone = String(formData.get("coach_phone") ?? "").trim();
   const coach_email = String(formData.get("coach_email") ?? "").trim() || null;
   const competition_id = String(formData.get("competition_id") ?? "") || null;
+  const logo_url = String(formData.get("logo_url") ?? "").trim() || null;
 
   if (!name || !coach_name || !coach_phone || !coach_email) return;
-
-  const logo_url = await uploadLogoIfPresent(formData);
 
   await supabase.from("teams").insert({
     name,
@@ -61,21 +47,14 @@ export async function updateTeam(id: string, formData: FormData) {
   const coach_phone = String(formData.get("coach_phone") ?? "").trim();
   const coach_email = String(formData.get("coach_email") ?? "").trim() || null;
   const competition_id = String(formData.get("competition_id") ?? "") || null;
+  const logo_url = String(formData.get("logo_url") ?? "").trim() || null;
 
   if (!name || !coach_name || !coach_phone || !coach_email) return;
 
-  const logo_url = await uploadLogoIfPresent(formData);
-
-  const update: Record<string, unknown> = {
-    name,
-    coach_name,
-    coach_phone,
-    coach_email,
-    competition_id,
-  };
-  if (logo_url) update.logo_url = logo_url;
-
-  await supabase.from("teams").update(update).eq("id", id);
+  await supabase
+    .from("teams")
+    .update({ name, coach_name, coach_phone, coach_email, competition_id, logo_url })
+    .eq("id", id);
   revalidatePath("/admin/teams");
   revalidatePath(`/admin/teams/${id}`);
 }

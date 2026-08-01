@@ -7,6 +7,7 @@ import FormationAnimationPreview from "./FormationAnimationPreview";
 import VMixExportPreview from "./VMixExportPreview";
 import CenterTabs from "@/components/live/CenterTabs";
 import FormationPitchEditor, { type FormationPitchEditorTeam } from "@/components/formation/FormationPitchEditor";
+import BothTeamsPitchView from "@/components/formation/BothTeamsPitchView";
 import { buildInitialPositions } from "@/lib/formation-engine";
 import { getTheme } from "@/lib/team-theme";
 import type { FormationPreset } from "@/lib/formation-presets";
@@ -16,7 +17,7 @@ import type { FormationName } from "@/lib/types";
 import type { BrandingConfiguration } from "@/lib/branding";
 
 type TeamSide = "home" | "away";
-type TeamBundle = FormationPitchEditorTeam & { lineupSubmitted: boolean };
+type TeamBundle = FormationPitchEditorTeam & { coachName: string; lineupSubmitted: boolean };
 
 /**
  * Broadcast/Admin's own shell — the team-switcher and the four
@@ -75,6 +76,18 @@ export default function TacticalFormationBoard({
 
   const substitutes = team.players.filter((p) => team.substituteIds.includes(p.id));
 
+  // The "both teams on one pitch" broadcast graphic reads from each team's
+  // confirmed (saved) formation, not the single side currently being
+  // edited — a broadcaster shouldn't air an in-progress drag session for
+  // whichever team isn't the active tab.
+  const homeFormation = home.saved.formation?.formation ?? "4-4-2";
+  const awayFormation = away.saved.formation?.formation ?? "4-4-2";
+  const homeBroadcastPositions = useMemo(() => buildInitialPositions(home, homeFormation), [home, homeFormation]);
+  const awayBroadcastPositions = useMemo(() => buildInitialPositions(away, awayFormation), [away, awayFormation]);
+  const homeTheme = useMemo(() => getTheme(home.name), [home.name]);
+  const awayTheme = useMemo(() => getTheme(away.name), [away.name]);
+  const bothTeamsReady = homeBroadcastPositions.length === 11 && awayBroadcastPositions.length === 11;
+
   const tabs = [
     {
       key: "editor",
@@ -95,6 +108,39 @@ export default function TacticalFormationBoard({
         />
       ),
     },
+    ...(bothTeamsReady
+      ? [
+          {
+            key: "broadcast-view",
+            label: "Broadcast View",
+            content: (
+              <div className="flex flex-col gap-3">
+                <p className="text-xs text-white/35">
+                  Both teams&apos; confirmed lineups on one pitch, facing off across the halfway line — the on-air tactical overview.
+                </p>
+                <BothTeamsPitchView
+                  home={{
+                    name: home.name,
+                    coachName: home.coachName,
+                    formation: homeFormation,
+                    theme: homeTheme,
+                    logoUrl: null,
+                    positions: homeBroadcastPositions,
+                  }}
+                  away={{
+                    name: away.name,
+                    coachName: away.coachName,
+                    formation: awayFormation,
+                    theme: awayTheme,
+                    logoUrl: null,
+                    positions: awayBroadcastPositions,
+                  }}
+                />
+              </div>
+            ),
+          },
+        ]
+      : []),
     ...(livePositions.length > 0
       ? [
           {

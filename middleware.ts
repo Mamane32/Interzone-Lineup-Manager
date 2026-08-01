@@ -11,7 +11,7 @@ const PUBLIC_COACH_SUBPATHS = ["", "/login", "/forgot-password"];
 // validated server-side in protected layouts, pages, route handlers" —
 // the actual role checks for each of these live in lib/access.ts's
 // requireRole()/requireAdmin(), called from the page/layout itself.
-const SESSION_ONLY_PROTECTED_PREFIXES = ["/admin", "/live", "/select-workspace", "/competition", "/referee", "/media"];
+const SESSION_ONLY_PROTECTED_PREFIXES = ["/admin", "/live", "/select-workspace", "/competition", "/referee", "/media", "/viewer"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -61,5 +61,6 @@ export const config = {
     "/competition/:path*",
     "/referee/:path*",
     "/media/:path*",
+    "/viewer/:path*",
   ],
 };

@@ -1,7 +1,8 @@
 import { AlertTriangle } from "lucide-react";
-import { requireAdmin } from "@/lib/access";
+import { requireAdmin, getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getLegacyCoachTeams } from "@/lib/iam";
+import { countActiveUsersWithRole } from "@/lib/privilege";
 import { createAssignment, updateAssignmentStatus } from "./actions";
 import Card from "@/components/ui/Card";
 import Select from "@/components/ui/Select";
@@ -10,8 +11,10 @@ import RoleBadge from "@/components/iam/RoleBadge";
 import UserStatusBadge from "@/components/iam/StatusBadge";
 import ConfirmActionDialog from "@/components/iam/ConfirmActionDialog";
 import { PLATFORM_ROLES } from "@/lib/validation";
-import type { AccessStatus, Competition, Profile, Team } from "@/lib/types";
+import type { AccessStatus, Competition, PlatformRole, Profile, Team } from "@/lib/types";
 import type { AssignmentWithScope } from "@/lib/iam";
+
+const ADMIN_CAPABLE_ROLES: PlatformRole[] = ["admin", "super_admin"];
 
 export const dynamic = "force-dynamic";
 
@@ -29,9 +32,10 @@ export default async function AccessAssignmentsPage({
   searchParams: { saved?: string; error?: string };
 }) {
   await requireAdmin();
+  const actor = await getSessionUser();
 
   const admin = supabaseAdmin();
-  const [{ data: assignments }, { data: profiles }, { data: competitions }, { data: teams }, legacyTeams] = await Promise.all([
+  const [{ data: assignments }, { data: profiles }, { data: competitions }, { data: teams }, legacyTeams, activeSuperAdminCount] = await Promise.all([
     admin
       .from("user_access_assignments")
       .select("*, team:teams(id, name), competition:competitions(id, name)")
@@ -41,9 +45,26 @@ export default async function AccessAssignmentsPage({
     admin.from("competitions").select("*").order("name"),
     admin.from("teams").select("*").order("name"),
     getLegacyCoachTeams(),
+    countActiveUsersWithRole("super_admin"),
   ]);
 
   const profilesById = new Map(((profiles ?? []) as Profile[]).map((p) => [p.id, p]));
+  const allAssignments = (assignments ?? []) as AssignmentWithScope[];
+
+  // Same Platform Owner protection as app/admin/users/[userId]/page.tsx —
+  // the server action already refuses these (lib/privilege.ts), this
+  // keeps the button from ever being offered here either.
+  function isProtectedAssignment(a: AssignmentWithScope): boolean {
+    if (a.status !== "active") return false;
+    if (a.role_key === "super_admin" && activeSuperAdminCount <= 1) return true;
+    if (actor?.id === a.user_id && ADMIN_CAPABLE_ROLES.includes(a.role_key)) {
+      const ownActiveAdminCount = allAssignments.filter(
+        (x) => x.user_id === actor.id && x.status === "active" && ADMIN_CAPABLE_ROLES.includes(x.role_key)
+      ).length;
+      if (ownActiveAdminCount <= 1) return true;
+    }
+    return false;
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -144,7 +165,7 @@ export default async function AccessAssignmentsPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.08]">
-              {((assignments ?? []) as AssignmentWithScope[]).map((a) => {
+              {allAssignments.map((a) => {
                 const profile = profilesById.get(a.user_id);
                 return (
                   <tr key={a.id} className="hover:bg-white/[0.03]">
@@ -162,7 +183,9 @@ export default async function AccessAssignmentsPage({
                       <UserStatusBadge status={a.status} />
                     </td>
                     <td className="px-4 py-3">
-                      {a.status === "active" ? (
+                      {isProtectedAssignment(a) ? (
+                        <span className="text-xs font-medium text-white/30">Protected</span>
+                      ) : a.status === "active" ? (
                         <ConfirmActionDialog
                           triggerLabel="Suspend"
                           title="Suspend this assignment?"

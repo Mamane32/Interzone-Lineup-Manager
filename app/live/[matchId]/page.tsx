@@ -2,6 +2,10 @@ import { getLiveMatch } from "@/lib/live-match";
 import { getBaseBranding, withCompetition } from "@/lib/branding";
 import { getVMixStatus } from "@/lib/vmix/client";
 import { WebsiteSync } from "@/lib/broadcast/WebsiteSync";
+import { listProductionQueue } from "@/lib/broadcast/ProductionQueueEngine";
+import { listMatchStatistics } from "@/lib/match-statistics";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import type { Venue } from "@/lib/types";
 import { connectionStateToSystemState } from "@/components/live/vmix-status";
 import MatchHeaderPanel from "@/components/live/MatchHeaderPanel";
 import MatchScorePanel from "@/components/live/MatchScorePanel";
@@ -49,10 +53,16 @@ export default async function LiveControlRoomPage({ params }: { params: { matchI
   const vmixState = connectionStateToSystemState(vmixStatus.state);
   const [websiteSyncStatus] = await WebsiteSync.getProvidersStatus();
   const websiteSyncState = connectionStateToSystemState(websiteSyncStatus.state);
+  const graphicsQueue = await listProductionQueue(match.id, "graphics");
+  const { data: venueRows } = await supabaseAdmin().from("venues").select("*").order("name");
+  const venues = (venueRows ?? []) as Venue[];
+  const statsRows = await listMatchStatistics(match.id);
+  const homeStats = statsRows.find((s) => s.team_id === match.home_team_id);
+  const awayStats = statsRows.find((s) => s.team_id === match.away_team_id);
 
   return (
     <div className="flex flex-col gap-4">
-      <MatchHeaderPanel bundle={bundle} branding={branding} />
+      <MatchHeaderPanel bundle={bundle} branding={branding} venues={venues} />
       <MatchScorePanel
         homeTeam={match.home_team}
         awayTeam={match.away_team}
@@ -74,6 +84,7 @@ export default async function LiveControlRoomPage({ params }: { params: { matchI
             awayScore={match.away_score ?? 0}
             homePlayers={homePlayers}
             awayPlayers={awayPlayers}
+            status={status}
             events={events}
           />
           <EventControls
@@ -82,6 +93,8 @@ export default async function LiveControlRoomPage({ params }: { params: { matchI
             awayTeam={match.away_team}
             homePlayers={homePlayers}
             awayPlayers={awayPlayers}
+            status={status}
+            events={events}
           />
         </div>
 
@@ -103,14 +116,23 @@ export default async function LiveControlRoomPage({ params }: { params: { matchI
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <CenterTabs
           tabs={[
-            { key: "stats", label: "Statistics", content: <StatisticsPanel homeTeam={match.home_team} awayTeam={match.away_team} /> },
+            {
+              key: "stats",
+              label: "Statistics",
+              content:
+                homeStats && awayStats ? (
+                  <StatisticsPanel matchId={match.id} homeTeam={match.home_team} awayTeam={match.away_team} homeStats={homeStats} awayStats={awayStats} />
+                ) : (
+                  <p className="p-4 text-xs text-white/30">Statistics rows haven&apos;t been created for this match yet.</p>
+                ),
+            },
             { key: "teams", label: "Teams", content: <TeamPanels bundle={bundle} /> },
             { key: "highlights", label: "Highlights", content: <HighlightsIndex bundle={bundle} /> },
           ]}
         />
         <CenterTabs
           tabs={[
-            { key: "broadcast", label: "Broadcast", content: <BroadcastPanel /> },
+            { key: "broadcast", label: "Broadcast", content: <BroadcastPanel matchId={match.id} items={graphicsQueue} /> },
             { key: "ads", label: "Advertising", content: <AdvertisingPanel /> },
             { key: "status", label: "Production Status", content: <ProductionStatusPanel vmixState={vmixState} websiteSyncState={websiteSyncState} /> },
           ]}
@@ -124,6 +146,8 @@ export default async function LiveControlRoomPage({ params }: { params: { matchI
         awayTeam={match.away_team}
         homePlayers={homePlayers}
         awayPlayers={awayPlayers}
+        status={status}
+        events={events}
       />
     </div>
   );

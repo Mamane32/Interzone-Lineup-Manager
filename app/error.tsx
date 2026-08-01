@@ -22,6 +22,11 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           <button onClick={reset} className="inline-flex h-11 items-center gap-2 rounded-xl bg-brand-400 px-5 text-sm font-semibold text-surface-950 transition hover:bg-brand-100"><RefreshCw size={15} /> Try again</button>
           <Link href="/" className="inline-flex h-11 items-center rounded-xl border border-white/10 px-5 text-sm font-semibold text-white/70 hover:bg-white/5 hover:text-white">Platform home</Link>
         </div>
+        {error.digest && (
+          <p className="mt-8 text-[11px] text-white/25">
+            Error reference: <code className="text-white/40">{error.digest}</code> — share this if you contact support.
+          </p>
+        )}
       </div>
     </main>
   );

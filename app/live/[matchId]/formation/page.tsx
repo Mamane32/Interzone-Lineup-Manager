@@ -49,6 +49,7 @@ export default async function TacticalFormationPage({ params }: { params: { matc
         home={{
           id: match.home_team_id,
           name: match.home_team.name,
+          coachName: match.home_team.coach_name,
           players: homePlayers,
           startingXi: homeLineup?.starting_xi ?? [],
           substituteIds: homeLineup?.substitutes ?? [],
@@ -59,6 +60,7 @@ export default async function TacticalFormationPage({ params }: { params: { matc
         away={{
           id: match.away_team_id,
           name: match.away_team.name,
+          coachName: match.away_team.coach_name,
           players: awayPlayers,
           startingXi: awayLineup?.starting_xi ?? [],
           substituteIds: awayLineup?.substitutes ?? [],

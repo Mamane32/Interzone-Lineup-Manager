@@ -67,7 +67,7 @@ export default function BroadcastReadinessCenter({ report, matchId }: { report: 
                   )}
                   {c.status === "not_tracked" && <span className="text-[9px] font-semibold uppercase text-white/20">Not tracked</span>}
                   {c.status === "warning" && c.actionHref && (
-                    <Link href={c.actionHref(matchId)} className="flex items-center gap-1 text-[11px] font-semibold text-brand-400 hover:text-brand-100">
+                    <Link href={c.actionHref} className="flex items-center gap-1 text-[11px] font-semibold text-brand-400 hover:text-brand-100">
                       {c.actionLabel} <ArrowRight size={10} />
                     </Link>
                   )}
