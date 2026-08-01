@@ -9,8 +9,6 @@ import { getTheme } from "@/lib/team-theme";
 import { EVENT_META } from "@/lib/event-meta";
 import type { MatchEvent, Player, Team } from "@/lib/types";
 
-export { EVENT_META };
-
 export default function MatchTimelineEvent({
   matchId,
   event,

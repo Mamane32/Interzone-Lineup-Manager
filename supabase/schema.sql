@@ -77,46 +77,16 @@ create table if not exists profiles (
   updated_at timestamptz not null default now()
 );
 
--- One row per role grant. Single unified table (not roles + user_roles) —
--- competition_id/team_id are the only scope dimensions in use today.
-create table if not exists user_access_assignments (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  role_key platform_role not null,
-  competition_id uuid references competitions(id) on delete cascade,
-  team_id uuid references teams(id) on delete cascade,
-  status access_status not null default 'active',
-  invitation_id uuid references invitations(id) on delete set null,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  unique (user_id, role_key, team_id)
-);
-
-create index if not exists user_access_assignments_user_idx on user_access_assignments (user_id);
-create index if not exists user_access_assignments_team_idx on user_access_assignments (team_id);
-create index if not exists user_access_assignments_invitation_idx on user_access_assignments (invitation_id);
-
--- Real, admin-visible invite record, separate from the raw Supabase Auth
--- invite call. auth.users is the actual credential store, untouched here.
-create table if not exists invitations (
-  id uuid primary key default gen_random_uuid(),
-  email text not null,
-  full_name text,
-  role_key platform_role not null,
-  competition_id uuid references competitions(id) on delete set null,
-  team_id uuid references teams(id) on delete set null,
-  status invitation_status not null default 'pending',
-  message text,
-  invited_by uuid references auth.users(id) on delete set null,
-  invited_user_id uuid references auth.users(id) on delete set null,
-  accepted_user_id uuid references auth.users(id) on delete set null,
-  expires_at timestamptz,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create index if not exists invitations_email_idx on invitations (lower(email));
-create index if not exists invitations_status_idx on invitations (status);
+-- NOTE — dependency-order fix (staging bootstrap failure, `relation
+-- "competitions" does not exist"): user_access_assignments and invitations
+-- both carry foreign keys into competitions/teams (and
+-- user_access_assignments also into invitations), so on a genuinely empty
+-- database they cannot be created this early — competitions and teams
+-- don't exist yet at this point in the file. Relocated below, after
+-- TEAMS & PLAYERS, in dependency order (invitations before
+-- user_access_assignments, since the latter now references the former).
+-- Column/constraint/type/index/RLS content is unchanged — see those tables
+-- further down for the actual definitions.
 
 -- Append-only audit trail. RLS deny-all is not the real guarantee here (the
 -- service-role client bypasses RLS by design) — the BEFORE UPDATE/DELETE
@@ -336,6 +306,57 @@ create table if not exists players (
 );
 
 create index if not exists players_team_idx on players (team_id);
+
+-- ============================================================================
+-- IDENTITY & ACCESS — SCOPED GRANTS
+-- ============================================================================
+-- Relocated from the IDENTITY & ACCESS section above — both tables carry
+-- foreign keys into competitions/teams (created just above, in COMPETITION
+-- FOUNDATION and TEAMS & PLAYERS), so they must be created after those
+-- tables exist. invitations comes first here because
+-- user_access_assignments references it. No column, constraint, type,
+-- index, or RLS content differs from the original definitions.
+
+-- Real, admin-visible invite record, separate from the raw Supabase Auth
+-- invite call. auth.users is the actual credential store, untouched here.
+create table if not exists invitations (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  full_name text,
+  role_key platform_role not null,
+  competition_id uuid references competitions(id) on delete set null,
+  team_id uuid references teams(id) on delete set null,
+  status invitation_status not null default 'pending',
+  message text,
+  invited_by uuid references auth.users(id) on delete set null,
+  invited_user_id uuid references auth.users(id) on delete set null,
+  accepted_user_id uuid references auth.users(id) on delete set null,
+  expires_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists invitations_email_idx on invitations (lower(email));
+create index if not exists invitations_status_idx on invitations (status);
+
+-- One row per role grant. Single unified table (not roles + user_roles) —
+-- competition_id/team_id are the only scope dimensions in use today.
+create table if not exists user_access_assignments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  role_key platform_role not null,
+  competition_id uuid references competitions(id) on delete cascade,
+  team_id uuid references teams(id) on delete cascade,
+  status access_status not null default 'active',
+  invitation_id uuid references invitations(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, role_key, team_id)
+);
+
+create index if not exists user_access_assignments_user_idx on user_access_assignments (user_id);
+create index if not exists user_access_assignments_team_idx on user_access_assignments (team_id);
+create index if not exists user_access_assignments_invitation_idx on user_access_assignments (invitation_id);
 
 -- ============================================================================
 -- MATCHES, EVENTS & LINEUPS
