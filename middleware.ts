@@ -51,16 +51,24 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
+// Runs on every route except static assets, so the Supabase session cookie
+// is refreshed on every real navigation — not just on routes this app
+// happens to enforce access on. Previously this matcher was an allow-list of
+// specific prefixes; several real, regularly-visited routes fell outside it
+// (/, /match/[matchId], /broadcast-output/*, /invitation, /api/live/*), so
+// the session was silently never refreshed while a user was on any of them —
+// the confirmed root cause of intermittent logout on refresh/back/navigation.
+// Widening this does not change what's protected: the redirect logic in
+// middleware() above still only fires for the same routes it always did
+// (SESSION_ONLY_PROTECTED_PREFIXES, /team/) — this only changes when the
+// session gets refreshed.
+//
+// /auth/callback and /auth/callback/session are deliberately excluded here —
+// they establish a brand-new session (exchangeCodeForSession/setSession),
+// they never need an existing one refreshed, and this exclusion removes the
+// one variable that changed on the day intermittent "reset link already
+// invalid" reports started, while a live-tested root cause is still being
+// confirmed (see the new logging in both route handlers).
 export const config = {
-  matcher: [
-    "/admin/:path*",
-    "/team/:path*",
-    "/live/:path*",
-    "/login/:path*",
-    "/select-workspace",
-    "/competition/:path*",
-    "/referee/:path*",
-    "/media/:path*",
-    "/viewer/:path*",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon\\.ico|auth/callback|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
 };

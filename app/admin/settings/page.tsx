@@ -157,7 +157,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { s
                 <p className="mb-2 text-sm font-medium text-white/80">Theme</p>
                 <div className="surface-recessed flex items-center gap-3 p-3.5">
                   <Moon size={16} className="text-brand-400" />
-                  <span className="text-sm text-white/70">Dark — GGSP&apos;s design system</span>
+                  <span className="text-sm text-white/70">Dark — GoodGrafik&apos;s design system</span>
                 </div>
               </div>
               <div>
@@ -169,7 +169,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { s
               </div>
             </div>
             <p className="mt-4 rounded-lg bg-white/[0.03] px-3 py-2 text-[11px] text-white/30">
-              GGSP is dark-mode-only and English-only today. Additional themes and languages are a future addition, not silently faked here.
+              GoodGrafik is dark-mode-only and English-only today. Additional themes and languages are a future addition, not silently faked here.
             </p>
           </section>
         </div>

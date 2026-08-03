@@ -60,7 +60,7 @@ export default function HomePage() {
             One command center for every game.
           </h1>
           <p className="mx-auto mt-7 max-w-2xl text-balance text-base leading-7 text-white/50 sm:text-lg">
-            GGSP gives sports organizations one secure platform to organize competition, coordinate people, and power matchday—from registration to broadcast.
+            GoodGrafik gives sports organizations one secure platform to organize competition, coordinate people, and power matchday—from registration to broadcast.
           </p>
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link href="/login" className="group inline-flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand-400 px-7 font-semibold text-surface-950 shadow-glow transition hover:bg-brand-100 sm:w-auto">
@@ -195,7 +195,7 @@ export default function HomePage() {
               <h2 className="mt-3 max-w-2xl text-balance font-display text-4xl font-semibold tracking-tight sm:text-5xl">Make every matchday feel under control.</h2>
             </div>
             <Link href="/login" className="inline-flex h-14 flex-none items-center gap-2 rounded-xl bg-surface-950 px-7 font-semibold text-white transition hover:bg-surface-850">
-              Open GGSP <ArrowRight size={17} />
+              Open GoodGrafik <ArrowRight size={17} />
             </Link>
           </div>
         </div>

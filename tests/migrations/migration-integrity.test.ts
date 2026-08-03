@@ -33,6 +33,12 @@ describe("migration integrity", () => {
       "013_production_queue.sql",
       "014_match_officials.sql",
       "015_match_statistics.sql",
+      "016_access_status_archived.sql",
+      "017_asset_buckets.sql",
+      "018_invitation_status_archived.sql",
+      "019_find_auth_user_by_email.sql",
+      "020_player_roster_fields.sql",
+      "021_competition_squad_rules.sql",
     ]);
   });
 

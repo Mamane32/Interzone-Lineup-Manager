@@ -5,11 +5,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { generateTeamToken } from "@/lib/token";
-import { uploadImage, type ImageUploadResult } from "@/lib/image-upload";
+import { uploadImage, ASSET_CATEGORIES, type ImageUploadResult } from "@/lib/image-upload";
 
 export async function uploadTeamLogo(formData: FormData): Promise<ImageUploadResult> {
   await requireAdmin();
-  return uploadImage("team-logos", formData.get("file") as File | null);
+  return uploadImage(ASSET_CATEGORIES.TeamLogo, formData.get("file") as File | null);
 }
 
 export async function createTeam(formData: FormData) {

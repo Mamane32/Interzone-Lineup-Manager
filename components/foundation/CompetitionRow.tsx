@@ -29,9 +29,14 @@ export default function CompetitionRow({ competition, organizations, organizatio
             ) : (
               <ConfirmActionDialog triggerLabel="Restore competition" title="Restore this competition?" body="It will reappear in active lists." confirmLabel="Restore" action={setCompetitionStatus.bind(null, competition.id, "active")} />
             )}
-            <form action={deleteCompetition.bind(null, competition.id)}>
-              <Button type="submit" variant="danger" size="md">Delete permanently</Button>
-            </form>
+            <ConfirmActionDialog
+              triggerLabel="Delete permanently"
+              triggerVariant="danger"
+              title="Delete this competition?"
+              body={`${competition.name} and everything nested under it (seasons, teams, matches) will be permanently removed. This cannot be undone.`}
+              confirmLabel="Delete permanently"
+              action={deleteCompetition.bind(null, competition.id)}
+            />
           </div>
         </Drawer>
       )}

@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 export default async function UsersPage({
   searchParams,
 }: {
-  searchParams: { q?: string; status?: string; role?: string; competition?: string; page?: string };
+  searchParams: { q?: string; status?: string; role?: string; competition?: string; page?: string; deleted?: string };
 }) {
   await requireAdmin();
 
@@ -84,6 +84,12 @@ export default async function UsersPage({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader eyebrow="Identity & access" title="Users" description="Platform users and their access assignments." />
+
+      {searchParams.deleted && (
+        <p className="rounded-lg bg-status-submitted/10 px-3 py-2 text-sm font-medium text-status-submitted">
+          User permanently deleted.
+        </p>
+      )}
 
       <Card>
         <form className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" method="get">

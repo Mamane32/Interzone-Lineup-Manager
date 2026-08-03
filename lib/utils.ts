@@ -15,14 +15,16 @@ export function playersById(players: Player[]): Map<string, Player> {
 }
 
 /**
- * The invitations table's own `status` column never transitions itself
- * to 'expired' — nothing writes that value anywhere in this codebase.
- * A pending invitation whose `expires_at` has passed stays 'pending' in
- * the database forever unless an admin notices and revokes it by hand.
- * This computes the status a person should actually see, without
- * mutating the row — `resendInvitation` (app/admin/invitations/actions.ts)
- * already works on an "expired-looking" pending invitation exactly as it
- * would on any other pending one, and extends `expires_at` when it does.
+ * The invitations table's own `status` column only transitions to
+ * 'expired' lazily, at the moment someone actually attempts to accept a
+ * lapsed invitation (see `finalizeAcceptedInvitation` in
+ * lib/invitations.ts) — nothing proactively sweeps it. Until that happens,
+ * a pending invitation whose `expires_at` has passed stays 'pending' in
+ * the database. This computes the status a person should actually see
+ * right now, without mutating the row — `resendInvitation`
+ * (app/admin/invitations/actions.ts) already works on an "expired-looking"
+ * pending invitation exactly as it would on any other pending (or a
+ * genuinely already-`expired`) one.
  */
 export function effectiveInvitationStatus(inv: Pick<Invitation, "status" | "expires_at">): InvitationStatus {
   if (inv.status === "pending" && inv.expires_at && new Date(inv.expires_at).getTime() < Date.now()) {

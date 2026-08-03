@@ -3,6 +3,7 @@ import { cache } from "react";
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getActiveRosterCount, MIN_ACTIVE_ROSTER_PLAYERS } from "@/lib/roster";
 import type { Team } from "@/lib/types";
 
 /**
@@ -65,4 +66,24 @@ export async function requireCoach(token: string): Promise<{ team: Team; email: 
   }
 
   return { team, email: user.email };
+}
+
+/**
+ * The Match Squad gate (Sprint 3 Phase 2 Master Plan §4.2) — Match Squad
+ * (Lineup, Formation) is unreachable until the team's roster has at least
+ * MIN_ACTIVE_ROSTER_PLAYERS active players. Enforced here, server-side, on
+ * every request to a gated page — not by hiding the nav item, which
+ * wouldn't stop direct navigation to the URL. The Team Roster page itself
+ * calls requireCoach directly, never this, so it can never redirect into
+ * itself.
+ */
+export async function requireRosterReady(token: string): Promise<{ team: Team; email: string }> {
+  const result = await requireCoach(token);
+
+  const activeCount = await getActiveRosterCount(result.team.id);
+  if (activeCount < MIN_ACTIVE_ROSTER_PLAYERS) {
+    redirect(`/team/${token}/roster?error=roster-incomplete`);
+  }
+
+  return result;
 }

@@ -8,6 +8,7 @@ import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import ImageUpload from "@/components/ui/ImageUpload";
 import CopyLinkButton from "@/components/ui/CopyLinkButton";
+import ConfirmActionDialog from "@/components/iam/ConfirmActionDialog";
 import { teamLink } from "@/lib/utils";
 import type { Team, Competition, Player } from "@/lib/types";
 import { requireAdmin } from "@/lib/access";
@@ -77,11 +78,18 @@ export default async function TeamDetailPage({
           <ImageUpload label="Team logo" name="logo_url" currentUrl={t.logo_url} action={uploadTeamLogo} shape="circle" size={64} />
           <div className="flex gap-3 sm:col-span-2">
             <Button type="submit">Save changes</Button>
-            <Button formAction={deleteTeam.bind(null, t.id)} variant="danger" type="submit">
-              Delete team
-            </Button>
           </div>
         </form>
+        <div className="mt-3">
+          <ConfirmActionDialog
+            triggerLabel="Delete team"
+            triggerVariant="danger"
+            title="Delete this team?"
+            body={`${t.name} and its entire squad list will be permanently removed. This cannot be undone.`}
+            confirmLabel="Delete permanently"
+            action={deleteTeam.bind(null, t.id)}
+          />
+        </div>
 
         <div className="mt-6 border-t border-white/[0.08] pt-4">
           <p className="mb-2 text-sm font-medium text-white/40">Private coach link</p>
@@ -129,7 +137,10 @@ export default async function TeamDetailPage({
         <div className="divide-y divide-white/[0.08]">
           {playerList.length === 0 && <p className="py-4 text-white/40">No players yet.</p>}
           {playerList.map((p) => (
-            <PlayerEditRow key={p.id} teamId={t.id} player={p} />
+            <div key={p.id} className="flex items-center gap-3 py-2">
+              <PlayerEditRow teamId={t.id} player={p} />
+              <PlayerRemoveAction teamId={t.id} player={p} />
+            </div>
           ))}
         </div>
       </Card>
@@ -141,7 +152,7 @@ function PlayerEditRow({ teamId, player }: { teamId: string; player: Player }) {
   return (
     <form
       action={updatePlayer.bind(null, teamId, player.id)}
-      className="flex items-center gap-3 py-2"
+      className="flex flex-1 items-center gap-3"
     >
       <input
         name="number"
@@ -159,9 +170,19 @@ function PlayerEditRow({ teamId, player }: { teamId: string; player: Player }) {
       <Button type="submit" variant="secondary" size="md">
         Save
       </Button>
-      <Button formAction={deletePlayer.bind(null, teamId, player.id)} variant="danger" size="md" type="submit">
-        Remove
-      </Button>
     </form>
+  );
+}
+
+function PlayerRemoveAction({ teamId, player }: { teamId: string; player: Player }) {
+  return (
+    <ConfirmActionDialog
+      triggerLabel="Remove"
+      triggerVariant="danger"
+      title="Remove this player?"
+      body={`${player.full_name} will be permanently removed from the squad list. This cannot be undone.`}
+      confirmLabel="Remove"
+      action={deletePlayer.bind(null, teamId, player.id)}
+    />
   );
 }

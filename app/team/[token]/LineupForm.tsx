@@ -196,7 +196,11 @@ function Form({
   const selected = new Set([...starters, ...subs].filter(Boolean));
 
   function optionsFor(currentValue: string) {
-    return players.filter((p) => p.id === currentValue || !selected.has(p.id));
+    // Inactive players stay out of new selections (Sprint 3 Phase 2 Master
+    // Plan §4.3) — but a dropdown already holding one (from before it was
+    // deactivated) keeps showing its current value rather than silently
+    // clearing it out from under the coach.
+    return players.filter((p) => p.id === currentValue || (p.active !== false && !selected.has(p.id)));
   }
 
   const startingPlayers = starters

@@ -22,8 +22,9 @@ describe("IAM vocabulary characterization", () => {
   });
 
   it("keeps access statuses aligned with the access_status database enum", () => {
-    expect(ACCESS_STATUSES).toEqual(["invited", "active", "suspended", "disabled"]);
-    expect(isAccessStatus("archived")).toBe(false);
+    expect(ACCESS_STATUSES).toEqual(["invited", "active", "suspended", "disabled", "archived"]);
+    expect(isAccessStatus("archived")).toBe(true);
+    expect(isAccessStatus("deleted")).toBe(false);
   });
 
   it("rejects unknown role and invitation values", () => {

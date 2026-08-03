@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireCoach } from "@/lib/coach-auth";
-import { uploadImage, type ImageUploadResult } from "@/lib/image-upload";
+import { uploadImage, ASSET_CATEGORIES, type ImageUploadResult } from "@/lib/image-upload";
 
 export type UploadPhotoResult = ImageUploadResult;
 
@@ -13,7 +13,7 @@ export type UploadPhotoResult = ImageUploadResult;
 export async function uploadCoachPhoto(token: string, formData: FormData): Promise<UploadPhotoResult> {
   const { team } = await requireCoach(token);
 
-  const result = await uploadImage("coach-photos", formData.get("photo") as File | null);
+  const result = await uploadImage(ASSET_CATEGORIES.CoachPhoto, formData.get("photo") as File | null, team.id);
   if (!result.ok) return result;
 
   const admin = supabaseAdmin();

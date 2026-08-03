@@ -1,13 +1,14 @@
 import { requireAdmin } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { effectiveInvitationStatus } from "@/lib/utils";
-import { inviteUser, resendInvitation, revokeInvitation } from "./actions";
+import { inviteUser, resendInvitation, revokeInvitation, restoreInvitation, deleteInvitation } from "./actions";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import InvitationStatusBadge from "@/components/iam/InvitationStatusBadge";
 import RoleBadge from "@/components/iam/RoleBadge";
+import ConfirmActionDialog from "@/components/iam/ConfirmActionDialog";
 import { PLATFORM_ROLES } from "@/lib/validation";
 import type { Competition, Invitation, Team } from "@/lib/types";
 
@@ -19,7 +20,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   "invalid-scope": "That team/competition combination isn't valid.",
   "setup-failed": "The invite email was sent, but finishing account setup failed — check the audit log and try again.",
   "not-found": "That invitation no longer exists.",
-  "not-pending": "Only a pending invitation can be resent or revoked.",
+  "not-pending": "Only a pending or expired invitation can be resent or revoked.",
+  "not-revoked": "Only a revoked invitation can be restored or deleted.",
   "save-failed": "Could not save the invitation. Please try again.",
   "email-failed":
     "The invitation record was saved, but the email could not be sent — check that Supabase Auth email is configured (Authentication → Email Templates / SMTP settings).",
@@ -28,7 +30,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default async function InvitationsPage({
   searchParams,
 }: {
-  searchParams: { sent?: string; resent?: string; revoked?: string; error?: string };
+  searchParams: { sent?: string; resent?: string; revoked?: string; restored?: string; deleted?: string; error?: string };
 }) {
   const { role: actorRole } = await requireAdmin();
   const invitableRoles = actorRole === "super_admin" ? PLATFORM_ROLES : PLATFORM_ROLES.filter((r) => r !== "super_admin");
@@ -64,6 +66,16 @@ export default async function InvitationsPage({
         {searchParams.revoked && (
           <p className="mb-4 rounded-lg bg-status-submitted/10 px-3 py-2 text-sm font-medium text-status-submitted">
             Invitation revoked.
+          </p>
+        )}
+        {searchParams.restored && (
+          <p className="mb-4 rounded-lg bg-status-submitted/10 px-3 py-2 text-sm font-medium text-status-submitted">
+            Invitation restored.
+          </p>
+        )}
+        {searchParams.deleted && (
+          <p className="mb-4 rounded-lg bg-status-submitted/10 px-3 py-2 text-sm font-medium text-status-submitted">
+            Invitation deleted.
           </p>
         )}
         {searchParams.error && (
@@ -146,18 +158,46 @@ export default async function InvitationsPage({
                     </td>
                     <td className="px-4 py-3 text-xs text-white/40">{new Date(inv.created_at).toLocaleDateString()}</td>
                     <td className="px-4 py-3">
-                      {inv.status === "pending" && (
+                      {(inv.status === "pending" || inv.status === "expired") && (
                         <div className="flex gap-2">
-                          <form action={resendInvitation.bind(null, inv.id)}>
-                            <Button type="submit" variant="secondary" size="md">
-                              Resend
-                            </Button>
-                          </form>
-                          <form action={revokeInvitation.bind(null, inv.id)}>
-                            <Button type="submit" variant="danger" size="md">
-                              Revoke
-                            </Button>
-                          </form>
+                          <ConfirmActionDialog
+                            triggerLabel="Resend"
+                            title="Resend this invitation?"
+                            body={`A new access link will be emailed to ${inv.email}, replacing the previous one.`}
+                            confirmLabel="Resend"
+                            action={resendInvitation.bind(null, inv.id)}
+                          />
+                          <ConfirmActionDialog
+                            triggerLabel="Revoke"
+                            triggerVariant="danger"
+                            title="Revoke this invitation?"
+                            body={`${inv.email} will immediately lose access. This is temporary — the record is kept and can be restored later.`}
+                            confirmLabel="Revoke"
+                            action={revokeInvitation.bind(null, inv.id)}
+                          />
+                        </div>
+                      )}
+                      {inv.status === "revoked" && (
+                        <div className="flex gap-2">
+                          <ConfirmActionDialog
+                            triggerLabel="Restore"
+                            title="Restore this invitation?"
+                            body={`${inv.email} will regain access and receive a fresh link. This reverses the revoke.`}
+                            confirmLabel="Restore"
+                            action={restoreInvitation.bind(null, inv.id)}
+                          />
+                          {/* Delete is permanent and complete — platform policy
+                              (Sprint 3 Phase 2), regardless of whether this
+                              invitation was ever accepted. Same shared core
+                              as the Users page's Delete action. */}
+                          <ConfirmActionDialog
+                            triggerLabel="Delete"
+                            triggerVariant="danger"
+                            title="Permanently delete this invitation?"
+                            body={`${inv.email}'s invitation, profile, assignments, and Auth account will be completely removed. This cannot be undone — inviting this email again will create a brand-new user.`}
+                            confirmLabel="Delete permanently"
+                            action={deleteInvitation.bind(null, inv.id)}
+                          />
                         </div>
                       )}
                     </td>

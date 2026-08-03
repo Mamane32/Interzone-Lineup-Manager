@@ -13,7 +13,7 @@ export default function ForgotPasswordPage({ searchParams }: { searchParams: { s
       description={
         searchParams.sent
           ? "If an account matches that address, a secure recovery link is on its way."
-          : "Enter the email attached to your GGSP identity and we’ll send a secure recovery link."
+          : "Enter the email attached to your GoodGrafik identity and we’ll send a secure recovery link."
       }
       backHref="/login"
     >

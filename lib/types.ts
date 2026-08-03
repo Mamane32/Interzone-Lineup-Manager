@@ -1,6 +1,6 @@
 export type LineupStatus = "waiting" | "submitted" | "needs_correction";
 
-export type AccessStatus = "invited" | "active" | "suspended" | "disabled";
+export type AccessStatus = "invited" | "active" | "suspended" | "disabled" | "archived";
 
 export type PlatformRole =
   | "super_admin"
@@ -34,7 +34,7 @@ export interface UserAccessAssignment {
   updated_at: string;
 }
 
-export type InvitationStatus = "pending" | "accepted" | "expired" | "revoked";
+export type InvitationStatus = "pending" | "accepted" | "expired" | "revoked" | "archived";
 
 export interface Invitation {
   id: string;
@@ -151,6 +151,13 @@ export interface Competition {
   points_loss?: number;
   status?: FoundationStatus;
   updated_at?: string;
+  // Sprint 3 Phase 2 — Match Squad Workflow (supabase/migrations/021_competition_squad_rules.sql).
+  // Optional so pre-migration records still type-check. null/undefined means
+  // "no cap" for match_squad_size/max_substitutions; max_bench always has a
+  // real value (DB default 9, preserving today's hardcoded UI behavior).
+  match_squad_size?: number | null;
+  max_bench?: number;
+  max_substitutions?: number | null;
 }
 
 export interface Organization {
@@ -259,12 +266,24 @@ export interface Team {
   coach_photo_url?: string | null;
 }
 
+export type PlayerPosition = "Goalkeeper" | "Defender" | "Midfielder" | "Forward";
+export type PreferredFoot = "Left" | "Right" | "Both";
+export type PlayerAvailabilityStatus = "available" | "doubtful" | "injured" | "suspended";
+
 export interface Player {
   id: string;
   team_id: string;
   number: number;
   full_name: string;
   created_at: string;
+  // Sprint 3 Phase 2 — Coach Team Roster Module (supabase/migrations/020_player_roster_fields.sql).
+  // Optional so pre-migration records still type-check.
+  position?: PlayerPosition | null;
+  photo_url?: string | null;
+  preferred_foot?: PreferredFoot | null;
+  is_captain?: boolean;
+  active?: boolean;
+  availability_status?: PlayerAvailabilityStatus;
 }
 
 export interface Match {

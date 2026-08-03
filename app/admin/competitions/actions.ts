@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { requireFoundationAccess, slugify, isSlugAvailable, revalidateFoundation } from "@/lib/foundation";
-import { uploadImage, type ImageUploadResult } from "@/lib/image-upload";
+import { uploadImage, ASSET_CATEGORIES, type ImageUploadResult } from "@/lib/image-upload";
 import { getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
@@ -141,7 +141,7 @@ export async function deleteCompetition(id: string) {
 
 export async function uploadCompetitionLogo(formData: FormData): Promise<ImageUploadResult> {
   await requireFoundationAccess();
-  return uploadImage("competition-logos", formData.get("file") as File | null);
+  return uploadImage(ASSET_CATEGORIES.CompetitionLogo, formData.get("file") as File | null);
 }
 
 export type ActionResult = { ok: true } | { ok: false; error: string };

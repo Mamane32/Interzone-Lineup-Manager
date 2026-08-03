@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, ClipboardList, Shirt, CalendarDays, User } from "lucide-react";
+import { LayoutGrid, Users, ClipboardList, Shirt, CalendarDays, User } from "lucide-react";
 import type { Theme } from "@/lib/team-theme";
 
 export default function BottomNav({ token, theme }: { token: string; theme?: Theme }) {
@@ -10,7 +10,8 @@ export default function BottomNav({ token, theme }: { token: string; theme?: The
 
   const tabs = [
     { href: `/team/${token}/dashboard`, label: "Akèy", icon: LayoutGrid },
-    { href: `/team/${token}/lineup`, label: "Lis Ekip", icon: ClipboardList },
+    { href: `/team/${token}/roster`, label: "Ekip", icon: Users },
+    { href: `/team/${token}/lineup`, label: "Lis Match", icon: ClipboardList },
     { href: `/team/${token}/formation`, label: "Fòmasyon", icon: Shirt },
     { href: `/team/${token}/calendar`, label: "Kalandriye", icon: CalendarDays },
     { href: `/team/${token}/profile`, label: "Pwofil", icon: User },

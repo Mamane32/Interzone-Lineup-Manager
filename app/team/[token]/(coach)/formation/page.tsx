@@ -1,4 +1,4 @@
-import { requireCoach } from "@/lib/coach-auth";
+import { requireRosterReady } from "@/lib/coach-auth";
 import { getTacticalFormation } from "@/lib/tactical-formation";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getTheme } from "@/lib/team-theme";
@@ -23,7 +23,7 @@ export default async function CoachFormationPage({
   params: { token: string };
   searchParams: { match?: string };
 }) {
-  const { team } = await requireCoach(params.token);
+  const { team } = await requireRosterReady(params.token);
 
   const supabase = supabaseAdmin();
   const { data: lineups } = await supabase

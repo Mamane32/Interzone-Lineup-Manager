@@ -267,7 +267,7 @@ export default function AppShell({
               <div className="p-3">
                 <div className="rounded-xl bg-white/[0.035] p-3">
                   <p className="text-xs font-medium">Your workspace is ready</p>
-                  <p className="mt-1 text-[11px] leading-5 text-white/35">GGSP&apos;s enterprise console is active for your assigned role.</p>
+                  <p className="mt-1 text-[11px] leading-5 text-white/35">GoodGrafik&apos;s enterprise console is active for your assigned role.</p>
                 </div>
                 <p className="py-5 text-center text-xs text-white/25">Operational notifications will appear here.</p>
               </div>

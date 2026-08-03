@@ -23,6 +23,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ redirect: addAuthError(next, "expired") });
   }
 
+  const requestMeta = {
+    time: new Date().toISOString(),
+    userAgent: request.headers.get("user-agent"),
+    ip: request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip"),
+    // Fragment tokens aren't a short code like the PKCE path, so a hash-free
+    // prefix would be too long to safely log — the access token's own first
+    // 8 chars are enough to correlate repeated hits without logging a
+    // usable secret in full.
+    correlationId: body.access_token ? body.access_token.slice(0, 8) : null,
+    next,
+  };
+
   const supabase = createClient();
   const { error } = await supabase.auth.setSession({
     access_token: body.access_token,
@@ -30,8 +42,18 @@ export async function POST(request: Request) {
   });
 
   if (error) {
+    // Logged deliberately — same diagnostic gap as auth/callback/route.ts:
+    // the real GoTrue reason was previously discarded behind a generic
+    // "expired" redirect.
+    console.error("auth/callback/session: setSession failed", {
+      ...requestMeta,
+      errorCode: error.code,
+      status: error.status,
+      message: error.message,
+    });
     return NextResponse.json({ redirect: addAuthError(next, "expired") });
   }
 
+  console.info("auth/callback/session: setSession succeeded", requestMeta);
   return NextResponse.json({ redirect: next });
 }

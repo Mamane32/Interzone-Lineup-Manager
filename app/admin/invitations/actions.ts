@@ -8,6 +8,9 @@ import { recordAuditEvent } from "@/lib/audit";
 import { resolveAssignmentScope } from "@/lib/iam";
 import { isPlatformRole } from "@/lib/validation";
 import { assertCanManageRole } from "@/lib/privilege";
+import { createInvitation, resendInvitationCore } from "@/lib/invitation-service";
+import { lockOutUser, restoreUserAccess } from "@/lib/auth-admin";
+import { deleteUserIdentity } from "@/lib/user-deletion";
 import type { Invitation } from "@/lib/types";
 
 export async function inviteUser(formData: FormData) {
@@ -34,86 +37,34 @@ export async function inviteUser(formData: FormData) {
   const scope = await resolveAssignmentScope(role_key, competitionInput, teamInput);
   if (!scope.ok) redirectWithError("invalid-scope");
 
-  const admin = supabaseAdmin();
-
-  // Record the invitation itself first, so it shows up as "pending" even
-  // if the Supabase email send below fails for a configuration reason.
-  const { data: invitation, error: insertError } = await admin
-    .from("invitations")
-    .insert({
-      email,
-      full_name,
-      role_key,
-      competition_id: scope.competitionId,
-      team_id: scope.teamId,
-      message,
-      expires_at,
-      invited_by: actor?.id ?? null,
-    })
-    .select("*")
-    .single<Invitation>();
-
-  if (insertError || !invitation) {
-    console.error("invitation insert failed", insertError);
-    redirectWithError("save-failed");
-  }
-
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
-  const { data: authResult, error: authError } = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${appUrl}/auth/callback?next=${encodeURIComponent("/team/reset-password")}`,
+  const result = await createInvitation({
+    email,
+    full_name,
+    role_key,
+    competition_id: scope.competitionId,
+    team_id: scope.teamId,
+    message,
+    expires_at,
+    invited_by: actor?.id ?? null,
+    redirectPath: "/team/reset-password",
   });
 
-  if (authError || !authResult?.user) {
-    if (actor) {
+  if (!result.ok) {
+    if (actor && result.reason !== "save-failed") {
+      const metadata =
+        result.reason === "email-failed"
+          ? { email, role_key, sent: false, error: result.authErrorMessage }
+          : { email, role_key, sent: true, setupError: true };
       await recordAuditEvent({
         actorUserId: actor.id,
         action: "user.invited",
         targetType: "invitation",
-        targetId: invitation!.id,
-        metadata: { email, role_key, sent: false, error: authError?.message ?? "unknown" },
+        targetId: result.invitation.id,
+        metadata,
       });
     }
     revalidatePath("/admin/invitations");
-    redirectWithError("email-failed");
-  }
-
-  const userId = authResult!.user!.id;
-
-  // Newly-invited profile and assignment start as 'invited', not 'active' —
-  // real access is only granted once the invite is accepted (password set),
-  // via lib/invitations.ts's finalizeAcceptedInvitation, wired into
-  // app/team/reset-password/actions.ts.
-  const { error: profileError } = await admin
-    .from("profiles")
-    .upsert({ id: userId, email, full_name, status: "invited" }, { onConflict: "id" });
-
-  const { error: assignmentError } = await admin.from("user_access_assignments").upsert(
-    {
-      user_id: userId,
-      role_key,
-      competition_id: scope.competitionId,
-      team_id: scope.teamId,
-      status: "invited",
-      invitation_id: invitation!.id,
-    },
-    { onConflict: "user_id,role_key,team_id" }
-  );
-
-  await admin.from("invitations").update({ invited_user_id: userId }).eq("id", invitation!.id);
-
-  if (profileError || assignmentError) {
-    console.error("invitation profile/assignment setup failed", profileError, assignmentError);
-    if (actor) {
-      await recordAuditEvent({
-        actorUserId: actor.id,
-        action: "user.invited",
-        targetType: "invitation",
-        targetId: invitation!.id,
-        metadata: { email, role_key, sent: true, setupError: true },
-      });
-    }
-    revalidatePath("/admin/invitations");
-    redirectWithError("setup-failed");
+    redirectWithError(result.reason);
   }
 
   if (actor) {
@@ -121,7 +72,7 @@ export async function inviteUser(formData: FormData) {
       actorUserId: actor.id,
       action: "user.invited",
       targetType: "invitation",
-      targetId: invitation!.id,
+      targetId: result.invitation.id,
       metadata: { email, role_key, sent: true },
     });
   }
@@ -137,30 +88,13 @@ export async function resendInvitation(invitationId: string) {
 
   const admin = supabaseAdmin();
   const { data: invite } = await admin.from("invitations").select("*").eq("id", invitationId).maybeSingle<Invitation>();
-  if (!invite) redirectWithInvitationsError("not-found");
-  if (invite!.status !== "pending") redirectWithInvitationsError("not-pending");
+  if (!invite) redirectWithError("not-found");
+  if (invite!.status !== "pending" && invite!.status !== "expired") redirectWithError("not-pending");
 
   const roleCheck = assertCanManageRole(actorRole, invite!.role_key);
-  if (!roleCheck.ok) redirectWithInvitationsError("forbidden");
+  if (!roleCheck.ok) redirectWithError("forbidden");
 
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
-  const { error } = await admin.auth.admin.inviteUserByEmail(invite!.email, {
-    redirectTo: `${appUrl}/auth/callback?next=${encodeURIComponent("/team/reset-password")}`,
-  });
-
-  // Resend doubles as "regenerate": Supabase issues a fresh invite link
-  // either way, but if the original had an expires_at, push it out from
-  // now by the same span it was originally given — otherwise a resend on
-  // an already-expired invitation would immediately display as "Expired"
-  // again despite the new email having just gone out.
-  if (!error && invite!.expires_at) {
-    const originalSpanMs = new Date(invite!.expires_at).getTime() - new Date(invite!.created_at).getTime();
-    const spanMs = originalSpanMs > 0 ? originalSpanMs : 7 * 24 * 60 * 60 * 1000;
-    await admin
-      .from("invitations")
-      .update({ expires_at: new Date(Date.now() + spanMs).toISOString() })
-      .eq("id", invitationId);
-  }
+  const result = await resendInvitationCore(invite!);
 
   if (actor) {
     await recordAuditEvent({
@@ -168,14 +102,14 @@ export async function resendInvitation(invitationId: string) {
       action: "invitation.resent",
       targetType: "invitation",
       targetId: invitationId,
-      metadata: { email: invite!.email, sent: !error, error: error?.message ?? null },
+      metadata: { email: invite!.email, sent: result.ok, error: result.ok ? null : result.errorMessage },
     });
   }
 
-  if (error) {
-    console.error("resend invitation failed", invitationId, error);
+  if (!result.ok) {
+    console.error("resend invitation failed", invitationId, result.errorMessage);
     revalidatePath("/admin/invitations");
-    redirectWithInvitationsError("email-failed");
+    redirectWithError("email-failed");
   }
 
   revalidatePath("/admin/invitations");
@@ -188,26 +122,26 @@ export async function revokeInvitation(invitationId: string) {
 
   const admin = supabaseAdmin();
   const { data: invite } = await admin.from("invitations").select("*").eq("id", invitationId).maybeSingle<Invitation>();
-  if (!invite) redirectWithInvitationsError("not-found");
+  if (!invite) redirectWithError("not-found");
 
-  // Only a still-pending invitation can be revoked this way. An already
-  // accepted invitation belongs to a real, active user now — use the
-  // Users page (suspend/disable) for that, which never touches
+  // Only a still-pending or expired invitation can be revoked this way. An
+  // already accepted invitation belongs to a real, active user now — use
+  // the Users page (suspend/disable) for that, which never touches
   // "unrelated" assignments this account may have picked up since.
-  if (invite!.status !== "pending") redirectWithInvitationsError("not-pending");
+  if (invite!.status !== "pending" && invite!.status !== "expired") redirectWithError("not-pending");
 
   const roleCheck = assertCanManageRole(actorRole, invite!.role_key);
-  if (!roleCheck.ok) redirectWithInvitationsError("forbidden");
+  if (!roleCheck.ok) redirectWithError("forbidden");
 
   const { error: revokeError } = await admin
     .from("invitations")
     .update({ status: "revoked" })
     .eq("id", invitationId)
-    .eq("status", "pending");
+    .in("status", ["pending", "expired"]);
 
   if (revokeError) {
     console.error("revoke invitation failed", invitationId, revokeError);
-    redirectWithInvitationsError("save-failed");
+    redirectWithError("save-failed");
   }
 
   // Cascade: disable exactly the assignments this invitation created —
@@ -229,15 +163,16 @@ export async function revokeInvitation(invitationId: string) {
       .eq("id", invite!.invited_user_id)
       .eq("status", "invited");
 
-    // Invalidate the unaccepted Supabase Auth account outright so the
-    // email becomes available for a fresh invitation and no dangling
-    // unconfirmed account persists. Best-effort: a failure here doesn't
-    // block the rest of the revoke (the assignment/profile changes above
-    // already remove platform access regardless).
-    try {
-      await admin.auth.admin.deleteUser(invite!.invited_user_id);
-    } catch (err) {
-      console.error("failed to delete unaccepted invited auth user", invite!.invited_user_id, err);
+    // Ban the unaccepted Supabase Auth account rather than deleting it
+    // (Sprint 3 Phase 2 redesign) — Revoke must be reversible via Restore.
+    // Deleting it here, as the previous implementation did, destroyed the
+    // account outright and made Restore impossible to build on top of.
+    // Best-effort: a failure here doesn't block the rest of the revoke
+    // (the assignment/profile changes above already remove platform access
+    // regardless).
+    const lockResult = await lockOutUser(invite!.invited_user_id);
+    if (!lockResult.ok) {
+      console.error("failed to lock out revoked invited auth user", invite!.invited_user_id);
     }
   }
 
@@ -257,6 +192,144 @@ export async function revokeInvitation(invitationId: string) {
   redirect(`/admin/invitations?revoked=1`);
 }
 
+/**
+ * Reverses a Revoke: only reachable from `revoked`. Reactivates the
+ * assignment(s)/profile back to `invited`, the invitation back to
+ * `pending`, and unbans the Auth account (lifted by revokeInvitation's
+ * lockOutUser above) — no new Auth account is created, since revoke no
+ * longer destroys it. Sends a fresh recovery link since the original
+ * invite email is presumably long gone.
+ */
+export async function restoreInvitation(invitationId: string) {
+  const { role: actorRole } = await requireAdmin();
+  const actor = await getSessionUser();
+
+  const admin = supabaseAdmin();
+  const { data: invite } = await admin.from("invitations").select("*").eq("id", invitationId).maybeSingle<Invitation>();
+  if (!invite) redirectWithError("not-found");
+  if (invite!.status !== "revoked") redirectWithError("not-revoked");
+
+  const roleCheck = assertCanManageRole(actorRole, invite!.role_key);
+  if (!roleCheck.ok) redirectWithError("forbidden");
+
+  const { error: restoreError } = await admin
+    .from("invitations")
+    .update({ status: "pending" })
+    .eq("id", invitationId)
+    .eq("status", "revoked");
+
+  if (restoreError) {
+    console.error("restore invitation failed", invitationId, restoreError);
+    redirectWithError("save-failed");
+  }
+
+  let sent = false;
+  if (invite!.invited_user_id) {
+    await admin
+      .from("user_access_assignments")
+      .update({ status: "invited" })
+      .eq("invitation_id", invitationId)
+      .eq("status", "disabled");
+
+    await admin.from("profiles").update({ status: "invited" }).eq("id", invite!.invited_user_id).eq("status", "disabled");
+
+    const unbanResult = await restoreUserAccess(invite!.invited_user_id);
+    if (!unbanResult.ok) {
+      console.error("failed to unban restored invited auth user", invite!.invited_user_id);
+    }
+
+    const result = await resendInvitationCore(invite!);
+    sent = result.ok;
+    if (!result.ok) {
+      console.error("restore invitation: recovery email failed", invitationId, result.errorMessage);
+    }
+  }
+
+  if (actor) {
+    await recordAuditEvent({
+      actorUserId: actor.id,
+      action: "invitation.restored",
+      targetType: "invitation",
+      targetId: invitationId,
+      metadata: { email: invite!.email, sent },
+    });
+  }
+
+  revalidatePath("/admin/invitations");
+  revalidatePath("/admin/users");
+  revalidatePath("/admin/access");
+  redirect(`/admin/invitations?restored=1`);
+}
+
+/**
+ * Permanently removes an invitation and its never-accepted Auth account.
+ * Only reachable from `revoked`, and only when the invitation was never
+ * accepted (`accepted_user_id` is null) — an invitation that was ever
+ * accepted belongs to a real user with real history and must never be
+ * deletable through this path (see Sprint 3 Phase 2 Master Plan §3.1: a
+ * never-accepted invitation's user can have no linked business data,
+ * because every access gate in this app requires `status = 'active'`,
+ * which an unaccepted invitation's profile/assignment never reach).
+ */
+/**
+ * Permanent, complete removal — reachable only from `revoked`, same as
+ * before. The earlier "never for an accepted invitation" restriction is
+ * deliberately removed: this is now official platform policy (explicitly
+ * reversed) — Delete means the identity never existed, Revoke stays the
+ * temporary, reversible action. Uses the shared deleteUserIdentity core
+ * (lib/user-deletion.ts) also used by the Users page's deleteUser, so an
+ * accepted user deleted via either entry point behaves identically.
+ */
+export async function deleteInvitation(invitationId: string) {
+  const { role: actorRole } = await requireAdmin();
+  const actor = await getSessionUser();
+
+  const admin = supabaseAdmin();
+  const { data: invite } = await admin.from("invitations").select("*").eq("id", invitationId).maybeSingle<Invitation>();
+  if (!invite) redirectWithError("not-found");
+  if (invite!.status !== "revoked") redirectWithError("not-revoked");
+
+  const roleCheck = assertCanManageRole(actorRole, invite!.role_key);
+  if (!roleCheck.ok) redirectWithError("forbidden");
+
+  const identityUserId = invite!.invited_user_id ?? invite!.accepted_user_id;
+  if (identityUserId) {
+    // deleteUserIdentity already removes this invitation row (and every
+    // other invitation tied to this identity) as part of its own cleanup —
+    // no separate invitations.delete() needed once an identity exists.
+    const result = await deleteUserIdentity(identityUserId);
+    if (!result.ok) {
+      console.error("delete invitation failed", invitationId, result.error);
+      redirectWithError("save-failed");
+    }
+  } else {
+    // No identity was ever created for this invitation (e.g. the original
+    // inviteUserByEmail call failed) — just remove the bare row.
+    const { error: deleteError } = await admin.from("invitations").delete().eq("id", invitationId).eq("status", "revoked");
+    if (deleteError) {
+      console.error("delete invitation failed", invitationId, deleteError);
+      redirectWithError("save-failed");
+    }
+  }
+
+  if (actor) {
+    // Recorded with targetId still pointing at the now-deleted invitation
+    // id — audit_events does not require the target to still exist, so
+    // this row remains as the permanent record that the deletion happened.
+    await recordAuditEvent({
+      actorUserId: actor.id,
+      action: "invitation.deleted",
+      targetType: "invitation",
+      targetId: invitationId,
+      metadata: { email: invite!.email },
+    });
+  }
+
+  revalidatePath("/admin/invitations");
+  revalidatePath("/admin/users");
+  redirect(`/admin/invitations?deleted=1`);
+}
+
 // --- helpers ---------------------------------------------------------------
 
 function redirectWithError(reason: string): never {
@@ -264,7 +337,4 @@ function redirectWithError(reason: string): never {
 }
 function redirectWithSuccess(): never {
   redirect(`/admin/invitations?sent=1`);
-}
-function redirectWithInvitationsError(reason: string): never {
-  redirect(`/admin/invitations?error=${reason}`);
 }

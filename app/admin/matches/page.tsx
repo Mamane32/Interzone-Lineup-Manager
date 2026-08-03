@@ -5,6 +5,7 @@ import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
+import ConfirmActionDialog from "@/components/iam/ConfirmActionDialog";
 import MatchHierarchyFields from "@/components/foundation/MatchHierarchyFields";
 import { formatMatchDate } from "@/lib/utils";
 import type { Team, Competition, Season, Division, Stage, CompetitionGroup, Venue } from "@/lib/types";
@@ -137,11 +138,14 @@ export default async function MatchesPage({ searchParams }: { searchParams: { er
                   Broadcast Control Center
                 </Button>
               </Link>
-              <form action={deleteMatch.bind(null, m.id)}>
-                <Button type="submit" variant="danger" size="md">
-                  Delete
-                </Button>
-              </form>
+              <ConfirmActionDialog
+                triggerLabel="Delete"
+                triggerVariant="danger"
+                title="Delete this match?"
+                body={`${m.home_team?.name ?? "Home"} vs ${m.away_team?.name ?? "Away"} will be permanently removed, along with any lineups and live data tied to it. This cannot be undone.`}
+                confirmLabel="Delete permanently"
+                action={deleteMatch.bind(null, m.id)}
+              />
             </div>
           </Card>
           );

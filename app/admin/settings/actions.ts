@@ -6,11 +6,12 @@ import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireAdmin, getSessionUser } from "@/lib/access";
 import { recordAuditEvent } from "@/lib/audit";
-import { uploadImage, type ImageUploadResult } from "@/lib/image-upload";
+import { uploadImage, ASSET_CATEGORIES, type ImageUploadResult } from "@/lib/image-upload";
 
 export async function uploadUserAvatar(formData: FormData): Promise<ImageUploadResult> {
   await requireAdmin();
-  return uploadImage("user-avatars", formData.get("file") as File | null);
+  const actor = await getSessionUser();
+  return uploadImage(ASSET_CATEGORIES.UserAvatar, formData.get("file") as File | null, actor?.id);
 }
 
 export async function updateOwnProfile(formData: FormData) {

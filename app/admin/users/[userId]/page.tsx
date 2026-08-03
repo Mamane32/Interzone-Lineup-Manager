@@ -5,7 +5,7 @@ import { getUserWithAssignments } from "@/lib/iam";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { countActiveUsersWithRole } from "@/lib/privilege";
 import { updateUserStatus } from "../actions";
-import { updateProfile, addAssignment, setAssignmentStatus } from "./actions";
+import { updateProfile, addAssignment, setAssignmentStatus, forcePasswordReset, deleteUser } from "./actions";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
@@ -123,6 +123,25 @@ export default async function UserDetailPage({
             Save profile
           </Button>
         </form>
+
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.08] pt-4">
+          <div>
+            <p className="text-sm font-medium text-white">Force password reset</p>
+            <p className="text-xs text-white/40">
+              Signs this account out of every device immediately and emails a reset link. Access returns only once a new password is set.
+            </p>
+          </div>
+          <ConfirmActionDialog
+            triggerLabel="Force Password Reset"
+            triggerVariant="danger"
+            title="Force a password reset?"
+            body={`${user.full_name || user.email} will be signed out of every device immediately and sent a password reset email. They'll only regain access once they set a new password.`}
+            confirmLabel="Send reset"
+            action={forcePasswordReset.bind(null, user.id)}
+            disabled={user.status !== "active" && user.status !== "suspended"}
+            disabledReason="Only available for active or suspended accounts."
+          />
+        </div>
       </Card>
 
       {/* Access */}
@@ -237,6 +256,26 @@ export default async function UserDetailPage({
           </div>
         )}
       </Card>
+
+      {/* Danger zone — permanent, unlike every action above */}
+      <Card className="border-status-correction/30">
+        <h2 className="mb-1 font-display text-lg font-semibold text-status-correction">Danger zone</h2>
+        <p className="mb-4 text-sm text-white/40">
+          Permanently removes this identity — invitation, profile, every assignment, and the Auth account. Unlike
+          Suspend/Disable/Archive above, this cannot be undone. Inviting this email again afterward creates a
+          completely new account, with no memory of this one.
+        </p>
+        <ConfirmActionDialog
+          triggerLabel="Delete this user"
+          triggerVariant="danger"
+          title="Permanently delete this user?"
+          body={`${user.full_name || user.email} will be completely removed — invitation, profile, every assignment, and the Auth account. This cannot be undone. A future invitation to ${user.email} will be treated as a brand-new user.`}
+          confirmLabel="Delete permanently"
+          action={deleteUser.bind(null, user.id)}
+          disabled={isViewingSelf || isLastSuperAdmin}
+          disabledReason={isViewingSelf ? "You cannot delete your own account." : "The platform's last active super administrator cannot be deleted."}
+        />
+      </Card>
     </div>
   );
 }
@@ -279,14 +318,16 @@ function StatusActions({ userId, status, isProtected }: { userId: string; status
         confirmLabel="Reactivate"
         action={updateUserStatus.bind(null, userId, "active" as AccessStatus)}
       />
-      <ConfirmActionDialog
-        triggerLabel="Archive"
-        triggerVariant="danger"
-        title="Archive this account?"
-        body="Kept for historical reference, but they will never be able to log in again unless reactivated."
-        confirmLabel="Archive"
-        action={updateUserStatus.bind(null, userId, "archived" as AccessStatus)}
-      />
+      {status !== "archived" && (
+        <ConfirmActionDialog
+          triggerLabel="Archive"
+          triggerVariant="danger"
+          title="Archive this account?"
+          body="Kept for historical reference, but they will never be able to log in again unless reactivated."
+          confirmLabel="Archive"
+          action={updateUserStatus.bind(null, userId, "archived" as AccessStatus)}
+        />
+      )}
     </div>
   );
 }

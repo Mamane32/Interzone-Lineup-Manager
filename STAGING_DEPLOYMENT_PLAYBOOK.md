@@ -236,3 +236,18 @@ live:
 
 Once every box is checked, staging is done. Production deployment is a
 separate, later decision — nothing here authorizes or prepares that.
+
+---
+
+## Post-staging follow-up (tracked, not blocking)
+
+- **Current staging URL is temporary.** `https://interzone-lineup-manager-darodebass-4844-good-grafik-s-projects.vercel.app`
+  is a personal-account-scoped Vercel alias, not a real custom domain — it
+  exists because deploys are currently triggered manually via the Vercel
+  CLI rather than through Vercel's GitHub integration (which is not
+  auto-deploying on push to this branch, a separate open item). Before
+  any production rollout, replace it with a real custom staging domain
+  and re-point Supabase Site URL / Redirect URLs / `NEXT_PUBLIC_APP_URL`
+  to match.
+- SMTP deferred (post-staging task, per explicit instruction).
+- Node.js 20.x deprecation — must be resolved before 2026-10-01.
