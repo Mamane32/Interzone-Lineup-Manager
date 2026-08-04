@@ -71,4 +71,14 @@ describe("unifiedLogin exception instrumentation", () => {
   it("still redirects to the resolved destination on the normal happy path", async () => {
     await expect(unifiedLogin(formDataFor("a@b.com", "pw"))).rejects.toThrow("REDIRECT:/admin/dashboard");
   });
+
+  it("redirects to a stage-specific code when resolveUserDestination throws a tagged error", async () => {
+    state.resolveUserDestination = async () => {
+      throw new Error("[resolveUserDestination:getProfile] boom");
+    };
+
+    await expect(unifiedLogin(formDataFor("a@b.com", "pw"))).rejects.toThrow(
+      "REDIRECT:/login?error=resolve-exception-getProfile"
+    );
+  });
 });

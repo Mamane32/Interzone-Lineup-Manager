@@ -33,12 +33,18 @@ export async function unifiedLogin(formData: FormData) {
   // (service-role client) that can throw on misconfiguration — isolate
   // that from the sign-in step above so the error code alone tells us
   // which phase failed, no log access required to narrow it down.
+  // resolveUserDestination tags which internal stage (getProfile /
+  // getActiveAssignments / optionForAssignment) actually threw — surface
+  // that tag in the redirect so it's visible on-screen too, not just in
+  // server logs.
   let resolution;
   try {
     resolution = await resolveUserDestination(data.user.id);
   } catch (err) {
     console.error("unifiedLogin: resolveUserDestination threw", err instanceof Error ? err.stack : err);
-    redirect("/login?error=resolve-exception");
+    const stageMatch = err instanceof Error ? err.message.match(/^\[resolveUserDestination:([^\]]+)\]/) : null;
+    const errorCode = stageMatch ? `resolve-exception-${stageMatch[1]}` : "resolve-exception";
+    redirect(`/login?error=${errorCode}`);
   }
 
   if (resolution.kind === "redirect") {

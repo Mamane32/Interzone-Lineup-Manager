@@ -20,7 +20,14 @@ export default function LoginForm({ errorCode }: { errorCode?: string }) {
   const [showPassword, setShowPassword] = useState(false);
   const [pending, startTransition] = useTransition();
   const [clientError, setClientError] = useState<string | null>(null);
-  const errorMessage = clientError ?? (errorCode ? ERRORS[errorCode] ?? "Something went wrong. Please try again." : null);
+  const errorMessage =
+    clientError ??
+    (errorCode
+      ? ERRORS[errorCode] ??
+        (errorCode.startsWith("resolve-exception-")
+          ? `Something went wrong loading your account. Please try again. (ref: ${errorCode})`
+          : "Something went wrong. Please try again.")
+      : null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
