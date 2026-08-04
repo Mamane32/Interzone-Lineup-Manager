@@ -10,7 +10,7 @@ const ROLE_DESTINATION: Partial<Record<PlatformRole, string>> = {
   super_admin: "/admin/dashboard",
   admin: "/admin/dashboard",
   broadcast_operator: "/live",
-    competition_manager: "/competition",
+  competition_manager: "/competition",
   referee: "/referee",
   media: "/media",
   viewer: "/viewer",
@@ -100,31 +100,6 @@ async function optionForAssignment(a: UserAccessAssignment): Promise<WorkspaceOp
 }
 
 /**
- * Diagnostic-only wrapper: every real database read in this codebase
- * resolves to {data, error} and never throws (no call site anywhere in
- * the repo opts into supabase-js's .throwOnError()) — confirmed by
- * reading @supabase/postgrest-js's PostgrestBuilder directly, not
- * assumed. That leaves exactly one throw-capable statement inside each
- * of getProfile/getActiveAssignments/optionForAssignment: their own
- * supabaseAdmin() call. Tagging at this granularity is therefore already
- * maximum precision — there is nothing finer to distinguish inside any
- * one of them. The original error and stack are preserved, just labeled
- * with which stage produced them.
- */
-async function withStage<T>(stage: string, fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn();
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    const tagged = new Error(`[resolveUserDestination:${stage}] ${message}`);
-    if (err instanceof Error && err.stack) {
-      tagged.stack = `${tagged.message}\n${err.stack}`;
-    }
-    throw tagged;
-  }
-}
-
-/**
  * The centralized redirect resolver. Given a user id, determines where
  * they belong: a single workspace, a picker if they have more than one, or
  * a clear "not yet assigned" message. Never trusts anything from the
@@ -132,16 +107,16 @@ async function withStage<T>(stage: string, fn: () => Promise<T>): Promise<T> {
  * read with the service-role client.
  */
 export async function resolveUserDestination(userId: string): Promise<AccessResolution> {
-  const profile = await withStage("getProfile", () => getProfile(userId));
+  const profile = await getProfile(userId);
   if (!profile) return { kind: "denied", reason: "no-profile" };
   if (profile.status !== "active") return { kind: "denied", reason: "inactive-profile" };
 
-  const assignments = await withStage("getActiveAssignments", () => getActiveAssignments(userId));
+  const assignments = await getActiveAssignments(userId);
   if (assignments.length === 0) return { kind: "denied", reason: "no-assignments" };
 
-  const options = (
-    await withStage("optionForAssignment", () => Promise.all(assignments.map(optionForAssignment)))
-  ).filter((o): o is WorkspaceOption => o !== null);
+  const options = (await Promise.all(assignments.map(optionForAssignment))).filter(
+    (o): o is WorkspaceOption => o !== null
+  );
 
   if (options.length === 0) return { kind: "denied", reason: "no-assignments" };
   if (options.length === 1) return { kind: "redirect", path: options[0].path };
