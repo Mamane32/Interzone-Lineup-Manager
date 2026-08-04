@@ -13,6 +13,7 @@ const ROLE_DESTINATION: Partial<Record<PlatformRole, string>> = {
   competition_manager: "/competition",
   referee: "/referee",
   media: "/media",
+  viewer: "/viewer",
 };
 
 const ROLE_LABEL: Record<PlatformRole, string> = {

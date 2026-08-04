@@ -228,7 +228,7 @@ function StatusActions({ userId, status }: { userId: string; status: AccessStatu
         title="Archive this account?"
         body="Kept for historical reference, but they will never be able to log in again unless reactivated."
         confirmLabel="Archive"
-        action={updateUserStatus.bind(null, userId, "archived" as AccessStatus)}
+        action={updateUserStatus.bind(null, userId, "disabled" as AccessStatus)}
       />
     </div>
   );
