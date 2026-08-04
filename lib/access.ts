@@ -10,7 +10,7 @@ const ROLE_DESTINATION: Partial<Record<PlatformRole, string>> = {
   super_admin: "/admin/dashboard",
   admin: "/admin/dashboard",
   broadcast_operator: "/live",
-  competition_manager: "/competition",
+    competition_manager: "/competition",
   referee: "/referee",
   media: "/media",
   viewer: "/viewer",
