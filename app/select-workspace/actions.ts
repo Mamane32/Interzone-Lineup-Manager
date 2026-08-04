@@ -34,6 +34,7 @@ export async function selectWorkspace(formData: FormData) {
     competition_manager: "/competition",
     referee: "/referee",
     media: "/media",
+    viewer: "/viewer",
   };
 
   const path = STATIC_DESTINATION[chosen.role_key];

@@ -10,9 +10,8 @@ import type { FormationName } from "@/lib/types";
 export type SubmitResult = { ok: true } | { ok: false; error: string };
 
 /**
- * Coaches never authenticate. The unguessable `token` in the URL is looked
- * up server-side against the teams table — that lookup IS the access
- * control for everything in this file.
+ * Gated by requireCoach(token): a session must be logged in AND authorized
+ * for this specific team (see lib/coach-auth.ts) before anything here runs.
  */
 export async function submitLineup(token: string, formData: FormData): Promise<SubmitResult> {
   await requireCoach(token);
@@ -49,6 +48,15 @@ export async function submitLineup(token: string, formData: FormData): Promise<S
   }
   if (captain_id && !starting_xi.includes(captain_id)) {
     return { ok: false, error: "Kapitèn nan dwe youn nan 11 titilè yo." };
+  }
+
+  // The client only ever renders this team's own roster, but a submitted
+  // player id is still untrusted input — confirm every selected id actually
+  // belongs to this team before it can end up in another team's lineup.
+  const { data: rosterPlayers } = await supabase.from("players").select("id").eq("team_id", team.id);
+  const rosterIds = new Set((rosterPlayers ?? []).map((p) => p.id));
+  if (allSelected.some((id) => !rosterIds.has(id))) {
+    return { ok: false, error: "Yon jwè pa fè pati ekip sa a." };
   }
 
   await supabase.from("teams").update({ coach_name, coach_phone }).eq("id", team.id);

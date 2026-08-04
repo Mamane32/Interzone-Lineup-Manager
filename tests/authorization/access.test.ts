@@ -120,6 +120,7 @@ describe("requireRole authorization characterization", () => {
     ["broadcast_operator", "/live"],
     ["referee", "/referee"],
     ["media", "/media"],
+    ["viewer", "/viewer"],
   ] as const)("routes %s to its role workspace", async (role, path) => {
     state.profile = { id: "user-1", status: "active" };
     state.assignments = [{ id: "assignment-1", role_key: role, status: "active" }];

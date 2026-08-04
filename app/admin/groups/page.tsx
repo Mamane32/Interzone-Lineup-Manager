@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { requireFoundationAccess } from "@/lib/foundation";
+import { requireFoundationAccess, searchGroups } from "@/lib/foundation";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
+import Pagination from "@/components/iam/Pagination";
 import CreateGroupButton from "@/components/foundation/CreateGroupButton";
 import GroupRow from "@/components/foundation/GroupRow";
-import type { CompetitionGroup, Stage } from "@/lib/types";
+import type { Stage } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +21,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default async function GroupsPage({
   searchParams,
 }: {
-  searchParams: { stage?: string; status?: string; saved?: string; error?: string };
+  searchParams: { q?: string; stage?: string; status?: string; page?: string; saved?: string; error?: string };
 }) {
   await requireFoundationAccess();
 
@@ -28,13 +30,14 @@ export default async function GroupsPage({
   const stageList = (stages ?? []) as Stage[];
   const stagesById = new Map(stageList.map((s) => [s.id, s.name]));
 
-  let query = admin.from("competition_groups").select("*");
-  if (searchParams.stage) query = query.eq("stage_id", searchParams.stage);
-  if (searchParams.status) query = query.eq("status", searchParams.status);
-  const { data: groups } = await query.order("display_order", { ascending: true });
-  const groupList = (groups ?? []) as CompetitionGroup[];
+  const { groups: groupList, total, page, pageSize } = await searchGroups({
+    q: searchParams.q,
+    status: (searchParams.status as "active" | "archived") || undefined,
+    stageId: searchParams.stage || undefined,
+    page: searchParams.page ? Number(searchParams.page) : 1,
+  });
 
-  const hasFilters = !!(searchParams.stage || searchParams.status);
+  const hasFilters = !!(searchParams.q || searchParams.stage || searchParams.status);
 
   return (
     <div className="flex flex-col gap-6">
@@ -54,7 +57,8 @@ export default async function GroupsPage({
       )}
 
       <Card>
-        <form className="grid gap-3 sm:grid-cols-3" method="get">
+        <form className="grid gap-3 sm:grid-cols-4" method="get">
+          <Input id="q" name="q" label="Search" placeholder="Group name" defaultValue={searchParams.q ?? ""} />
           <Select id="stage" name="stage" label="Stage" tone="dark" defaultValue={searchParams.stage ?? ""}>
             <option value="">Any stage</option>
             {stageList.map((s) => (
@@ -95,6 +99,13 @@ export default async function GroupsPage({
             </table>
           </div>
         )}
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          basePath="/admin/groups"
+          searchParams={{ q: searchParams.q, stage: searchParams.stage, status: searchParams.status }}
+        />
       </Card>
     </div>
   );
