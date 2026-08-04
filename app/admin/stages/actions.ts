@@ -1,8 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { requireFoundationAccess, existsById } from "@/lib/foundation";
+import { requireFoundationAccess, existsById, revalidateFoundation } from "@/lib/foundation";
 import { getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
@@ -39,7 +38,7 @@ export async function createStage(formData: FormData) {
   if (actor) {
     await recordAuditEvent({ actorUserId: actor.id, action: "stage.created", targetType: "stage", targetId: data?.id ?? null, metadata: { name: fields.name } });
   }
-  revalidatePath("/admin/stages");
+  revalidateFoundation();
   redirect("/admin/stages?saved=1");
 }
 
@@ -62,7 +61,7 @@ export async function updateStage(id: string, formData: FormData) {
   if (actor) {
     await recordAuditEvent({ actorUserId: actor.id, action: "stage.updated", targetType: "stage", targetId: id, metadata: { name: fields.name } });
   }
-  revalidatePath("/admin/stages");
+  revalidateFoundation();
   redirect("/admin/stages?saved=1");
 }
 
@@ -84,6 +83,6 @@ export async function setStageStatus(id: string, status: "active" | "archived"):
   if (actor) {
     await recordAuditEvent({ actorUserId: actor.id, action: status === "archived" ? "stage.archived" : "stage.restored", targetType: "stage", targetId: id });
   }
-  revalidatePath("/admin/stages");
+  revalidateFoundation();
   return { ok: true };
 }

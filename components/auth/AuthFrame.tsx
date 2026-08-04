@@ -18,21 +18,22 @@ export default function AuthFrame({
   return (
     <main className="relative min-h-screen overflow-hidden bg-surface-950">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-32 top-16 h-96 w-96 rounded-full bg-brand-500/[0.08] blur-3xl" />
+        <div className="absolute -left-32 top-16 h-[28rem] w-[28rem] rounded-full bg-brand-500/[0.12] blur-3xl" />
         <div className="absolute right-[-12rem] top-[-10rem] h-[34rem] w-[34rem] rounded-full border border-white/[0.04]" />
+        <div className="absolute bottom-[-14rem] left-1/3 h-[30rem] w-[30rem] rounded-full bg-emerald-500/[0.05] blur-3xl" />
         <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.8)_1px,transparent_1px)] [background-size:48px_48px]" />
       </div>
 
       <div className="relative mx-auto grid min-h-screen max-w-[1440px] lg:grid-cols-[1.05fr_.95fr]">
-        <section className="hidden flex-col justify-between border-r border-white/[0.06] p-12 lg:flex xl:p-16">
-          <BrandMark />
+        <section className="pitch-texture hidden flex-col justify-between border-r border-white/[0.06] p-12 lg:flex xl:p-16">
+          <BrandMark size="lg" />
           <div className="max-w-xl animate-fade-up">
-            <p className="eyebrow">One platform. Every matchday.</p>
+            <p className="eyebrow">The operating system for football competitions</p>
             <h2 className="mt-5 text-balance font-display text-5xl font-semibold leading-[1.04] tracking-tight">
-              Run sport with clarity, speed, and confidence.
+              From kickoff to final whistle, run every matchday from one command center.
             </h2>
             <p className="mt-6 max-w-lg text-base leading-7 text-white/50">
-              Competition operations, teams, lineups, access, and broadcast production—coordinated in one secure workspace.
+              Competitions, teams, lineups, access, and live broadcast production — the way federations, leagues, and clubs actually run matchday.
             </p>
             <div className="mt-10 grid grid-cols-3 gap-3">
               {[

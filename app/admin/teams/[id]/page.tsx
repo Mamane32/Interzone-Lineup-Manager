@@ -1,12 +1,14 @@
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { updateTeam, deleteTeam } from "../actions";
+import { updateTeam, deleteTeam, uploadTeamLogo } from "../actions";
 import { addPlayer, updatePlayer, deletePlayer, inviteCoach } from "./actions";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
+import ImageUpload from "@/components/ui/ImageUpload";
 import CopyLinkButton from "@/components/ui/CopyLinkButton";
+import ConfirmActionDialog from "@/components/iam/ConfirmActionDialog";
 import { teamLink } from "@/lib/utils";
 import type { Team, Competition, Player } from "@/lib/types";
 import { requireAdmin } from "@/lib/access";
@@ -48,12 +50,12 @@ export default async function TeamDetailPage({
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-3xl font-semibold">{t.name}</h1>
-        <p className="text-ink-muted">Team details and squad list.</p>
+        <p className="text-white/40">Team details and squad list.</p>
       </div>
 
       <Card className="max-w-2xl">
         <h2 className="mb-4 font-display text-lg font-semibold">Team info</h2>
-        <form action={updateTeam.bind(null, t.id)} className="grid gap-4 sm:grid-cols-2" encType="multipart/form-data">
+        <form action={updateTeam.bind(null, t.id)} className="grid gap-4 sm:grid-cols-2">
           <Input id="name" name="name" label="Team name" defaultValue={t.name} required />
           <Select id="competition_id" name="competition_id" label="Competition" tone="dark" defaultValue={t.competition_id ?? ""}>
             <option value="">— None —</option>
@@ -73,30 +75,26 @@ export default async function TeamDetailPage({
             defaultValue={t.coach_email ?? ""}
             required
           />
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="logo" className="text-sm font-medium text-ink-muted">
-              Replace logo (PNG)
-            </label>
-            <input
-              id="logo"
-              name="logo"
-              type="file"
-              accept="image/png"
-              className="text-sm text-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-white"
-            />
-          </div>
+          <ImageUpload label="Team logo" name="logo_url" currentUrl={t.logo_url} action={uploadTeamLogo} shape="circle" size={64} />
           <div className="flex gap-3 sm:col-span-2">
             <Button type="submit">Save changes</Button>
-            <Button formAction={deleteTeam.bind(null, t.id)} variant="danger" type="submit">
-              Delete team
-            </Button>
           </div>
         </form>
+        <div className="mt-3">
+          <ConfirmActionDialog
+            triggerLabel="Delete team"
+            triggerVariant="danger"
+            title="Delete this team?"
+            body={`${t.name} and its entire squad list will be permanently removed. This cannot be undone.`}
+            confirmLabel="Delete permanently"
+            action={deleteTeam.bind(null, t.id)}
+          />
+        </div>
 
-        <div className="mt-6 border-t border-ink-line pt-4">
-          <p className="mb-2 text-sm font-medium text-ink-muted">Private coach link</p>
+        <div className="mt-6 border-t border-white/[0.08] pt-4">
+          <p className="mb-2 text-sm font-medium text-white/40">Private coach link</p>
           <div className="flex flex-wrap items-center gap-3">
-            <code className="rounded-lg bg-ink px-3 py-2 text-sm text-amber-signal">
+            <code className="rounded-lg bg-surface-950 px-3 py-2 text-sm text-brand-400">
               {teamLink(t.token)}
             </code>
             <CopyLinkButton link={teamLink(t.token)} teamName={t.name} />
@@ -106,9 +104,9 @@ export default async function TeamDetailPage({
 
       <Card className="max-w-2xl">
         <h2 className="mb-1 font-display text-lg font-semibold">Coach Portal access</h2>
-        <p className="mb-4 text-sm text-ink-muted">
+        <p className="mb-4 text-sm text-white/40">
           Sends the coach an email to set their password and sign in at{" "}
-          <code className="text-amber-signal">{teamLink(t.token)}</code>. Uses Supabase Auth — no
+          <code className="text-brand-400">{teamLink(t.token)}</code>. Uses Supabase Auth — no
           separate account system.
         </p>
         {inviteMessage && (
@@ -136,10 +134,13 @@ export default async function TeamDetailPage({
           <Button type="submit">Add</Button>
         </form>
 
-        <div className="divide-y divide-ink-line">
-          {playerList.length === 0 && <p className="py-4 text-ink-muted">No players yet.</p>}
+        <div className="divide-y divide-white/[0.08]">
+          {playerList.length === 0 && <p className="py-4 text-white/40">No players yet.</p>}
           {playerList.map((p) => (
-            <PlayerEditRow key={p.id} teamId={t.id} player={p} />
+            <div key={p.id} className="flex items-center gap-3 py-2">
+              <PlayerEditRow teamId={t.id} player={p} />
+              <PlayerRemoveAction teamId={t.id} player={p} />
+            </div>
           ))}
         </div>
       </Card>
@@ -151,7 +152,7 @@ function PlayerEditRow({ teamId, player }: { teamId: string; player: Player }) {
   return (
     <form
       action={updatePlayer.bind(null, teamId, player.id)}
-      className="flex items-center gap-3 py-2"
+      className="flex flex-1 items-center gap-3"
     >
       <input
         name="number"
@@ -159,19 +160,29 @@ function PlayerEditRow({ teamId, player }: { teamId: string; player: Player }) {
         min={0}
         max={99}
         defaultValue={player.number}
-        className="h-10 w-16 rounded-lg border border-ink-line bg-ink px-2 text-white"
+        className="h-10 w-16 rounded-lg border border-white/[0.08] bg-surface-950 px-2 text-white"
       />
       <input
         name="full_name"
         defaultValue={player.full_name}
-        className="h-10 flex-1 rounded-lg border border-ink-line bg-ink px-2 text-white"
+        className="h-10 flex-1 rounded-lg border border-white/[0.08] bg-surface-950 px-2 text-white"
       />
       <Button type="submit" variant="secondary" size="md">
         Save
       </Button>
-      <Button formAction={deletePlayer.bind(null, teamId, player.id)} variant="danger" size="md" type="submit">
-        Remove
-      </Button>
     </form>
+  );
+}
+
+function PlayerRemoveAction({ teamId, player }: { teamId: string; player: Player }) {
+  return (
+    <ConfirmActionDialog
+      triggerLabel="Remove"
+      triggerVariant="danger"
+      title="Remove this player?"
+      body={`${player.full_name} will be permanently removed from the squad list. This cannot be undone.`}
+      confirmLabel="Remove"
+      action={deletePlayer.bind(null, teamId, player.id)}
+    />
   );
 }

@@ -3,8 +3,10 @@
 import { useState, useTransition } from "react";
 import { X } from "lucide-react";
 import Modal from "./Modal";
+import MinutePicker from "./MinutePicker";
 import { addGoalEvent } from "@/app/live/[matchId]/actions";
-import type { Player, Team } from "@/lib/types";
+import { deriveCurrentMinuteValue } from "@/lib/match-clock";
+import type { MatchEvent, MatchLiveStatus, Player, Team } from "@/lib/types";
 
 export type GoalType = "goal" | "penalty_goal" | "own_goal";
 
@@ -13,6 +15,8 @@ export default function GoalDialog({
   team,
   opponent,
   players,
+  status,
+  events,
   defaultType = "goal",
   onClose,
 }: {
@@ -20,10 +24,13 @@ export default function GoalDialog({
   team: Team;
   opponent: Team;
   players: Player[];
+  status: MatchLiveStatus;
+  events: MatchEvent[];
   defaultType?: GoalType;
   onClose: () => void;
 }) {
-  const [minute, setMinute] = useState("");
+  const currentMinute = deriveCurrentMinuteValue(status, events);
+  const [minute, setMinute] = useState(currentMinute ?? "");
   const [playerId, setPlayerId] = useState("");
   const [type, setType] = useState<GoalType>(defaultType);
   const [pending, startTransition] = useTransition();
@@ -47,19 +54,13 @@ export default function GoalDialog({
 
       <div className="flex flex-col gap-3">
         <Field label="Minute">
-          <input
-            value={minute}
-            onChange={(e) => setMinute(e.target.value)}
-            placeholder="e.g. 45+2"
-            autoFocus
-            className="h-11 w-full rounded-lg border border-white/10 bg-white/5 px-3 text-sm focus:border-white/30 focus:outline-none"
-          />
+          <MinutePicker value={minute} onChange={setMinute} currentMinute={currentMinute} />
         </Field>
         <Field label="Player (optional)">
           <select
             value={playerId}
             onChange={(e) => setPlayerId(e.target.value)}
-            className="h-11 w-full rounded-lg border border-white/10 bg-white/5 px-3 text-sm focus:border-white/30 focus:outline-none"
+            className="h-11 w-full rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white focus:border-white/30 focus:outline-none [&>option]:bg-surface-900 [&>option]:text-white"
           >
             <option value="">— Unspecified —</option>
             {players.map((p) => (

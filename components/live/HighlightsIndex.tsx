@@ -22,6 +22,7 @@ const LABEL: Record<MatchEventType, string> = {
   half_time: "",
   match_resume: "",
   match_end: "",
+  additional_time: "",
 };
 
 export default function HighlightsIndex({ bundle }: { bundle: LiveMatchBundle }) {
@@ -36,7 +37,7 @@ export default function HighlightsIndex({ bundle }: { bundle: LiveMatchBundle })
     .map((e) => ({ ...e, isWinner: e.id === winningGoalId }));
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <div className="surface-panel p-4">
       <h2 className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-white/40">
         <Star size={12} /> Highlights Index
       </h2>

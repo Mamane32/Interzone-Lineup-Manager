@@ -1,28 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import { Pencil, Trash2, X } from "lucide-react";
 import Modal from "./Modal";
 import { deleteMatchEvent, updateMatchEvent } from "@/app/live/[matchId]/actions";
 import { getTheme } from "@/lib/team-theme";
-import type { MatchEvent, MatchEventType, Player, Team } from "@/lib/types";
-
-export const EVENT_META: Record<MatchEventType, { icon: string; label: string }> = {
-  goal: { icon: "⚽", label: "Goal" },
-  penalty_goal: { icon: "⚽", label: "Penalty Goal" },
-  own_goal: { icon: "⚽", label: "Own Goal" },
-  yellow_card: { icon: "🟨", label: "Yellow Card" },
-  second_yellow: { icon: "🟨🟥", label: "Second Yellow" },
-  red_card: { icon: "🟥", label: "Red Card" },
-  substitution: { icon: "🔁", label: "Substitution" },
-  var: { icon: "📺", label: "VAR" },
-  penalty_missed: { icon: "❌", label: "Penalty Missed" },
-  injury: { icon: "🩹", label: "Injury" },
-  match_start: { icon: "▶️", label: "Match Start" },
-  half_time: { icon: "⏸️", label: "Half Time" },
-  match_resume: { icon: "▶️", label: "Match Resume" },
-  match_end: { icon: "⏹️", label: "Match End" },
-};
+import { EVENT_META } from "@/lib/event-meta";
+import type { MatchEvent, Player, Team } from "@/lib/types";
 
 export default function MatchTimelineEvent({
   matchId,
@@ -66,12 +51,13 @@ export default function MatchTimelineEvent({
       }`}
     >
       <span className="w-9 flex-none text-center font-display text-xs font-bold text-white/50">{event.minute}&apos;</span>
-      <span className="text-base leading-none">{meta.icon}</span>
+      <span className={`flex h-6 w-6 flex-none items-center justify-center rounded-full ${meta.tone}`}>
+        <meta.icon size={12} />
+      </span>
 
       {team && (
         team.logo_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={team.logo_url} alt="" className={`h-5 w-5 flex-none rounded-full object-cover ring-1 ${theme?.ring ?? ""}`} />
+          <Image src={team.logo_url} alt="" width={20} height={20} className={`h-5 w-5 flex-none rounded-full object-cover ring-1 ${theme?.ring ?? ""}`} />
         ) : (
           <span className={`flex h-5 w-5 flex-none items-center justify-center rounded-full text-[8px] font-bold ${theme?.chipBg ?? "bg-white/10"} ${theme?.chipText ?? "text-white/50"}`}>
             {team.name.slice(0, 2).toUpperCase()}
@@ -203,7 +189,7 @@ function EditEventDialog({
             value={playerId}
             onChange={(e) => setPlayerId(e.target.value)}
             disabled={!teamId}
-            className="h-11 rounded-lg border border-white/10 bg-white/5 px-3 text-sm focus:border-white/30 focus:outline-none disabled:opacity-40"
+            className="h-11 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white focus:border-white/30 focus:outline-none disabled:opacity-40 [&>option]:bg-surface-900 [&>option]:text-white"
           >
             <option value="">— Unspecified —</option>
             {players.map((p) => (

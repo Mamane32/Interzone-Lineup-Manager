@@ -18,7 +18,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: {
     default: "GoodGrafik Sports Platform",
-    template: "%s · GGSP",
+    template: "%s · GoodGrafik",
   },
   description: "The operating system for modern sports organizations.",
 };

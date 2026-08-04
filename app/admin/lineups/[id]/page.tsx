@@ -57,11 +57,11 @@ export default async function LineupDetailPage({ params }: { params: { id: strin
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-wide text-amber-signal">
+          <p className="text-xs uppercase tracking-wide text-brand-400">
             {match?.competition?.name ?? "No competition"} · {formatMatchDate(match.match_date, match.match_time)}
           </p>
           <h1 className="font-display text-3xl font-semibold">{team.name}</h1>
-          <p className="text-sm text-ink-muted">
+          <p className="text-sm text-white/40">
             {match?.home_team?.name} vs {match?.away_team?.name}
           </p>
         </div>
@@ -73,16 +73,16 @@ export default async function LineupDetailPage({ params }: { params: { id: strin
           <Card>
             <h2 className="mb-3 font-display text-lg font-semibold">Coach</h2>
             <p className="font-medium">{team.coach_name}</p>
-            <p className="text-ink-muted">{team.coach_phone}</p>
-            {team.coach_email && <p className="text-ink-muted">{team.coach_email}</p>}
+            <p className="text-white/40">{team.coach_phone}</p>
+            {team.coach_email && <p className="text-white/40">{team.coach_email}</p>}
             {l.remarks && (
-              <div className="mt-3 rounded-lg bg-ink p-3 text-sm text-white/80">
-                <p className="mb-1 text-xs uppercase tracking-wide text-ink-muted">Remarks</p>
+              <div className="mt-3 rounded-lg bg-surface-950 p-3 text-sm text-white/80">
+                <p className="mb-1 text-xs uppercase tracking-wide text-white/40">Remarks</p>
                 {l.remarks}
               </div>
             )}
 
-            <div className="mt-4 flex gap-3 border-t border-ink-line pt-4">
+            <div className="mt-4 flex gap-3 border-t border-white/[0.08] pt-4">
               {l.locked ? (
                 <form action={reopenLineup.bind(null, l.id)}>
                   <Button type="submit" variant="secondary">
@@ -103,8 +103,8 @@ export default async function LineupDetailPage({ params }: { params: { id: strin
             <h2 className="mb-3 font-display text-lg font-semibold">
               Starting XI ({l.starting_xi.length}/11)
             </h2>
-            {l.starting_xi.length === 0 && <p className="text-ink-muted">Not submitted yet.</p>}
-            <div className="divide-y divide-ink-line">
+            {l.starting_xi.length === 0 && <p className="text-white/40">Not submitted yet.</p>}
+            <div className="divide-y divide-white/[0.08]">
               {l.starting_xi.map((pid) => {
                 const p = byId.get(pid);
                 if (!p) return null;
@@ -113,7 +113,7 @@ export default async function LineupDetailPage({ params }: { params: { id: strin
                     key={pid}
                     number={p.number}
                     name={p.full_name}
-                    trailing={l.captain_id === pid ? <span className="text-xs font-semibold text-amber-signal">CAPTAIN</span> : undefined}
+                    trailing={l.captain_id === pid ? <span className="text-xs font-semibold text-brand-400">CAPTAIN</span> : undefined}
                   />
                 );
               })}
@@ -124,8 +124,8 @@ export default async function LineupDetailPage({ params }: { params: { id: strin
             <h2 className="mb-3 font-display text-lg font-semibold">
               Substitutes ({l.substitutes.length}/9)
             </h2>
-            {l.substitutes.length === 0 && <p className="text-ink-muted">None submitted.</p>}
-            <div className="divide-y divide-ink-line">
+            {l.substitutes.length === 0 && <p className="text-white/40">None submitted.</p>}
+            <div className="divide-y divide-white/[0.08]">
               {l.substitutes.map((pid) => {
                 const p = byId.get(pid);
                 if (!p) return null;
@@ -138,7 +138,7 @@ export default async function LineupDetailPage({ params }: { params: { id: strin
         <Card className="h-fit">
           <h2 className="mb-3 font-display text-lg font-semibold">Export</h2>
           {captain && (
-            <p className="mb-3 flex items-center gap-2 text-sm text-ink-muted">
+            <p className="mb-3 flex items-center gap-2 text-sm text-white/40">
               Captain: <JerseyBadge number={captain.number} /> {captain.full_name}
             </p>
           )}

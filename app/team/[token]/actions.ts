@@ -3,6 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireCoach } from "@/lib/coach-auth";
+import { saveFormationCore, type SaveFormationResult } from "@/lib/tactical-formation";
+import type { SlotAssignment } from "@/lib/formation-engine";
+import type { FormationName } from "@/lib/types";
 
 export type SubmitResult = { ok: true } | { ok: false; error: string };
 
@@ -79,4 +82,35 @@ export async function submitLineup(token: string, formData: FormData): Promise<S
   revalidatePath(`/admin/lineups/${lineup.id}`);
 
   return { ok: true };
+}
+
+/**
+ * Coach's permission boundary onto the Formation Engine — the second
+ * caller of `saveFormationCore` (Admin's is app/live/[matchId]/formation/actions.ts).
+ * No validation or persistence logic lives here; only what's specific to
+ * this role:
+ *
+ *  - `requireCoach(token)` resolves the team from the unguessable token —
+ *    a coach can only ever act on their own team, there's no team id to
+ *    spoof.
+ *  - The lock check is the exact same rule `submitLineup` above already
+ *    enforces (`lineup.locked`), per the confirmed decision to reuse the
+ *    Lineup lifecycle rather than add a separate Formation status: once a
+ *    coach's lineup is submitted and locked, their formation is locked
+ *    with it.
+ */
+export async function saveTeamFormation(
+  token: string,
+  matchId: string,
+  formation: FormationName,
+  positions: SlotAssignment[]
+): Promise<SaveFormationResult> {
+  const { team } = await requireCoach(token);
+
+  const supabase = supabaseAdmin();
+  const { data: lineup } = await supabase.from("lineups").select("locked").eq("match_id", matchId).eq("team_id", team.id).maybeSingle();
+  if (!lineup) return { ok: false, error: "Match pa jwenn." };
+  if (lineup.locked) return { ok: false, error: "Lis la deja fèmen — ou pa ka chanje pozisyon ankò." };
+
+  return saveFormationCore(matchId, team.id, formation, positions);
 }

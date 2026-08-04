@@ -6,7 +6,7 @@ export default function Card({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`rounded-2xl border border-ink-line bg-ink-panel p-5 ${className}`}
+      className={`surface-panel p-5 ${className}`}
       {...props}
     />
   );

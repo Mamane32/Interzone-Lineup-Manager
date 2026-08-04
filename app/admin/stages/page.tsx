@@ -44,7 +44,7 @@ export default async function StagesPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-semibold">Stages</h1>
-          <p className="text-ink-muted">Regular Season, Quarter Finals, Semi Finals, and similar phases within a division.</p>
+          <p className="text-white/40">Regular Season, Quarter Finals, Semi Finals, and similar phases within a division.</p>
         </div>
         <CreateStageButton divisions={divisionList} />
       </div>
@@ -79,11 +79,11 @@ export default async function StagesPage({
 
       <Card className="p-0">
         {stageList.length === 0 ? (
-          <div className="p-10 text-center text-ink-muted">{hasFilters ? "No stages match those filters." : "No stages yet."}</div>
+          <div className="p-10 text-center text-white/40">{hasFilters ? "No stages match those filters." : "No stages yet."}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-ink-line text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="border-b border-white/[0.08] text-xs uppercase tracking-wide text-white/40">
                 <tr>
                   <th className="px-4 py-3 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Division</th>
@@ -92,7 +92,7 @@ export default async function StagesPage({
                   <th className="px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-line">
+              <tbody className="divide-y divide-white/[0.08]">
                 {stageList.map((s) => (
                   <StageRow key={s.id} stage={s} divisions={divisionList} divisionName={divisionsById.get(s.division_id) ?? "—"} />
                 ))}

@@ -1,8 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { requireFoundationAccess, slugify, isSlugAvailable } from "@/lib/foundation";
+import { requireFoundationAccess, slugify, isSlugAvailable, revalidateFoundation } from "@/lib/foundation";
+import { uploadImage, ASSET_CATEGORIES, type ImageUploadResult } from "@/lib/image-upload";
 import { getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
@@ -84,7 +84,7 @@ export async function createCompetition(formData: FormData) {
     });
   }
 
-  revalidatePath("/admin/competitions");
+  revalidateFoundation();
   redirect("/admin/competitions?saved=1");
 }
 
@@ -121,7 +121,7 @@ export async function renameCompetition(id: string, formData: FormData) {
     });
   }
 
-  revalidatePath("/admin/competitions");
+  revalidateFoundation();
   redirect("/admin/competitions?saved=1");
 }
 
@@ -142,8 +142,13 @@ export async function deleteCompetition(id: string): Promise<ActionResult> {
     await recordAuditEvent({ actorUserId: actor.id, action: "competition.deleted", targetType: "competition", targetId: id });
   }
 
-  revalidatePath("/admin/competitions");
+  revalidateFoundation();
   return { ok: true };
+}
+
+export async function uploadCompetitionLogo(formData: FormData): Promise<ImageUploadResult> {
+  await requireFoundationAccess();
+  return uploadImage(ASSET_CATEGORIES.CompetitionLogo, formData.get("file") as File | null);
 }
 
 export async function setCompetitionStatus(id: string, status: "active" | "archived"): Promise<ActionResult> {
@@ -170,6 +175,6 @@ export async function setCompetitionStatus(id: string, status: "active" | "archi
     });
   }
 
-  revalidatePath("/admin/competitions");
+  revalidateFoundation();
   return { ok: true };
 }

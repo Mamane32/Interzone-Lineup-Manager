@@ -1,11 +1,11 @@
-import { CheckCircle2, Mail } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import AuthFrame from "@/components/auth/AuthFrame";
-import Button from "@/components/ui/Button";
+import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 import { requestUnifiedPasswordReset } from "../actions";
 
 export const dynamic = "force-dynamic";
 
-export default function ForgotPasswordPage({ searchParams }: { searchParams: { sent?: string } }) {
+export default function ForgotPasswordPage({ searchParams }: { searchParams: { sent?: string; error?: string } }) {
   return (
     <AuthFrame
       eyebrow="Account recovery"
@@ -13,7 +13,7 @@ export default function ForgotPasswordPage({ searchParams }: { searchParams: { s
       description={
         searchParams.sent
           ? "If an account matches that address, a secure recovery link is on its way."
-          : "Enter the email attached to your GGSP identity and we’ll send a secure recovery link."
+          : "Enter the email attached to your GoodGrafik identity and we’ll send a secure recovery link."
       }
       backHref="/login"
     >
@@ -27,23 +27,7 @@ export default function ForgotPasswordPage({ searchParams }: { searchParams: { s
           </p>
         </div>
       ) : (
-        <form action={requestUnifiedPasswordReset} className="flex flex-col gap-5">
-          <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-white/70">Email address</span>
-            <span className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.035] px-3 transition focus-within:border-brand-400/45 focus-within:bg-white/[0.05]">
-              <Mail size={17} className="text-white/30" aria-hidden="true" />
-              <input
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                placeholder="name@organization.com"
-                className="min-w-0 flex-1 bg-transparent py-3.5 text-sm text-white placeholder:text-white/25 focus:outline-none"
-              />
-            </span>
-          </label>
-          <Button type="submit" size="lg" className="w-full">Send recovery link</Button>
-        </form>
+        <ForgotPasswordForm action={requestUnifiedPasswordReset} error={searchParams.error} />
       )}
     </AuthFrame>
   );

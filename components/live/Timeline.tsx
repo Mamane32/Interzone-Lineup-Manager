@@ -1,10 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import MatchTimelineEvent, { EVENT_META } from "./MatchTimelineEvent";
+import MatchTimelineEvent from "./MatchTimelineEvent";
+import { minuteSort } from "@/lib/event-meta";
 import type { MatchEvent, MatchEventType, Player, Team } from "@/lib/types";
-
-export { EVENT_META };
 
 const FILTERS: { key: string; label: string; types: MatchEventType[] }[] = [
   { key: "all", label: "All", types: [] },
@@ -13,14 +12,6 @@ const FILTERS: { key: string; label: string; types: MatchEventType[] }[] = [
   { key: "subs", label: "Subs", types: ["substitution"] },
   { key: "other", label: "Other", types: ["var", "penalty_missed", "injury", "match_start", "half_time", "match_resume", "match_end"] },
 ];
-
-export function minuteSort(a: string, b: string) {
-  const parse = (m: string) => {
-    const [base, extra] = m.split("+").map(Number);
-    return base * 100 + (extra || 0);
-  };
-  return parse(a) - parse(b);
-}
 
 /** Groups already-sorted events into broadcast periods by minute. Purely a display grouping — no new data. */
 function groupByPeriod(events: MatchEvent[]) {
@@ -70,7 +61,7 @@ export default function Timeline({
   const periods = groupByPeriod(filtered);
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/[0.03]">
+    <div className="flex h-full flex-col surface-panel">
       <div className="flex items-center justify-between border-b border-white/10 p-4 pb-3">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-white/40">Match Timeline</h2>
       </div>
@@ -94,7 +85,10 @@ export default function Timeline({
         <div className="flex flex-col gap-4">
           {periods.map((group) => (
             <div key={group.key}>
-              <p className="mb-1.5 px-1 text-[10px] font-bold uppercase tracking-wide text-white/25">{group.label}</p>
+              <div className="mb-1.5 flex items-center gap-2 px-1">
+                <p className="flex-none text-[10px] font-bold uppercase tracking-wide text-white/25">{group.label}</p>
+                <span className="h-px flex-1 bg-white/[0.06]" />
+              </div>
               <div className="flex flex-col gap-1.5">
                 {group.events.map((e, i) => (
                   <MatchTimelineEvent

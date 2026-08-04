@@ -8,7 +8,7 @@ export default function AdminShell({
   user,
 }: {
   children: React.ReactNode;
-  user: { name: string; email: string; role: string };
+  user: { name: string; email: string; role: string; avatarUrl?: string | null };
 }) {
   return (
     <AppShell nav={ADMIN_NAVIGATION} workspaceLabel="Platform Administration" user={user}>

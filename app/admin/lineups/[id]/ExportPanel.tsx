@@ -37,13 +37,13 @@ export default function ExportPanel({ formats }: { formats: Format[] }) {
 
   return (
     <div>
-      <div className="mb-3 flex gap-1 rounded-xl bg-ink p-1">
+      <div className="mb-3 flex gap-1 rounded-xl bg-surface-950 p-1">
         {formats.map((f) => (
           <button
             key={f.key}
             onClick={() => setActive(f.key)}
             className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-              f.key === current.key ? "bg-amber-signal text-ink" : "text-ink-muted hover:text-white"
+              f.key === current.key ? "bg-brand-400 text-surface-950" : "text-white/40 hover:text-white"
             }`}
           >
             {f.label}
@@ -51,7 +51,7 @@ export default function ExportPanel({ formats }: { formats: Format[] }) {
         ))}
       </div>
 
-      <pre className="max-h-72 overflow-auto rounded-xl border border-ink-line bg-ink p-4 text-sm text-white/90">
+      <pre className="max-h-72 overflow-auto rounded-xl border border-white/[0.08] bg-surface-950 p-4 text-sm text-white/90">
 {current.content || "—"}
       </pre>
 

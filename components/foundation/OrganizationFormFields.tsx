@@ -1,4 +1,6 @@
 import Input from "@/components/ui/Input";
+import ImageUpload from "@/components/ui/ImageUpload";
+import { uploadOrganizationLogo, uploadOrganizationBanner } from "@/app/admin/organizations/actions";
 import type { Organization } from "@/lib/types";
 
 export default function OrganizationFormFields({ org }: { org?: Organization }) {
@@ -20,27 +22,27 @@ export default function OrganizationFormFields({ org }: { org?: Organization }) 
       </div>
 
       <label className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium text-ink-muted">Description</span>
+        <span className="text-sm font-medium text-white/40">Description</span>
         <textarea
           name="description"
           defaultValue={org?.description ?? ""}
           rows={2}
-          className="rounded-xl border border-ink-line bg-ink px-3 py-2 text-sm text-white focus:border-amber-signal focus:outline-none"
+          className="rounded-xl border border-white/[0.08] bg-surface-950 px-3 py-2 text-sm text-white focus:border-brand-400 focus:outline-none"
         />
       </label>
 
-      <fieldset className="rounded-xl border border-ink-line p-3">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">Branding</legend>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Input id="logo_url" name="logo_url" label="Logo URL" defaultValue={org?.logo_url ?? ""} />
-          <Input id="banner_url" name="banner_url" label="Banner URL" defaultValue={org?.banner_url ?? ""} />
+      <fieldset className="rounded-xl border border-white/[0.08] p-3">
+        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-white/40">Branding</legend>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <ImageUpload label="Logo" name="logo_url" currentUrl={org?.logo_url ?? null} action={uploadOrganizationLogo} shape="circle" size={64} />
+          <ImageUpload label="Banner" name="banner_url" currentUrl={org?.banner_url ?? null} action={uploadOrganizationBanner} size={64} />
           <Input id="primary_color" name="primary_color" label="Primary color" defaultValue={org?.primary_color ?? ""} placeholder="#0B0F14" />
           <Input id="secondary_color" name="secondary_color" label="Secondary color" defaultValue={org?.secondary_color ?? ""} placeholder="#FFB020" />
         </div>
       </fieldset>
 
-      <fieldset className="rounded-xl border border-ink-line p-3">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">Contact</legend>
+      <fieldset className="rounded-xl border border-white/[0.08] p-3">
+        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-white/40">Contact</legend>
         <div className="grid gap-3 sm:grid-cols-2">
           <Input id="address" name="address" label="Address" defaultValue={org?.address ?? ""} />
           <Input id="phone" name="phone" label="Phone" defaultValue={org?.phone ?? ""} />

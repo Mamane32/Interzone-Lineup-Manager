@@ -1,6 +1,8 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+export type FinalizeInvitationResult = { accepted: true } | { accepted: false; reason: "expired" };
+
 /**
  * Called once, right after a user successfully sets their password (see
  * app/team/reset-password/actions.ts) — the moment an invitation is
@@ -8,7 +10,8 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
  * unconditionally after every successful password update, including
  * ordinary self-service resets that have nothing to do with an
  * invitation: if there's no matching pending invitation for this email,
- * this is a no-op.
+ * this is a no-op (returns `{accepted: true}` — there was nothing to
+ * reject, this is a legitimate ordinary reset, not a failure).
  *
  * On success:
  *   invitations.status        -> 'accepted'
@@ -17,12 +20,15 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
  *   every user_access_assignments row created BY THIS INVITATION
  *   (matched via invitation_id, still in 'invited' status) -> 'active'
  *
- * Deliberately scoped to Sprint 1.3's `invitations` table only — the
- * separate, older coach-invite mechanism (admin/teams/[id]/actions.ts's
- * inviteCoach, from Sprint 1.2) does not create invitation rows and is
- * out of scope for this hardening pass; see SPRINT_1_3_IAM_HARDENING.md.
+ * If the matched invitation's expires_at has already passed, no access is
+ * granted: invitations.status -> 'expired' instead, profiles/assignments
+ * stay 'invited'. The caller (setNewPassword) redirects to an error state
+ * rather than the workspace. Note the Auth account itself already has a
+ * real password set by this point (updateUser succeeded before this was
+ * called) — harmless, since every requireRole/requireCoach gate checks
+ * status === 'active', which this deliberately withholds.
  */
-export async function finalizeAcceptedInvitation(userId: string, email: string): Promise<void> {
+export async function finalizeAcceptedInvitation(userId: string, email: string): Promise<FinalizeInvitationResult> {
   const admin = supabaseAdmin();
 
   const { data: invitation } = await admin
@@ -34,7 +40,20 @@ export async function finalizeAcceptedInvitation(userId: string, email: string):
     .limit(1)
     .maybeSingle();
 
-  if (!invitation) return;
+  if (!invitation) return { accepted: true };
+
+  if (invitation.expires_at && new Date(invitation.expires_at) < new Date()) {
+    const { error: expireError } = await admin
+      .from("invitations")
+      .update({ status: "expired" })
+      .eq("id", invitation.id)
+      .eq("status", "pending");
+
+    if (expireError) {
+      console.error("failed to mark invitation expired", invitation.id, expireError);
+    }
+    return { accepted: false, reason: "expired" };
+  }
 
   const { error: inviteError } = await admin
     .from("invitations")
@@ -44,7 +63,7 @@ export async function finalizeAcceptedInvitation(userId: string, email: string):
 
   if (inviteError) {
     console.error("failed to mark invitation accepted", invitation.id, inviteError);
-    return;
+    return { accepted: true };
   }
 
   await admin.from("profiles").update({ status: "active" }).eq("id", userId);
@@ -54,4 +73,6 @@ export async function finalizeAcceptedInvitation(userId: string, email: string):
     .update({ status: "active" })
     .eq("invitation_id", invitation.id)
     .eq("status", "invited");
+
+  return { accepted: true };
 }

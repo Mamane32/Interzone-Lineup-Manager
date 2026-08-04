@@ -1,6 +1,6 @@
 export type LineupStatus = "waiting" | "submitted" | "needs_correction";
 
-export type AccessStatus = "invited" | "active" | "suspended" | "disabled";
+export type AccessStatus = "invited" | "active" | "suspended" | "disabled" | "archived";
 
 export type PlatformRole =
   | "super_admin"
@@ -34,7 +34,7 @@ export interface UserAccessAssignment {
   updated_at: string;
 }
 
-export type InvitationStatus = "pending" | "accepted" | "expired" | "revoked";
+export type InvitationStatus = "pending" | "accepted" | "expired" | "revoked" | "archived";
 
 export interface Invitation {
   id: string;
@@ -96,7 +96,9 @@ export type MatchEventType =
   | "match_start"
   | "half_time"
   | "match_resume"
-  | "match_end";
+  | "match_end"
+  // Sprint 2 — Phase 4 (supabase/migrations/011_additional_time_event.sql).
+  | "additional_time";
 
 export type FoundationStatus = "active" | "archived";
 
@@ -149,6 +151,13 @@ export interface Competition {
   points_loss?: number;
   status?: FoundationStatus;
   updated_at?: string;
+  // Sprint 3 Phase 2 — Match Squad Workflow (supabase/migrations/021_competition_squad_rules.sql).
+  // Optional so pre-migration records still type-check. null/undefined means
+  // "no cap" for match_squad_size/max_substitutions; max_bench always has a
+  // real value (DB default 9, preserving today's hardcoded UI behavior).
+  match_squad_size?: number | null;
+  max_bench?: number;
+  max_substitutions?: number | null;
 }
 
 export interface Organization {
@@ -252,7 +261,14 @@ export interface Team {
   coach_email: string | null;
   token: string;
   created_at: string;
+  // Sprint 2 — Coach Experience (supabase/migrations/010_coach_photo.sql).
+  // Optional so pre-migration records still type-check.
+  coach_photo_url?: string | null;
 }
+
+export type PlayerPosition = "Goalkeeper" | "Defender" | "Midfielder" | "Forward";
+export type PreferredFoot = "Left" | "Right" | "Both";
+export type PlayerAvailabilityStatus = "available" | "doubtful" | "injured" | "suspended";
 
 export interface Player {
   id: string;
@@ -260,6 +276,14 @@ export interface Player {
   number: number;
   full_name: string;
   created_at: string;
+  // Sprint 3 Phase 2 — Coach Team Roster Module (supabase/migrations/020_player_roster_fields.sql).
+  // Optional so pre-migration records still type-check.
+  position?: PlayerPosition | null;
+  photo_url?: string | null;
+  preferred_foot?: PreferredFoot | null;
+  is_captain?: boolean;
+  active?: boolean;
+  availability_status?: PlayerAvailabilityStatus;
 }
 
 export interface Match {
@@ -278,6 +302,23 @@ export interface Match {
   away_score?: number;
   referee_name?: string | null;
   venue?: string | null;
+  // Sprint 2 — Competition Completion (supabase/migrations/008_competition_completion.sql).
+  // All nullable — a match can be scheduled with as little as a competition,
+  // or scoped all the way down to a specific group. Setting the most
+  // specific one (e.g. group_id) auto-fills its ancestors via a database
+  // trigger, so these are rarely all set by application code directly.
+  season_id?: string | null;
+  division_id?: string | null;
+  stage_id?: string | null;
+  group_id?: string | null;
+  venue_id?: string | null;
+  // Sprint 3 — Live Match Experience (supabase/migrations/014_match_officials.sql).
+  // A match has one officiating crew, not reusable entities — plain nullable
+  // columns, same pattern as referee_name above.
+  assistant_referee_1_name?: string | null;
+  assistant_referee_2_name?: string | null;
+  fourth_official_name?: string | null;
+  var_official_name?: string | null;
 }
 
 export interface MatchEvent {
@@ -289,6 +330,29 @@ export interface MatchEvent {
   player_id: string | null;
   description: string | null;
   created_at: string;
+}
+
+// Match Statistics Engine (supabase/migrations/015_match_statistics.sql).
+// One row per (match, team), operator-driven — never inferred from
+// match_events, even for Yellow/Red Cards (see the migration's own
+// comment for why). expected_goals is architecture only: always null
+// until a real calculation engine exists.
+export interface MatchStatistics {
+  id: string;
+  match_id: string;
+  team_id: string;
+  possession_percent: number;
+  shots: number;
+  shots_on_target: number;
+  corners: number;
+  fouls: number;
+  offside: number;
+  yellow_cards: number;
+  red_cards: number;
+  saves: number;
+  expected_goals: number | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Lineup {
@@ -315,4 +379,36 @@ export interface LineupWithRelations extends Lineup {
   team: Team;
   match: MatchWithTeams;
   players: Player[];
+}
+
+// Tactical Formation Panel (supabase/migrations/007_tactical_formations.sql).
+// Broadcast Control Center only — never read from the Coach Portal, the
+// public site, or any public API route.
+export type FormationName = "4-4-2" | "4-3-3" | "3-5-2" | "3-4-3" | "4-2-3-1" | "4-1-4-1" | "5-3-2" | "5-4-1" | "4-5-1" | "custom";
+
+export interface TacticalFormation {
+  id: string;
+  match_id: string;
+  team_id: string;
+  formation: FormationName;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TacticalPosition {
+  id: string;
+  tactical_formation_id: string;
+  player_id: string;
+  tactical_position: string;
+  x_coordinate: number;
+  y_coordinate: number;
+  shirt_number: number;
+  captain: boolean;
+  goalkeeper: boolean;
+  created_at: string;
+  updated_at: string;
+  // Sprint 2 — Formation Engine (supabase/migrations/009_formation_engine.sql).
+  // Optional so pre-migration records still type-check. The stable slot
+  // identity ("CB-1" vs "CB-2") — see lib/formation-engine.ts.
+  slot_key?: string | null;
 }

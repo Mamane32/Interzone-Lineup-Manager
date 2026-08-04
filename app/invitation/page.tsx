@@ -4,7 +4,7 @@ import AuthFrame from "@/components/auth/AuthFrame";
 
 export default function InvitationPage() {
   return (
-    <AuthFrame eyebrow="Workspace invitation" title="Your place in the operation starts here" description="GGSP invitations are tied to your email and assigned workspace. Open the secure link in your invitation email to finish setup." backHref="/login">
+    <AuthFrame eyebrow="Workspace invitation" title="Your place in the operation starts here" description="GoodGrafik invitations are tied to your email and assigned workspace. Open the secure link in your invitation email to finish setup." backHref="/login">
       <div className="text-center">
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-brand-400/20 bg-brand-400/[0.08] text-brand-400"><MailCheck size={25} /></span>
         <h2 className="mt-5 font-display text-xl font-semibold">Check your invitation email</h2>

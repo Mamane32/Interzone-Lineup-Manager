@@ -7,7 +7,7 @@ export default function StatCard({ label, value, detail, icon: Icon, tone = "bra
     neutral: "border-white/[0.08] bg-white/[0.035] text-white/50",
   };
   return (
-    <div className="surface-panel p-5">
+    <div className="surface-panel p-5 hover:-translate-y-1 hover:border-white/[0.16] hover:shadow-[0_28px_70px_-24px_rgba(0,0,0,0.75)]">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs font-medium text-white/40">{label}</p>

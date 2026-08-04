@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Lock, Mail, ShieldCheck } from "lucide-react";
 import { supabaseAdmin } from "@/lib/supabase-admin";
@@ -34,10 +35,11 @@ export default async function CoachLoginPage({
       <div className="animate-fade-up relative w-full max-w-sm">
         <div className="mb-8 text-center">
           {team.logo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={team.logo_url}
               alt=""
+              width={64}
+              height={64}
               className={`mx-auto h-16 w-16 rounded-full object-cover ring-4 ${theme.ring}`}
             />
           ) : (

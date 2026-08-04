@@ -1,8 +1,10 @@
+import Image from "next/image";
 import { Download, Users2 } from "lucide-react";
 import { getLiveMatch } from "@/lib/live-match";
 import { formatMatchDate } from "@/lib/utils";
+import { listMatchStatistics } from "@/lib/match-statistics";
 import StatisticsPanel from "@/components/live/StatisticsPanel";
-import { EVENT_META, minuteSort } from "@/components/live/Timeline";
+import { EVENT_META, minuteSort } from "@/lib/event-meta";
 import type { MatchEvent } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +12,9 @@ export const dynamic = "force-dynamic";
 export default async function MatchReportPage({ params }: { params: { matchId: string } }) {
   const bundle = await getLiveMatch(params.matchId);
   const { match, events, homePlayers, awayPlayers } = bundle;
+  const statsRows = await listMatchStatistics(match.id);
+  const homeStats = statsRows.find((s) => s.team_id === match.home_team_id);
+  const awayStats = statsRows.find((s) => s.team_id === match.away_team_id);
 
   const byId = new Map([...homePlayers, ...awayPlayers].map((p) => [p.id, p]));
   const teamsById = new Map([
@@ -25,7 +30,7 @@ export default async function MatchReportPage({ params }: { params: { matchId: s
   return (
     <div className="mx-auto max-w-4xl pb-16">
       {/* Final score header */}
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center">
+      <div className="surface-panel p-6 text-center">
         <p className="text-xs uppercase tracking-[0.2em] text-white/40">
           {match.competition?.name ?? "No competition"} {match.round ? `· ${match.round}` : ""}
         </p>
@@ -72,7 +77,11 @@ export default async function MatchReportPage({ params }: { params: { matchId: s
       </ReportSection>
 
       <ReportSection title="Statistics">
-        <StatisticsPanel homeTeam={match.home_team} awayTeam={match.away_team} />
+        {homeStats && awayStats ? (
+          <StatisticsPanel matchId={match.id} homeTeam={match.home_team} awayTeam={match.away_team} homeStats={homeStats} awayStats={awayStats} readOnly />
+        ) : (
+          <p className="text-xs text-white/30">Statistics rows haven&apos;t been created for this match yet.</p>
+        )}
       </ReportSection>
 
       <ReportSection title="Squads">
@@ -108,8 +117,7 @@ function TeamCol({ name, logo }: { name: string; logo: string | null }) {
   return (
     <div className="flex flex-col items-center gap-2">
       {logo ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={logo} alt="" className="h-12 w-12 rounded-full object-cover" />
+        <Image src={logo} alt="" width={48} height={48} className="h-12 w-12 rounded-full object-cover" />
       ) : (
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-xs font-display">
           {name.slice(0, 2).toUpperCase()}
@@ -162,7 +170,9 @@ function EventList({
         return (
           <div key={e.id} className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs">
             <span className="w-9 flex-none text-center font-display font-bold text-white/50">{e.minute}&apos;</span>
-            <span>{meta.icon}</span>
+            <span className={`flex h-6 w-6 flex-none items-center justify-center rounded-full ${meta.tone}`}>
+              <meta.icon size={12} />
+            </span>
             <span className="flex-1 truncate text-white/80">
               {meta.label}
               {team ? ` · ${team.name}` : ""}

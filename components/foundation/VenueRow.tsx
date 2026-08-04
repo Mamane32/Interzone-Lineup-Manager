@@ -23,29 +23,19 @@ export default function VenueRow({
 
   return (
     <>
-      <tr className="hover:bg-white/[0.03]">
-        <td className="px-4 py-3 font-medium">{venue.name}</td>
-        <td className="px-4 py-3 text-ink-muted">{[venue.city, venue.country].filter(Boolean).join(", ") || "—"}</td>
-        <td className="px-4 py-3 text-ink-muted">{organizationName}</td>
-        <td className="px-4 py-3 text-ink-muted">{venue.capacity ?? "—"}</td>
-        <td className="px-4 py-3">
-          <UserStatusBadge status={venue.status} />
-        </td>
-        <td className="px-4 py-3">
-          <Button type="button" variant="secondary" size="md" onClick={() => setOpen(true)}>
-            View
-          </Button>
-        </td>
-      </tr>
+      <Button type="button" variant="secondary" size="md" onClick={() => setOpen(true)}>
+        Manage
+      </Button>
 
       {open && (
         <Drawer title={venue.name} subtitle={venue.city ?? undefined} onClose={() => setOpen(false)}>
+          <div className="mb-4"><UserStatusBadge status={venue.status} /></div>
           {venue.google_maps_url && (
             <a
               href={venue.google_maps_url}
               target="_blank"
               rel="noreferrer"
-              className="mb-4 flex items-center gap-1.5 text-sm text-amber-signal hover:underline"
+              className="mb-4 flex items-center gap-1.5 text-sm text-brand-400 hover:underline"
             >
               <MapPin size={14} /> Open in Google Maps
             </a>
@@ -57,7 +47,7 @@ export default function VenueRow({
             </Button>
           </form>
 
-          <div className="mt-5 border-t border-ink-line pt-4">
+          <div className="mt-5 border-t border-white/[0.08] pt-4">
             {venue.status === "active" ? (
               <ConfirmActionDialog
                 triggerLabel="Archive venue"

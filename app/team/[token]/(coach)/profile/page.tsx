@@ -5,6 +5,7 @@ import { changePassword } from "./actions";
 import { coachLogout } from "../../login/actions";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import CoachPhotoUpload from "@/components/coach/CoachPhotoUpload";
 
 export const dynamic = "force-dynamic";
 
@@ -33,9 +34,7 @@ export default async function ProfilePage({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-b from-ink to-ink-panel p-6 text-center text-white shadow-sm">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 font-display text-xl">
-          {team.coach_name.slice(0, 2).toUpperCase()}
-        </div>
+        <CoachPhotoUpload token={params.token} coachName={team.coach_name} photoUrl={team.coach_photo_url ?? null} />
         <p className="font-display text-lg font-semibold">{team.coach_name}</p>
         <p className="text-xs text-white/50">Antrenè · {team.name}</p>
       </div>

@@ -24,7 +24,7 @@ function TeamPanel({
   const byId = new Map(players.map((p) => [p.id, p]));
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <div className="surface-panel p-4">
       <SectionHeader
         title={teamName}
         badge={

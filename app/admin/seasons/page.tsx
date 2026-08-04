@@ -44,7 +44,7 @@ export default async function SeasonsPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-semibold">Seasons</h1>
-          <p className="text-ink-muted">Exactly one active season per competition, enforced by the database.</p>
+          <p className="text-white/40">Exactly one active season per competition, enforced by the database.</p>
         </div>
         <CreateSeasonButton competitions={competitionList} />
       </div>
@@ -89,13 +89,13 @@ export default async function SeasonsPage({
 
       <Card className="p-0">
         {seasonList.length === 0 ? (
-          <div className="p-10 text-center text-ink-muted">
+          <div className="p-10 text-center text-white/40">
             {hasFilters ? "No seasons match those filters." : "No seasons yet."}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-ink-line text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="border-b border-white/[0.08] text-xs uppercase tracking-wide text-white/40">
                 <tr>
                   <th className="px-4 py-3 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Competition</th>
@@ -104,7 +104,7 @@ export default async function SeasonsPage({
                   <th className="px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-line">
+              <tbody className="divide-y divide-white/[0.08]">
                 {seasonList.map((s) => (
                   <SeasonRow key={s.id} season={s} competitions={competitionList} competitionName={competitionsById.get(s.competition_id) ?? "—"} />
                 ))}

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { resolveUserDestination } from "@/lib/access";
+import { classifyResetError } from "@/lib/auth-rate-limit";
 
 export async function unifiedLogin(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
@@ -35,12 +36,21 @@ export async function requestUnifiedPasswordReset(formData: FormData) {
   if (email) {
     const supabase = createClient();
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
-    await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${appUrl}/auth/callback?next=${encodeURIComponent("/team/reset-password")}`,
     });
+
+    // A rate-limit or send failure must not be reported to the user as
+    // "sent" — that used to be exactly this dead end: no email arrives,
+    // no indication why, no way to tell it apart from a real send. Only
+    // the classification is revealed, never whether the address is
+    // actually registered.
+    const classification = classifyResetError(error);
+    if (classification) {
+      redirect(`/login/forgot-password?error=${classification}`);
+    }
   }
 
-  // Always the same response — never reveal whether an email is registered.
   redirect("/login/forgot-password?sent=1");
 }
 

@@ -55,7 +55,7 @@ export default async function AuditLogPage({
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-3xl font-semibold">Audit Log</h1>
-        <p className="text-ink-muted">Append-only record of identity & access changes.</p>
+        <p className="text-white/40">Append-only record of identity & access changes.</p>
       </div>
 
       <Card>
@@ -78,11 +78,11 @@ export default async function AuditLogPage({
 
       <Card className="p-0">
         {entries.length === 0 ? (
-          <div className="p-10 text-center text-ink-muted">No matching audit events.</div>
+          <div className="p-10 text-center text-white/40">No matching audit events.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-ink-line text-xs uppercase tracking-wide text-ink-muted">
+              <thead className="border-b border-white/[0.08] text-xs uppercase tracking-wide text-white/40">
                 <tr>
                   <th className="px-4 py-3 font-medium">When</th>
                   <th className="px-4 py-3 font-medium">Actor</th>
@@ -90,17 +90,17 @@ export default async function AuditLogPage({
                   <th className="px-4 py-3 font-medium">Target</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-line">
+              <tbody className="divide-y divide-white/[0.08]">
                 {entries.map((e) => {
                   const actor = e.actor_user_id ? actorsById.get(e.actor_user_id) : null;
                   return (
                     <tr key={e.id} className="hover:bg-white/[0.03]">
-                      <td className="px-4 py-3 text-xs text-ink-muted">{new Date(e.created_at).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-xs text-white/40">{new Date(e.created_at).toLocaleString()}</td>
                       <td className="px-4 py-3">{actor?.email ?? "—"}</td>
                       <td className="px-4 py-3">
-                        <code className="text-xs text-amber-signal">{e.action}</code>
+                        <code className="text-xs text-brand-400">{e.action}</code>
                       </td>
-                      <td className="px-4 py-3 text-xs text-ink-muted">
+                      <td className="px-4 py-3 text-xs text-white/40">
                         {e.target_type}
                         {e.target_id ? ` · ${e.target_id.slice(0, 8)}` : ""}
                       </td>

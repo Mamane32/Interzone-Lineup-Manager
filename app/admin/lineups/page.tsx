@@ -25,20 +25,20 @@ export default async function LineupsPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-3xl font-semibold">Lineups</h1>
-        <p className="text-ink-muted">Every lineup, across every match.</p>
+        <p className="text-white/40">Every lineup, across every match.</p>
       </div>
 
       <div className="flex flex-col gap-3">
-        {list.length === 0 && <p className="text-ink-muted">No lineups yet — create a match first.</p>}
+        {list.length === 0 && <p className="text-white/40">No lineups yet — create a match first.</p>}
         {list.map((l: any) => (
           <Link key={l.id} href={`/admin/lineups/${l.id}`}>
-            <Card className="flex flex-col gap-1 hover:border-amber-signal/50 sm:flex-row sm:items-center sm:justify-between">
+            <Card className="flex flex-col gap-1 hover:border-brand-400/50 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-wide text-amber-signal">
+                <p className="text-xs uppercase tracking-wide text-brand-400">
                   {l.match?.competition?.name ?? "No competition"}
                 </p>
                 <p className="font-semibold">{l.team?.name}</p>
-                <p className="text-xs text-ink-muted">
+                <p className="text-xs text-white/40">
                   {l.match ? formatMatchDate(l.match.match_date, l.match.match_time) : ""}
                 </p>
               </div>

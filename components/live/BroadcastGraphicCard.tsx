@@ -52,6 +52,7 @@ export default function BroadcastGraphicCard({
           onClick={onTake}
           disabled={disabled || status === "live"}
           title={disabled ? "Not available yet" : "Take / Show"}
+          aria-label={`Take ${name} to air`}
           className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/8 text-white/60 hover:bg-white/15 hover:text-white disabled:opacity-25"
         >
           <Radio size={12} />
@@ -61,6 +62,7 @@ export default function BroadcastGraphicCard({
           onClick={onHide}
           disabled={disabled || status !== "live"}
           title="Hide"
+          aria-label={`Hide ${name}`}
           className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/8 text-white/60 hover:bg-white/15 hover:text-white disabled:opacity-25"
         >
           <EyeOff size={12} />

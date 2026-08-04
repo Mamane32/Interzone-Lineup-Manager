@@ -1,4 +1,5 @@
 import "server-only";
+import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import type { CompetitionGroup, Division, FoundationStatus, Organization, Season, Stage, Venue } from "@/lib/types";
@@ -6,6 +7,20 @@ import type { CompetitionGroup, Division, FoundationStatus, Organization, Season
 /** Only these roles may manage the Competition Foundation, per the brief. */
 export async function requireFoundationAccess() {
   return requireRole(["super_admin", "admin", "competition_manager"]);
+}
+
+/**
+ * Every Foundation entity (organizations, competitions, seasons, divisions,
+ * stages, groups, venues) is selectable from pages outside its own
+ * (matches, users, invitations, dashboard, coach profile). Revalidating
+ * only the entity's own admin path — the bug found in tonight's UAT —
+ * left every other consumer serving a stale Router Cache entry until a
+ * hard refresh. Every Foundation mutation action must call this instead of
+ * calling revalidatePath() directly, so the fix lives in one place instead
+ * of needing to be repeated (and missed) per entity.
+ */
+export function revalidateFoundation() {
+  revalidatePath("/", "layout");
 }
 
 export function slugify(input: string): string {

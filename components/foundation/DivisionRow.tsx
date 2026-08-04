@@ -15,8 +15,8 @@ export default function DivisionRow({ division, seasons, seasonName }: { divisio
     <>
       <tr className="hover:bg-white/[0.03]">
         <td className="px-4 py-3 font-medium">{division.name}</td>
-        <td className="px-4 py-3 text-ink-muted">{seasonName}</td>
-        <td className="px-4 py-3 text-ink-muted">{division.abbreviation ?? "—"}</td>
+        <td className="px-4 py-3 text-white/40">{seasonName}</td>
+        <td className="px-4 py-3 text-white/40">{division.abbreviation ?? "—"}</td>
         <td className="px-4 py-3"><UserStatusBadge status={division.status} /></td>
         <td className="px-4 py-3">
           <Button type="button" variant="secondary" size="md" onClick={() => setOpen(true)}>View</Button>
@@ -28,7 +28,7 @@ export default function DivisionRow({ division, seasons, seasonName }: { divisio
             <DivisionFormFields division={division} seasons={seasons} />
             <Button type="submit" className="w-fit">Save changes</Button>
           </form>
-          <div className="mt-5 border-t border-ink-line pt-4">
+          <div className="mt-5 border-t border-white/[0.08] pt-4">
             {division.status === "active" ? (
               <ConfirmActionDialog triggerLabel="Archive division" triggerVariant="danger" title="Archive this division?" body="Hidden from active lists, not deleted." confirmLabel="Archive" action={setDivisionStatus.bind(null, division.id, "archived")} />
             ) : (

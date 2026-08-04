@@ -5,7 +5,7 @@ import { Plus, Undo2, Pencil, X } from "lucide-react";
 import Modal from "./Modal";
 import GoalDialog from "./GoalDialog";
 import { deleteMatchEvent, setManualScore } from "@/app/live/[matchId]/actions";
-import type { MatchEvent, Player, Team } from "@/lib/types";
+import type { MatchEvent, MatchLiveStatus, Player, Team } from "@/lib/types";
 
 export default function ScoreControl({
   matchId,
@@ -15,6 +15,7 @@ export default function ScoreControl({
   awayScore,
   homePlayers,
   awayPlayers,
+  status,
   events,
 }: {
   matchId: string;
@@ -24,6 +25,7 @@ export default function ScoreControl({
   awayScore: number;
   homePlayers: Player[];
   awayPlayers: Player[];
+  status: MatchLiveStatus;
   events: MatchEvent[];
 }) {
   const [dialogTeam, setDialogTeam] = useState<"home" | "away" | null>(null);
@@ -40,7 +42,7 @@ export default function ScoreControl({
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <div className="surface-panel p-4">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-white/40">Score Control</h2>
         <button
@@ -72,6 +74,8 @@ export default function ScoreControl({
           team={dialogTeam === "home" ? homeTeam : awayTeam}
           opponent={dialogTeam === "home" ? awayTeam : homeTeam}
           players={dialogTeam === "home" ? homePlayers : awayPlayers}
+          status={status}
+          events={events}
           onClose={() => setDialogTeam(null)}
         />
       )}
@@ -95,11 +99,11 @@ function GoalButton({ label, score, onClick }: { label: string; score: number; o
     <button
       type="button"
       onClick={onClick}
-      className="flex flex-col items-center gap-1.5 rounded-xl bg-white/5 py-3 transition-all hover:bg-white/10 active:scale-95"
+      className="group surface-recessed flex flex-col items-center gap-1.5 py-3.5 transition-all hover:-translate-y-0.5 hover:bg-white/[0.04] active:scale-95 active:translate-y-0"
     >
       <span className="truncate px-1 text-[11px] font-medium text-white/50">{label}</span>
-      <span className="font-display text-2xl font-bold tabular-nums">{score}</span>
-      <span className="flex items-center gap-1 rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold text-red-400">
+      <span className="font-display text-3xl font-black tabular-nums transition-colors group-hover:text-brand-100">{score}</span>
+      <span className="flex items-center gap-1 rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold text-red-400 transition-colors group-hover:bg-red-500 group-hover:text-white">
         <Plus size={10} /> GOAL
       </span>
     </button>

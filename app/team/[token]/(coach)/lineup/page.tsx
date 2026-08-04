@@ -1,4 +1,4 @@
-import { requireCoach } from "@/lib/coach-auth";
+import { requireRosterReady } from "@/lib/coach-auth";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import LineupForm from "../../LineupForm";
 import type { Player, Team } from "@/lib/types";
@@ -21,7 +21,7 @@ export default async function LineupPage({
   params: { token: string };
   searchParams: { match?: string };
 }) {
-  const { team } = await requireCoach(params.token);
+  const { team } = await requireRosterReady(params.token);
 
   const supabase = supabaseAdmin();
   const { data: lineups } = await supabase
@@ -40,11 +40,11 @@ export default async function LineupPage({
     list.find((l) => l.status === "waiting" || l.status === "needs_correction") ||
     list.sort((a, b) => (a.match?.match_date < b.match?.match_date ? 1 : -1))[0];
 
-  const { data: players } = await supabase
-    .from("players")
-    .select("*")
-    .eq("team_id", team.id)
-    .order("number");
+  // Every roster player, active or not — LineupForm needs the full set to
+  // resolve names for an already-submitted lineup that may reference a
+  // since-deactivated player (ConfirmedView's id -> name lookup), and
+  // restricts *new* selection to active players itself (optionsFor).
+  const { data: players } = await supabase.from("players").select("*").eq("team_id", team.id).order("number");
 
   if (!active) {
     return (

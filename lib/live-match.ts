@@ -2,13 +2,21 @@ import "server-only";
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import type { Match, MatchEvent, Player, Team, LineupStatus } from "@/lib/types";
+import type { Match, MatchEvent, Player, Team, Venue, LineupStatus } from "@/lib/types";
 
 export type LiveMatchBundle = {
   match: Match & {
     home_team: Team;
     away_team: Team;
-    competition: { id: string; name: string } | null;
+    competition:
+      | {
+          id: string;
+          name: string;
+          logo_url: string | null;
+          organization: { name: string; logo_url: string | null } | null;
+        }
+      | null;
+    venue_record: Venue | null;
   };
   events: MatchEvent[];
   homeLineup: {
@@ -17,6 +25,7 @@ export type LiveMatchBundle = {
     captain_id: string | null;
     coach_name: string;
     status: LineupStatus;
+    submitted_at: string | null;
   } | null;
   awayLineup: {
     starting_xi: string[];
@@ -24,6 +33,7 @@ export type LiveMatchBundle = {
     captain_id: string | null;
     coach_name: string;
     status: LineupStatus;
+    submitted_at: string | null;
   } | null;
   homePlayers: Player[];
   awayPlayers: Player[];
@@ -43,7 +53,7 @@ export const getLiveMatch = cache(async (matchId: string): Promise<LiveMatchBund
   const { data: match } = await supabase
     .from("matches")
     .select(
-      "*, competition:competitions(id, name), home_team:teams!matches_home_team_id_fkey(*), away_team:teams!matches_away_team_id_fkey(*)"
+      "*, competition:competitions(id, name, logo_url, organization:organizations(name, logo_url)), home_team:teams!matches_home_team_id_fkey(*), away_team:teams!matches_away_team_id_fkey(*), venue_record:venues(*)"
     )
     .eq("id", matchId)
     .single();
@@ -69,6 +79,7 @@ export const getLiveMatch = cache(async (matchId: string): Promise<LiveMatchBund
           captain_id: homeLineupRow.captain_id,
           coach_name: match.home_team.coach_name,
           status: homeLineupRow.status,
+          submitted_at: homeLineupRow.submitted_at,
         }
       : null,
     awayLineup: awayLineupRow
@@ -78,6 +89,7 @@ export const getLiveMatch = cache(async (matchId: string): Promise<LiveMatchBund
           captain_id: awayLineupRow.captain_id,
           coach_name: match.away_team.coach_name,
           status: awayLineupRow.status,
+          submitted_at: awayLineupRow.submitted_at,
         }
       : null,
     homePlayers: (homePlayers ?? []) as Player[],

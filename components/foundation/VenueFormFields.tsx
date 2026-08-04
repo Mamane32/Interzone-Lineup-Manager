@@ -1,5 +1,7 @@
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import ImageUpload from "@/components/ui/ImageUpload";
+import { uploadVenuePhoto } from "@/app/admin/venues/actions";
 import type { Organization, Venue } from "@/lib/types";
 
 export default function VenueFormFields({ venue, organizations }: { venue?: Venue; organizations: Organization[] }) {
@@ -31,15 +33,16 @@ export default function VenueFormFields({ venue, organizations }: { venue?: Venu
           <option value="other">Other</option>
         </Select>
         <Input id="google_maps_url" name="google_maps_url" label="Google Maps URL" defaultValue={venue?.google_maps_url ?? ""} className="sm:col-span-2" />
-        <Input id="photo_url" name="photo_url" label="Photo URL" defaultValue={venue?.photo_url ?? ""} className="sm:col-span-2" />
       </div>
 
+      <ImageUpload label="Photo" name="photo_url" currentUrl={venue?.photo_url ?? null} action={uploadVenuePhoto} />
+
       <div className="flex gap-6">
-        <label className="flex items-center gap-2 text-sm text-ink-muted">
+        <label className="flex items-center gap-2 text-sm text-white/40">
           <input type="checkbox" name="lighting" defaultChecked={venue?.lighting ?? false} className="h-4 w-4 rounded" />
           Has floodlights
         </label>
-        <label className="flex items-center gap-2 text-sm text-ink-muted">
+        <label className="flex items-center gap-2 text-sm text-white/40">
           <input type="checkbox" name="home_team_supported" defaultChecked={venue?.home_team_supported ?? true} className="h-4 w-4 rounded" />
           Can be a team&apos;s home venue
         </label>

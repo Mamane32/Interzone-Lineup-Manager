@@ -1,4 +1,4 @@
-import type { Lineup, Player, Team } from "./types";
+import type { Invitation, InvitationStatus, Lineup, Player, Team } from "./types";
 
 
 export function playerLabel(p: Pick<Player, "number" | "full_name">): string {
@@ -12,6 +12,25 @@ export function teamLink(token: string): string {
 
 export function playersById(players: Player[]): Map<string, Player> {
   return new Map(players.map((p) => [p.id, p]));
+}
+
+/**
+ * The invitations table's own `status` column only transitions to
+ * 'expired' lazily, at the moment someone actually attempts to accept a
+ * lapsed invitation (see `finalizeAcceptedInvitation` in
+ * lib/invitations.ts) — nothing proactively sweeps it. Until that happens,
+ * a pending invitation whose `expires_at` has passed stays 'pending' in
+ * the database. This computes the status a person should actually see
+ * right now, without mutating the row — `resendInvitation`
+ * (app/admin/invitations/actions.ts) already works on an "expired-looking"
+ * pending invitation exactly as it would on any other pending (or a
+ * genuinely already-`expired`) one.
+ */
+export function effectiveInvitationStatus(inv: Pick<Invitation, "status" | "expires_at">): InvitationStatus {
+  if (inv.status === "pending" && inv.expires_at && new Date(inv.expires_at).getTime() < Date.now()) {
+    return "expired";
+  }
+  return inv.status;
 }
 
 // ---------------------------------------------------------------------------

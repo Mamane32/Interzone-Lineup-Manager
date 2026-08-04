@@ -33,7 +33,7 @@ const SLOTS: { key: string; label: string; sample: string; state: AdState }[] = 
 
 export default function AdvertisingPanel() {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <div className="surface-panel p-4">
       <SectionHeader
         title="Advertising"
         badge={<span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-white/30">Placeholder — no billing/rotation logic</span>}

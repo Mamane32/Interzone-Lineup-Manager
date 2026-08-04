@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("react", () => ({ cache: <T extends (...args: never[]) => unknown>(fn: T) => fn }));
+
 const state = vi.hoisted(() => ({
   team: { id: "team-1", token: "team-token" } as Record<string, unknown> | null,
   lineup: { id: "lineup-1", locked: false } as Record<string, unknown> | null,

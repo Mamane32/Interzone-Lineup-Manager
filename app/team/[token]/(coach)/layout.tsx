@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { requireCoach } from "@/lib/coach-auth";
 import { coachLogout } from "../login/actions";
 import BottomNav from "@/components/coach/BottomNav";
@@ -19,13 +20,20 @@ export default async function CoachAppLayout({
   const theme = getTheme(team.name);
 
   return (
-    <div className="min-h-screen bg-coach-bg pb-24">
-      <header className="sticky top-0 z-20 bg-ink text-white">
+    <div className="relative min-h-screen overflow-hidden bg-coach-bg pb-24">
+      {/* Lightweight ambient background — two soft, team-themed blurred
+          washes, not a moving/parallax effect. Reuses the existing
+          animate-soft-pulse (already respects prefers-reduced-motion
+          globally) instead of introducing a second animation primitive. */}
+      <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-72 overflow-hidden" aria-hidden="true">
+        <div className={`animate-soft-pulse absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-gradient-to-br ${theme.heroFrom} ${theme.heroTo} opacity-[0.12] blur-3xl`} />
+      </div>
+
+      <header className="sticky top-0 z-20 border-b border-black/[0.06] bg-ink/85 text-white backdrop-blur-xl">
         <div className="mx-auto flex max-w-md items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             {team.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={team.logo_url} alt="" className={`h-9 w-9 rounded-full object-cover ring-2 ${theme.ring}`} />
+              <Image src={team.logo_url} alt="" width={36} height={36} className={`h-9 w-9 rounded-full object-cover ring-2 ${theme.ring}`} />
             ) : (
               <div className={`flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br ${theme.heroFrom} ${theme.heroTo} text-xs font-display`}>
                 {team.name.slice(0, 2).toUpperCase()}
@@ -50,7 +58,7 @@ export default async function CoachAppLayout({
 
       <div className="mx-auto max-w-md px-4 py-5">{children}</div>
 
-      <BottomNav token={params.token} />
+      <BottomNav token={params.token} theme={theme} />
     </div>
   );
 }

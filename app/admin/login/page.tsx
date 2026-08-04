@@ -10,10 +10,10 @@ export default function LoginPage({
   searchParams: { error?: string };
 }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-ink px-4">
+    <main className="flex min-h-screen items-center justify-center bg-surface-950 px-4">
       <Card className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <p className="font-display text-xs uppercase tracking-[0.2em] text-amber-signal">
+          <p className="font-display text-xs uppercase tracking-[0.2em] text-brand-400">
             Interzone
           </p>
           <h1 className="font-display text-2xl font-semibold text-white">
@@ -47,7 +47,7 @@ export default function LoginPage({
           <Button type="submit" size="lg" className="mt-2 w-full">
             Sign in
           </Button>
-          <Link href="/login/forgot-password" className="text-center text-sm text-ink-muted hover:text-white">
+          <Link href="/login/forgot-password" className="text-center text-sm text-white/40 hover:text-white">
             Forgot your password?
           </Link>
         </form>

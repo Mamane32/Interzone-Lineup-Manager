@@ -1,7 +1,8 @@
 import { AlertTriangle } from "lucide-react";
-import { requireAdmin } from "@/lib/access";
+import { requireAdmin, getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getLegacyCoachTeams } from "@/lib/iam";
+import { countActiveUsersWithRole } from "@/lib/privilege";
 import { createAssignment, updateAssignmentStatus } from "./actions";
 import Card from "@/components/ui/Card";
 import Select from "@/components/ui/Select";
@@ -10,8 +11,10 @@ import RoleBadge from "@/components/iam/RoleBadge";
 import UserStatusBadge from "@/components/iam/StatusBadge";
 import ConfirmActionDialog from "@/components/iam/ConfirmActionDialog";
 import { PLATFORM_ROLES } from "@/lib/validation";
-import type { AccessStatus, Competition, Profile, Team } from "@/lib/types";
+import type { AccessStatus, Competition, PlatformRole, Profile, Team } from "@/lib/types";
 import type { AssignmentWithScope } from "@/lib/iam";
+
+const ADMIN_CAPABLE_ROLES: PlatformRole[] = ["admin", "super_admin"];
 
 export const dynamic = "force-dynamic";
 
@@ -29,9 +32,10 @@ export default async function AccessAssignmentsPage({
   searchParams: { saved?: string; error?: string };
 }) {
   await requireAdmin();
+  const actor = await getSessionUser();
 
   const admin = supabaseAdmin();
-  const [{ data: assignments }, { data: profiles }, { data: competitions }, { data: teams }, legacyTeams] = await Promise.all([
+  const [{ data: assignments }, { data: profiles }, { data: competitions }, { data: teams }, legacyTeams, activeSuperAdminCount] = await Promise.all([
     admin
       .from("user_access_assignments")
       .select("*, team:teams(id, name), competition:competitions(id, name)")
@@ -41,15 +45,32 @@ export default async function AccessAssignmentsPage({
     admin.from("competitions").select("*").order("name"),
     admin.from("teams").select("*").order("name"),
     getLegacyCoachTeams(),
+    countActiveUsersWithRole("super_admin"),
   ]);
 
   const profilesById = new Map(((profiles ?? []) as Profile[]).map((p) => [p.id, p]));
+  const allAssignments = (assignments ?? []) as AssignmentWithScope[];
+
+  // Same Platform Owner protection as app/admin/users/[userId]/page.tsx —
+  // the server action already refuses these (lib/privilege.ts), this
+  // keeps the button from ever being offered here either.
+  function isProtectedAssignment(a: AssignmentWithScope): boolean {
+    if (a.status !== "active") return false;
+    if (a.role_key === "super_admin" && activeSuperAdminCount <= 1) return true;
+    if (actor?.id === a.user_id && ADMIN_CAPABLE_ROLES.includes(a.role_key)) {
+      const ownActiveAdminCount = allAssignments.filter(
+        (x) => x.user_id === actor.id && x.status === "active" && ADMIN_CAPABLE_ROLES.includes(x.role_key)
+      ).length;
+      if (ownActiveAdminCount <= 1) return true;
+    }
+    return false;
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-3xl font-semibold">Access Assignments</h1>
-        <p className="text-ink-muted">Every role grant across the platform.</p>
+        <p className="text-white/40">Every role grant across the platform.</p>
       </div>
 
       {searchParams.saved && (
@@ -69,10 +90,10 @@ export default async function AccessAssignmentsPage({
               <p className="font-semibold text-status-waiting">
                 {legacyTeams.length} team{legacyTeams.length === 1 ? "" : "s"} still on legacy email-based coach access
               </p>
-              <p className="mt-1 text-sm text-ink-muted">
+              <p className="mt-1 text-sm text-white/40">
                 These teams&apos; coach login still relies on matching <code>coach_email</code> to the signed-in user —
                 there&apos;s no real assignment row yet (see <code>lib/coach-auth.ts</code>). Send a fresh invite from the{" "}
-                <a href="/admin/invitations" className="text-amber-signal hover:underline">
+                <a href="/admin/invitations" className="text-brand-400 hover:underline">
                   Invitations
                 </a>{" "}
                 page for each to create a real assignment; once every team here is gone, the email fallback can be
@@ -80,7 +101,7 @@ export default async function AccessAssignmentsPage({
               </p>
               <ul className="mt-2 flex flex-wrap gap-2">
                 {legacyTeams.map((t) => (
-                  <li key={t.id} className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-ink-muted">
+                  <li key={t.id} className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-white/40">
                     {t.name}
                   </li>
                 ))}
@@ -134,7 +155,7 @@ export default async function AccessAssignmentsPage({
       <Card className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-ink-line text-xs uppercase tracking-wide text-ink-muted">
+            <thead className="border-b border-white/[0.08] text-xs uppercase tracking-wide text-white/40">
               <tr>
                 <th className="px-4 py-3 font-medium">User</th>
                 <th className="px-4 py-3 font-medium">Role</th>
@@ -143,8 +164,8 @@ export default async function AccessAssignmentsPage({
                 <th className="px-4 py-3 font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink-line">
-              {((assignments ?? []) as AssignmentWithScope[]).map((a) => {
+            <tbody className="divide-y divide-white/[0.08]">
+              {allAssignments.map((a) => {
                 const profile = profilesById.get(a.user_id);
                 return (
                   <tr key={a.id} className="hover:bg-white/[0.03]">
@@ -152,7 +173,7 @@ export default async function AccessAssignmentsPage({
                     <td className="px-4 py-3">
                       <RoleBadge role={a.role_key} />
                     </td>
-                    <td className="px-4 py-3 text-xs text-ink-muted">
+                    <td className="px-4 py-3 text-xs text-white/40">
                       {a.team?.name}
                       {a.team && a.competition ? " · " : ""}
                       {a.competition?.name}
@@ -162,7 +183,9 @@ export default async function AccessAssignmentsPage({
                       <UserStatusBadge status={a.status} />
                     </td>
                     <td className="px-4 py-3">
-                      {a.status === "active" ? (
+                      {isProtectedAssignment(a) ? (
+                        <span className="text-xs font-medium text-white/30">Protected</span>
+                      ) : a.status === "active" ? (
                         <ConfirmActionDialog
                           triggerLabel="Suspend"
                           title="Suspend this assignment?"

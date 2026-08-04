@@ -1,11 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { requireFoundationAccess, slugify, isSlugAvailable } from "@/lib/foundation";
+import { requireFoundationAccess, slugify, isSlugAvailable, revalidateFoundation } from "@/lib/foundation";
 import { getSessionUser } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
+import { uploadImage, ASSET_CATEGORIES, type ImageUploadResult } from "@/lib/image-upload";
 import type { VenueSurfaceType } from "@/lib/types";
 
 const SURFACE_TYPES: VenueSurfaceType[] = ["grass", "artificial_turf", "hybrid", "other"];
@@ -71,7 +71,7 @@ export async function createVenue(formData: FormData) {
     });
   }
 
-  revalidatePath("/admin/venues");
+  revalidateFoundation();
   redirect("/admin/venues?saved=1");
 }
 
@@ -111,8 +111,13 @@ export async function updateVenue(id: string, formData: FormData) {
     });
   }
 
-  revalidatePath("/admin/venues");
+  revalidateFoundation();
   redirect("/admin/venues?saved=1");
+}
+
+export async function uploadVenuePhoto(formData: FormData): Promise<ImageUploadResult> {
+  await requireFoundationAccess();
+  return uploadImage(ASSET_CATEGORIES.VenuePhoto, formData.get("file") as File | null);
 }
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -141,6 +146,6 @@ export async function setVenueStatus(id: string, status: "active" | "archived"):
     });
   }
 
-  revalidatePath("/admin/venues");
+  revalidateFoundation();
   return { ok: true };
 }

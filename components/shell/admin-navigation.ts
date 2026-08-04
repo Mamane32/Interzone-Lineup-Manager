@@ -3,8 +3,10 @@ import {
   Building2,
   CalendarDays,
   ClipboardList,
+  Compass,
   Gauge,
   KeyRound,
+  Landmark,
   Layers3,
   MapPin,
   Radio,
@@ -19,6 +21,7 @@ import type { ShellNavGroup } from "./AppShell";
 export const ADMIN_NAVIGATION: ShellNavGroup[] = [
   {
     label: "Operations",
+    icon: Compass,
     items: [
       { href: "/admin/dashboard", label: "Overview", icon: Gauge },
       { href: "/admin/matches", label: "Matches", icon: CalendarDays },
@@ -29,6 +32,7 @@ export const ADMIN_NAVIGATION: ShellNavGroup[] = [
   },
   {
     label: "Competition",
+    icon: Trophy,
     items: [
       { href: "/admin/organizations", label: "Organizations", icon: Building2 },
       { href: "/admin/competitions", label: "Competitions", icon: Trophy },
@@ -41,6 +45,7 @@ export const ADMIN_NAVIGATION: ShellNavGroup[] = [
   },
   {
     label: "Governance",
+    icon: Landmark,
     items: [
       { href: "/admin/users", label: "Users", icon: Users2 },
       { href: "/admin/invitations", label: "Invitations", icon: UserPlus },

@@ -19,7 +19,7 @@ export default function LiveVideoPanel({ status }: { status: string }) {
   const isLive = LIVE_STATUSES.has(status);
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <div className="surface-panel p-4">
       <SectionHeader
         title="Video Monitoring"
         badge={<span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-white/30">Live video integration coming later</span>}
@@ -57,6 +57,18 @@ function Monitor({ label, isLive, allowFullscreen = false }: { label: string; is
             <Radio size={22} className="text-white/12" />
             <p className="text-[10px] font-medium text-white/25">No source connected</p>
           </div>
+        </div>
+
+        {/* Viewfinder corner brackets — the mission-control monitor signature */}
+        <div className="pointer-events-none absolute inset-2.5">
+          {[
+            "left-0 top-0 border-l border-t",
+            "right-0 top-0 border-r border-t",
+            "left-0 bottom-0 border-l border-b",
+            "right-0 bottom-0 border-r border-b",
+          ].map((pos) => (
+            <span key={pos} className={`absolute h-3 w-3 ${pos} ${isLive ? "border-red-500/50" : "border-white/15"}`} />
+          ))}
         </div>
 
         <div className="relative z-10 flex items-center justify-between p-2">
