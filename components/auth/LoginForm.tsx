@@ -12,6 +12,8 @@ const ERRORS: Record<string, string> = {
   "inactive-profile": "Your account is not currently active. Please contact an administrator.",
   "no-assignments": "Your account is authenticated, but it has not yet been assigned access. Please contact an administrator.",
   "no-access": "Your account does not have access to that area. Please contact an administrator.",
+  "signin-exception": "Something went wrong contacting the authentication service. Please try again. (ref: signin)",
+  "resolve-exception": "Something went wrong loading your account. Please try again. (ref: resolve)",
 };
 
 export default function LoginForm({ errorCode }: { errorCode?: string }) {

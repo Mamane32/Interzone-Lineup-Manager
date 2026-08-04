@@ -9,13 +9,37 @@ export async function unifiedLogin(formData: FormData) {
   const password = String(formData.get("password") ?? "");
 
   const supabase = createClient();
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  // signInWithPassword only wraps recognized AuthError failures into
+  // {error} — anything else it throws (e.g. a raw exception while saving
+  // the session), which without this boundary crashes the whole request
+  // instead of leaving the operator on a working /login page. Caught here
+  // specifically so a real failure is diagnosable in server logs instead
+  // of surfacing only as the generic root error boundary.
+  let signInResult;
+  try {
+    signInResult = await supabase.auth.signInWithPassword({ email, password });
+  } catch (err) {
+    console.error("unifiedLogin: signInWithPassword threw", err instanceof Error ? err.stack : err);
+    redirect("/login?error=signin-exception");
+  }
+  const { data, error } = signInResult;
 
   if (error || !data.user) {
     redirect("/login?error=invalid");
   }
 
-  const resolution = await resolveUserDestination(data.user.id);
+  // Same reasoning: resolveUserDestination does real database reads
+  // (service-role client) that can throw on misconfiguration — isolate
+  // that from the sign-in step above so the error code alone tells us
+  // which phase failed, no log access required to narrow it down.
+  let resolution;
+  try {
+    resolution = await resolveUserDestination(data.user.id);
+  } catch (err) {
+    console.error("unifiedLogin: resolveUserDestination threw", err instanceof Error ? err.stack : err);
+    redirect("/login?error=resolve-exception");
+  }
 
   if (resolution.kind === "redirect") {
     redirect(resolution.path);
