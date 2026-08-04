@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { requireFoundationAccess } from "@/lib/foundation";
+import { requireFoundationAccess, searchStages } from "@/lib/foundation";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
+import Pagination from "@/components/iam/Pagination";
 import CreateStageButton from "@/components/foundation/CreateStageButton";
 import StageRow from "@/components/foundation/StageRow";
-import type { Division, Stage } from "@/lib/types";
+import type { Division } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +21,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default async function StagesPage({
   searchParams,
 }: {
-  searchParams: { division?: string; status?: string; saved?: string; error?: string };
+  searchParams: { q?: string; division?: string; status?: string; page?: string; saved?: string; error?: string };
 }) {
   await requireFoundationAccess();
 
@@ -28,13 +30,14 @@ export default async function StagesPage({
   const divisionList = (divisions ?? []) as Division[];
   const divisionsById = new Map(divisionList.map((d) => [d.id, d.name]));
 
-  let query = admin.from("stages").select("*");
-  if (searchParams.division) query = query.eq("division_id", searchParams.division);
-  if (searchParams.status) query = query.eq("status", searchParams.status);
-  const { data: stages } = await query.order("display_order", { ascending: true });
-  const stageList = (stages ?? []) as Stage[];
+  const { stages: stageList, total, page, pageSize } = await searchStages({
+    q: searchParams.q,
+    status: (searchParams.status as "active" | "archived") || undefined,
+    divisionId: searchParams.division || undefined,
+    page: searchParams.page ? Number(searchParams.page) : 1,
+  });
 
-  const hasFilters = !!(searchParams.division || searchParams.status);
+  const hasFilters = !!(searchParams.q || searchParams.division || searchParams.status);
 
   return (
     <div className="flex flex-col gap-6">
@@ -54,7 +57,8 @@ export default async function StagesPage({
       )}
 
       <Card>
-        <form className="grid gap-3 sm:grid-cols-3" method="get">
+        <form className="grid gap-3 sm:grid-cols-4" method="get">
+          <Input id="q" name="q" label="Search" placeholder="Stage name" defaultValue={searchParams.q ?? ""} />
           <Select id="division" name="division" label="Division" tone="dark" defaultValue={searchParams.division ?? ""}>
             <option value="">Any division</option>
             {divisionList.map((d) => (
@@ -96,6 +100,13 @@ export default async function StagesPage({
             </table>
           </div>
         )}
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          basePath="/admin/stages"
+          searchParams={{ q: searchParams.q, division: searchParams.division, status: searchParams.status }}
+        />
       </Card>
     </div>
   );

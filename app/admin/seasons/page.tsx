@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { requireFoundationAccess } from "@/lib/foundation";
+import { requireFoundationAccess, searchSeasons } from "@/lib/foundation";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
+import Pagination from "@/components/iam/Pagination";
 import CreateSeasonButton from "@/components/foundation/CreateSeasonButton";
 import SeasonRow from "@/components/foundation/SeasonRow";
-import type { Competition, Season } from "@/lib/types";
+import type { Competition } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +21,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default async function SeasonsPage({
   searchParams,
 }: {
-  searchParams: { competition?: string; status?: string; saved?: string; error?: string };
+  searchParams: { q?: string; competition?: string; status?: string; page?: string; saved?: string; error?: string };
 }) {
   await requireFoundationAccess();
 
@@ -28,13 +30,14 @@ export default async function SeasonsPage({
   const competitionList = (competitions ?? []) as Competition[];
   const competitionsById = new Map(competitionList.map((c) => [c.id, c.name]));
 
-  let query = admin.from("seasons").select("*");
-  if (searchParams.competition) query = query.eq("competition_id", searchParams.competition);
-  if (searchParams.status) query = query.eq("status", searchParams.status);
-  const { data: seasons } = await query.order("created_at", { ascending: false });
-  const seasonList = (seasons ?? []) as Season[];
+  const { seasons: seasonList, total, page, pageSize } = await searchSeasons({
+    q: searchParams.q,
+    status: (searchParams.status as "active" | "archived") || undefined,
+    competitionId: searchParams.competition || undefined,
+    page: searchParams.page ? Number(searchParams.page) : 1,
+  });
 
-  const hasFilters = !!(searchParams.competition || searchParams.status);
+  const hasFilters = !!(searchParams.q || searchParams.competition || searchParams.status);
 
   return (
     <div className="flex flex-col gap-6">
@@ -56,7 +59,8 @@ export default async function SeasonsPage({
       )}
 
       <Card>
-        <form className="grid gap-3 sm:grid-cols-3" method="get">
+        <form className="grid gap-3 sm:grid-cols-4" method="get">
+          <Input id="q" name="q" label="Search" placeholder="Season name" defaultValue={searchParams.q ?? ""} />
           <Select id="competition" name="competition" label="Competition" tone="dark" defaultValue={searchParams.competition ?? ""}>
             <option value="">Any competition</option>
             {competitionList.map((c) => (
@@ -108,6 +112,13 @@ export default async function SeasonsPage({
             </table>
           </div>
         )}
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          basePath="/admin/seasons"
+          searchParams={{ q: searchParams.q, competition: searchParams.competition, status: searchParams.status }}
+        />
       </Card>
     </div>
   );

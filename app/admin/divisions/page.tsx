@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { requireFoundationAccess } from "@/lib/foundation";
+import { requireFoundationAccess, searchDivisions } from "@/lib/foundation";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
+import Pagination from "@/components/iam/Pagination";
 import CreateDivisionButton from "@/components/foundation/CreateDivisionButton";
 import DivisionRow from "@/components/foundation/DivisionRow";
-import type { Division, Season } from "@/lib/types";
+import type { Season } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +21,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default async function DivisionsPage({
   searchParams,
 }: {
-  searchParams: { season?: string; status?: string; saved?: string; error?: string };
+  searchParams: { q?: string; season?: string; status?: string; page?: string; saved?: string; error?: string };
 }) {
   await requireFoundationAccess();
 
@@ -28,13 +30,14 @@ export default async function DivisionsPage({
   const seasonList = (seasons ?? []) as Season[];
   const seasonsById = new Map(seasonList.map((s) => [s.id, s.name]));
 
-  let query = admin.from("divisions").select("*");
-  if (searchParams.season) query = query.eq("season_id", searchParams.season);
-  if (searchParams.status) query = query.eq("status", searchParams.status);
-  const { data: divisions } = await query.order("display_order", { ascending: true });
-  const divisionList = (divisions ?? []) as Division[];
+  const { divisions: divisionList, total, page, pageSize } = await searchDivisions({
+    q: searchParams.q,
+    status: (searchParams.status as "active" | "archived") || undefined,
+    seasonId: searchParams.season || undefined,
+    page: searchParams.page ? Number(searchParams.page) : 1,
+  });
 
-  const hasFilters = !!(searchParams.season || searchParams.status);
+  const hasFilters = !!(searchParams.q || searchParams.season || searchParams.status);
 
   return (
     <div className="flex flex-col gap-6">
@@ -54,7 +57,8 @@ export default async function DivisionsPage({
       )}
 
       <Card>
-        <form className="grid gap-3 sm:grid-cols-3" method="get">
+        <form className="grid gap-3 sm:grid-cols-4" method="get">
+          <Input id="q" name="q" label="Search" placeholder="Name or abbreviation" defaultValue={searchParams.q ?? ""} />
           <Select id="season" name="season" label="Season" tone="dark" defaultValue={searchParams.season ?? ""}>
             <option value="">Any season</option>
             {seasonList.map((s) => (
@@ -96,6 +100,13 @@ export default async function DivisionsPage({
             </table>
           </div>
         )}
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          basePath="/admin/divisions"
+          searchParams={{ q: searchParams.q, season: searchParams.season, status: searchParams.status }}
+        />
       </Card>
     </div>
   );

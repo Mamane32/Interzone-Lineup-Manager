@@ -1,7 +1,7 @@
 import "server-only";
 import { requireRole } from "@/lib/access";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import type { FoundationStatus, Organization, Venue } from "@/lib/types";
+import type { CompetitionGroup, Division, FoundationStatus, Organization, Season, Stage, Venue } from "@/lib/types";
 
 /** Only these roles may manage the Competition Foundation, per the brief. */
 export async function requireFoundationAccess() {
@@ -106,4 +106,112 @@ export async function existsById(table: "competitions" | "seasons" | "divisions"
   const admin = supabaseAdmin();
   const { data } = await admin.from(table).select("id").eq("id", id).maybeSingle();
   return !!data;
+}
+
+export type SeasonSearchFilters = {
+  q?: string;
+  status?: FoundationStatus;
+  competitionId?: string;
+  page?: number;
+};
+
+export async function searchSeasons(
+  filters: SeasonSearchFilters
+): Promise<{ seasons: Season[]; total: number; page: number; pageSize: number }> {
+  const admin = supabaseAdmin();
+  const page = Math.max(1, filters.page ?? 1);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
+  let query = admin.from("seasons").select("*", { count: "exact" });
+  if (filters.q) {
+    const q = filters.q.replace(/[%_]/g, "");
+    query = query.ilike("name", `%${q}%`);
+  }
+  if (filters.status) query = query.eq("status", filters.status);
+  if (filters.competitionId) query = query.eq("competition_id", filters.competitionId);
+
+  const { data, count } = await query.order("created_at", { ascending: false }).range(from, to);
+  return { seasons: (data ?? []) as Season[], total: count ?? 0, page, pageSize: PAGE_SIZE };
+}
+
+export type DivisionSearchFilters = {
+  q?: string;
+  status?: FoundationStatus;
+  seasonId?: string;
+  page?: number;
+};
+
+export async function searchDivisions(
+  filters: DivisionSearchFilters
+): Promise<{ divisions: Division[]; total: number; page: number; pageSize: number }> {
+  const admin = supabaseAdmin();
+  const page = Math.max(1, filters.page ?? 1);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
+  let query = admin.from("divisions").select("*", { count: "exact" });
+  if (filters.q) {
+    const q = filters.q.replace(/[%_]/g, "");
+    query = query.or(`name.ilike.%${q}%,abbreviation.ilike.%${q}%`);
+  }
+  if (filters.status) query = query.eq("status", filters.status);
+  if (filters.seasonId) query = query.eq("season_id", filters.seasonId);
+
+  const { data, count } = await query.order("display_order", { ascending: true }).range(from, to);
+  return { divisions: (data ?? []) as Division[], total: count ?? 0, page, pageSize: PAGE_SIZE };
+}
+
+export type StageSearchFilters = {
+  q?: string;
+  status?: FoundationStatus;
+  divisionId?: string;
+  page?: number;
+};
+
+export async function searchStages(
+  filters: StageSearchFilters
+): Promise<{ stages: Stage[]; total: number; page: number; pageSize: number }> {
+  const admin = supabaseAdmin();
+  const page = Math.max(1, filters.page ?? 1);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
+  let query = admin.from("stages").select("*", { count: "exact" });
+  if (filters.q) {
+    const q = filters.q.replace(/[%_]/g, "");
+    query = query.ilike("name", `%${q}%`);
+  }
+  if (filters.status) query = query.eq("status", filters.status);
+  if (filters.divisionId) query = query.eq("division_id", filters.divisionId);
+
+  const { data, count } = await query.order("display_order", { ascending: true }).range(from, to);
+  return { stages: (data ?? []) as Stage[], total: count ?? 0, page, pageSize: PAGE_SIZE };
+}
+
+export type GroupSearchFilters = {
+  q?: string;
+  status?: FoundationStatus;
+  stageId?: string;
+  page?: number;
+};
+
+export async function searchGroups(
+  filters: GroupSearchFilters
+): Promise<{ groups: CompetitionGroup[]; total: number; page: number; pageSize: number }> {
+  const admin = supabaseAdmin();
+  const page = Math.max(1, filters.page ?? 1);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
+  let query = admin.from("competition_groups").select("*", { count: "exact" });
+  if (filters.q) {
+    const q = filters.q.replace(/[%_]/g, "");
+    query = query.ilike("name", `%${q}%`);
+  }
+  if (filters.status) query = query.eq("status", filters.status);
+  if (filters.stageId) query = query.eq("stage_id", filters.stageId);
+
+  const { data, count } = await query.order("display_order", { ascending: true }).range(from, to);
+  return { groups: (data ?? []) as CompetitionGroup[], total: count ?? 0, page, pageSize: PAGE_SIZE };
 }

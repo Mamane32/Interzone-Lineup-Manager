@@ -125,21 +125,26 @@ export async function renameCompetition(id: string, formData: FormData) {
   redirect("/admin/competitions?saved=1");
 }
 
-export async function deleteCompetition(id: string) {
+export type ActionResult = { ok: true } | { ok: false; error: string };
+
+export async function deleteCompetition(id: string): Promise<ActionResult> {
   await requireFoundationAccess();
   const actor = await getSessionUser();
 
   const supabase = supabaseAdmin();
-  await supabase.from("competitions").delete().eq("id", id);
+  const { error } = await supabase.from("competitions").delete().eq("id", id);
+  if (error) {
+    console.error("deleteCompetition failed", id, error);
+    return { ok: false, error: "Could not delete that competition — it may still have seasons, teams, or matches attached." };
+  }
 
   if (actor) {
     await recordAuditEvent({ actorUserId: actor.id, action: "competition.deleted", targetType: "competition", targetId: id });
   }
 
   revalidatePath("/admin/competitions");
+  return { ok: true };
 }
-
-export type ActionResult = { ok: true } | { ok: false; error: string };
 
 export async function setCompetitionStatus(id: string, status: "active" | "archived"): Promise<ActionResult> {
   await requireFoundationAccess();
