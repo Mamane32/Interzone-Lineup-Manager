@@ -43,6 +43,7 @@ describe("migration integrity", () => {
   "023_platform_branding_expansion.sql",
   "024_competition_branding.sql",
   "025_branding_permission_grants.sql",
+      "026_platform_brand_asset_bucket.sql",
     ]);
   });
 
