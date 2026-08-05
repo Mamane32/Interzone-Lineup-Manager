@@ -3,22 +3,83 @@ import { ArrowLeft, CheckCircle2, Globe2, ShieldCheck, Sparkles } from "lucide-r
 import BrandMark from "@/components/brand/BrandMark";
 import { getPlatformBranding } from "@/lib/branding";
 
-export default async function AuthFrame({
-  eyebrow,
-  title,
-  description,
-  children,
-  backHref = "/",
-}: {
+type HeroIdentity = {
+  organizationName: string;
+  organizationSubtitle: string;
+  organizationLogoUrl: string | null;
+};
+
+/**
+ * The login page's left-column marketing hero — extracted, unchanged,
+ * from AuthFrame below (Sprint 3) so the Brand Studio's live preview can
+ * render this exact real component for its "Public Website" tab, since
+ * this codebase has no separate public marketing site: the login hero is
+ * the platform's actual current public-facing surface. AuthFrameView
+ * still renders its own copy of this markup inline (not by importing
+ * this component) — see AuthFrameView's own comment for why this is a
+ * deliberate, safety-first duplication rather than a shared subcomponent.
+ */
+export function PlatformHero({ platform, className = "" }: { platform: HeroIdentity; className?: string }) {
+  return (
+    <section className={`pitch-texture flex flex-col justify-between p-12 xl:p-16 ${className}`}>
+      <BrandMark size="lg" orgName={platform.organizationName} subtitle={platform.organizationSubtitle} logoUrl={platform.organizationLogoUrl} />
+      <div className="max-w-xl animate-fade-up">
+        <p className="eyebrow">The operating system for football competitions</p>
+        <h2 className="mt-5 text-balance font-display text-5xl font-semibold leading-[1.04] tracking-tight">
+          From kickoff to final whistle, run every matchday from one command center.
+        </h2>
+        <p className="mt-6 max-w-lg text-base leading-7 text-white/50">
+          Competitions, teams, lineups, access, and live broadcast production — the way federations, leagues, and clubs actually run matchday.
+        </p>
+        <div className="mt-10 grid grid-cols-3 gap-3">
+          {[
+            [ShieldCheck, "Secure", "Role-based access"],
+            [Globe2, "Connected", "Every stakeholder"],
+            [Sparkles, "Ready", "Built to evolve"],
+          ].map(([Icon, label, detail]) => (
+            <div key={String(label)} className="surface-subtle p-4">
+              <Icon size={17} className="text-brand-400" />
+              <p className="mt-3 text-sm font-semibold">{String(label)}</p>
+              <p className="mt-1 text-xs text-white/35">{String(detail)}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p className="flex items-center gap-2 text-xs text-white/30">
+        <CheckCircle2 size={14} className="text-emerald-400" /> Enterprise foundation active
+      </p>
+    </section>
+  );
+}
+
+export type AuthFrameViewProps = {
+  platform: HeroIdentity;
   eyebrow: string;
   title: string;
   description: string;
   children: React.ReactNode;
   backHref?: string;
-}) {
-  // Platform tier only (Settings → Platform branding) — the unified login
-  // has no competition context, so there's nothing to layer on top of it.
-  const platform = await getPlatformBranding();
+};
+
+/**
+ * Pure, non-async view for the unified login shell — the exact JSX
+ * AuthFrame (below) has always rendered, now parameterized on `platform`
+ * instead of fetching it internally. Extracted (Sprint 3, White-Label
+ * Branding) so the Brand Studio's client-side live preview can render
+ * this same real component fed by in-memory draft branding, which a "use
+ * client" file cannot do with an async Server Component like the
+ * original AuthFrame. AuthFrame's default export below is now a thin
+ * Server Component wrapper that fetches branding and delegates here —
+ * every existing caller of `import AuthFrame from ".../AuthFrame"` keeps
+ * working with zero behavior change. The hero section's markup is
+ * duplicated here rather than imported from PlatformHero above, on
+ * purpose: this file renders on the real, production login page, and a
+ * shared-subcomponent refactor of a page real users depend on carries
+ * more regression risk than a few duplicated lines of static JSX — see
+ * the project's standing "solid architecture over temporary fixes, but
+ * don't destabilize what already works" guidance.
+ */
+export function AuthFrameView({ platform, eyebrow, title, description, children, backHref = "/" }: AuthFrameViewProps) {
   return (
     <main className="relative min-h-screen overflow-hidden bg-surface-950">
       <div className="pointer-events-none absolute inset-0">
@@ -80,5 +141,28 @@ export default async function AuthFrame({
         </section>
       </div>
     </main>
+  );
+}
+
+export default async function AuthFrame({
+  eyebrow,
+  title,
+  description,
+  children,
+  backHref = "/",
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+  backHref?: string;
+}) {
+  // Platform tier only (Settings → Platform branding) — the unified login
+  // has no competition context, so there's nothing to layer on top of it.
+  const platform = await getPlatformBranding();
+  return (
+    <AuthFrameView platform={platform} eyebrow={eyebrow} title={title} description={description} backHref={backHref}>
+      {children}
+    </AuthFrameView>
   );
 }
