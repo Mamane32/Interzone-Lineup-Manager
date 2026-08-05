@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { LogIn } from "lucide-react";
 import ThemeScope from "@/components/branding/ThemeScope";
-import { AuthFrameView, PlatformHero } from "@/components/auth/AuthFrame";
+import { AuthFrameView, PlatformHero } from "@/components/auth/AuthFrameView";
 import AdminShell from "@/components/shell/AdminShell";
 import BroadcastHeader from "@/components/live/BroadcastHeader";
 import Button from "@/components/ui/Button";
