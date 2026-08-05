@@ -40,6 +40,9 @@ describe("migration integrity", () => {
       "020_player_roster_fields.sql",
       "021_competition_squad_rules.sql",
       "022_platform_branding.sql",
+  "023_platform_branding_expansion.sql",
+  "024_competition_branding.sql",
+  "025_branding_permission_grants.sql",
     ]);
   });
 
