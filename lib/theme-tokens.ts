@@ -15,10 +15,10 @@
  *
  * Level 1 = Platform Owner / Super Admin only (platform_branding table).
  * Level 2 = Competition Administrator, scoped to their own competition
- *           (competitions table columns + competition_sponsor_logos).
- *           Level 2 tokens are a deliberate subset — a competition can
- *           only override identity/logo/color/media fields, never
- *           typography, layout, or behavior, which stay platform-wide.
+ * (competitions table columns + competition_sponsor_logos).
+ * Level 2 tokens are a deliberate subset — a competition can
+ * only override identity/logo/color/media fields, never
+ * typography, layout, or behavior, which stay platform-wide.
  */
 
 export type TokenCategory =
@@ -101,23 +101,23 @@ export const LEVEL_1_BRAND_ASSET_TOKENS: ThemeToken[] = [
 ];
 
 export const LEVEL_1_VISUAL_THEME_TOKENS: ThemeToken[] = [
-  { id: "primaryColor", label: "Primary Color", category: "visual-theme", studioSection: "colors", level: 1, column: "primary_color", cssVar: "--ggsp-color-primary", inputType: "color", default: "#f5a623" },
-  { id: "secondaryColor", label: "Secondary Color", category: "visual-theme", studioSection: "colors", level: 1, column: "secondary_color", cssVar: "--ggsp-color-secondary", inputType: "color", default: "#0d1117" },
-  { id: "accentColor", label: "Accent Color", category: "visual-theme", studioSection: "colors", level: 1, column: "accent_color", cssVar: "--ggsp-color-accent", inputType: "color", default: "#22c55e" },
-  { id: "successColor", label: "Success Color", category: "visual-theme", studioSection: "colors", level: 1, column: "success_color", cssVar: "--ggsp-color-success", inputType: "color", default: "#22c55e" },
-  { id: "warningColor", label: "Warning Color", category: "visual-theme", studioSection: "colors", level: 1, column: "warning_color", cssVar: "--ggsp-color-warning", inputType: "color", default: "#eab308" },
-  { id: "errorColor", label: "Error Color", category: "visual-theme", studioSection: "colors", level: 1, column: "error_color", cssVar: "--ggsp-color-error", inputType: "color", default: "#ef4444" },
-  { id: "backgroundColor", label: "Background Color", category: "visual-theme", studioSection: "colors", level: 1, column: "background_color", cssVar: "--ggsp-color-background", inputType: "color", default: "#07090d" },
-  { id: "surfaceColor", label: "Surface/Card Color", category: "visual-theme", studioSection: "colors", level: 1, column: "surface_color", cssVar: "--ggsp-color-surface", inputType: "color", default: "#111720" },
-  { id: "navigationColor", label: "Navigation Color", category: "visual-theme", studioSection: "colors", level: 1, column: "navigation_color", cssVar: "--ggsp-color-navigation", inputType: "color", default: "#0d1117" },
-  { id: "headerColor", label: "Header Color", category: "visual-theme", studioSection: "colors", level: 1, column: "header_color", cssVar: "--ggsp-color-header", inputType: "color", default: "#0d1117" },
-  { id: "sidebarColor", label: "Sidebar Color", category: "visual-theme", studioSection: "colors", level: 1, column: "sidebar_color", cssVar: "--ggsp-color-sidebar", inputType: "color", default: "#0d1117" },
-  { id: "buttonColor", label: "Button Color", category: "visual-theme", studioSection: "colors", level: 1, column: "button_color", cssVar: "--ggsp-color-button", inputType: "color", default: "#f5a623" },
-  { id: "linkColor", label: "Link Color", category: "visual-theme", studioSection: "colors", level: 1, column: "link_color", cssVar: "--ggsp-color-link", inputType: "color", default: "#f5a623" },
+  { id: "primaryColor", label: "Primary Color", category: "visual-theme", studioSection: "colors", level: 1, column: "primary_color", cssVar: "--ggsp-color-primary", inputType: "color", default: "#f5a623", helperText: "Live in preview — drives buttons, accents, active nav." },
+  { id: "secondaryColor", label: "Secondary Color", category: "visual-theme", studioSection: "colors", level: 1, column: "secondary_color", cssVar: "--ggsp-color-secondary", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up." },
+  { id: "accentColor", label: "Accent Color", category: "visual-theme", studioSection: "colors", level: 1, column: "accent_color", cssVar: "--ggsp-color-accent", inputType: "color", default: "#22c55e", helperText: "Saved now, applied platform-wide by the palette migration follow-up." },
+  { id: "successColor", label: "Success Color", category: "visual-theme", studioSection: "colors", level: 1, column: "success_color", cssVar: "--ggsp-color-success", inputType: "color", default: "#22c55e", helperText: "Live in preview — drives submitted/positive status." },
+  { id: "warningColor", label: "Warning Color", category: "visual-theme", studioSection: "colors", level: 1, column: "warning_color", cssVar: "--ggsp-color-warning", inputType: "color", default: "#eab308", helperText: "Live in preview — drives waiting/attention status." },
+  { id: "errorColor", label: "Error Color", category: "visual-theme", studioSection: "colors", level: 1, column: "error_color", cssVar: "--ggsp-color-error", inputType: "color", default: "#ef4444", helperText: "Live in preview — drives correction/negative status." },
+  { id: "backgroundColor", label: "Background Color", category: "visual-theme", studioSection: "colors", level: 1, column: "background_color", cssVar: "--ggsp-color-background", inputType: "color", default: "#07090d", helperText: "Live in preview — page background." },
+  { id: "surfaceColor", label: "Surface/Card Color", category: "visual-theme", studioSection: "colors", level: 1, column: "surface_color", cssVar: "--ggsp-color-surface", inputType: "color", default: "#111720", helperText: "Live in preview — card and panel background." },
+  { id: "navigationColor", label: "Navigation Color", category: "visual-theme", studioSection: "colors", level: 1, column: "navigation_color", cssVar: "--ggsp-color-navigation", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up." },
+  { id: "headerColor", label: "Header Color", category: "visual-theme", studioSection: "colors", level: 1, column: "header_color", cssVar: "--ggsp-color-header", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up." },
+  { id: "sidebarColor", label: "Sidebar Color", category: "visual-theme", studioSection: "colors", level: 1, column: "sidebar_color", cssVar: "--ggsp-color-sidebar", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up." },
+  { id: "buttonColor", label: "Button Color", category: "visual-theme", studioSection: "colors", level: 1, column: "button_color", cssVar: "--ggsp-color-button", inputType: "color", default: "#f5a623", helperText: "Saved now, applied platform-wide by the palette migration follow-up." },
+  { id: "linkColor", label: "Link Color", category: "visual-theme", studioSection: "colors", level: 1, column: "link_color", cssVar: "--ggsp-color-link", inputType: "color", default: "#f5a623", helperText: "Saved now, applied platform-wide by the palette migration follow-up." },
 ];
 
 export const LEVEL_1_TYPOGRAPHY_TOKENS: ThemeToken[] = [
-  { id: "fontFamily", label: "Font Family", category: "typography", studioSection: "typography", level: 1, column: "font_family", cssVar: "--ggsp-font-family", inputType: "select", default: "Inter", options: ["Inter", "Oswald", "Roboto", "Poppins", "System UI"] },
+  { id: "fontFamily", label: "Font Family", category: "typography", studioSection: "typography", level: 1, column: "font_family", cssVar: "--ggsp-font-family", inputType: "select", default: "Inter", options: ["Inter", "Oswald", "Roboto", "Poppins", "System UI"], helperText: "Preview uses each family's system/best-effort fallback; loading additional web fonts on demand is a follow-up." },
   { id: "fontWeight", label: "Font Weight", category: "typography", studioSection: "typography", level: 1, column: "font_weight", cssVar: "--ggsp-font-weight", inputType: "select", default: "normal", options: ["light", "normal", "medium", "semibold", "bold"] },
   { id: "headingStyle", label: "Heading Style", category: "typography", studioSection: "typography", level: 1, column: "heading_style", cssVar: "--ggsp-heading-style", inputType: "select", default: "display", options: ["display", "condensed", "classic", "uppercase"] },
   { id: "textStyle", label: "Text Style", category: "typography", studioSection: "typography", level: 1, column: "text_style", cssVar: "--ggsp-text-style", inputType: "select", default: "regular", options: ["regular", "relaxed", "compact"] },
@@ -128,8 +128,8 @@ export const LEVEL_1_LAYOUT_TOKENS: ThemeToken[] = [
   { id: "logoPadding", label: "Logo Padding", category: "layout", studioSection: "layout", level: 1, column: "logo_padding", cssVar: "--ggsp-logo-padding", inputType: "number", default: 8, helperText: "px" },
   { id: "headerHeight", label: "Header Height", category: "layout", studioSection: "navigation", level: 1, column: "header_height", cssVar: "--ggsp-header-height", inputType: "number", default: 64, helperText: "px" },
   { id: "sidebarWidth", label: "Sidebar Width", category: "layout", studioSection: "navigation", level: 1, column: "sidebar_width", cssVar: "--ggsp-sidebar-width", inputType: "number", default: 260, helperText: "px" },
-  { id: "borderRadius", label: "Border Radius", category: "layout", studioSection: "components", level: 1, column: "border_radius", cssVar: "--ggsp-radius", inputType: "number", default: 16, helperText: "px" },
-  { id: "shadowStyle", label: "Shadow Style", category: "layout", studioSection: "components", level: 1, column: "shadow_style", cssVar: "--ggsp-shadow-style", inputType: "select", default: "soft", options: ["none", "soft", "elevated", "sharp"] },
+  { id: "borderRadius", label: "Border Radius", category: "layout", studioSection: "components", level: 1, column: "border_radius", cssVar: "--ggsp-radius", inputType: "number", default: 16, helperText: "px · live in preview" },
+  { id: "shadowStyle", label: "Shadow Style", category: "layout", studioSection: "components", level: 1, column: "shadow_style", cssVar: "--ggsp-shadow-style", inputType: "select", default: "soft", options: ["none", "soft", "elevated", "sharp"], helperText: "Live in preview" },
   { id: "cardStyle", label: "Card Style", category: "layout", studioSection: "components", level: 1, column: "card_style", cssVar: "--ggsp-card-style", inputType: "select", default: "glass", options: ["glass", "solid", "flat", "outlined"] },
 ];
 
@@ -183,3 +183,35 @@ export function tokensByStudioSection(section: StudioSection): ThemeToken[] {
 
 /** Every token that has a CSS custom property — what a ThemeScope needs to set. */
 export const CSS_VAR_TOKENS: ThemeToken[] = ALL_TOKENS.filter((t) => t.cssVar !== null);
+
+/**
+ * A handful of Level 1 tokens predate this registry and were named to
+ * match their original, already-shipped `PlatformBranding` field (see
+ * lib/branding.ts) instead of a fresh camelCase-of-the-column name —
+ * kept as-is rather than renamed, to avoid a breaking change to every
+ * existing caller of `PlatformBranding`. This table is the one place
+ * that maps a token's registry `id` to its real `PlatformBranding` key
+ * whenever the two differ; anything not listed here uses its `id`
+ * unchanged. Both lib/branding.ts (server, CSS var serialization) and
+ * the Brand Studio's client-side draft/preview code (see
+ * components/brand-studio/draft-utils.ts, which has no "server-only"
+ * dependency) import this same table so the mapping can never drift
+ * between the two.
+ */
+export const PLATFORM_BRANDING_FIELD_BY_TOKEN_ID: Record<string, string> = {
+  platformName: "organizationName",
+  mainLogo: "organizationLogoUrl",
+  smallLogo: "smallLogoUrl",
+  headerLogo: "headerLogoUrl",
+  loginLogo: "loginLogoUrl",
+  loadingLogo: "loadingLogoUrl",
+  splashScreen: "splashScreenUrl",
+  favicon: "faviconUrl",
+  browserIcon: "browserIconUrl",
+  placeholderLogo: "placeholderLogoUrl",
+};
+
+/** Resolves the `PlatformBranding` object key a given token's value actually lives under — see PLATFORM_BRANDING_FIELD_BY_TOKEN_ID above. */
+export function platformBrandingFieldForToken(tokenId: string): string {
+  return PLATFORM_BRANDING_FIELD_BY_TOKEN_ID[tokenId] ?? tokenId;
+}
