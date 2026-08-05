@@ -39,6 +39,7 @@ describe("migration integrity", () => {
       "019_find_auth_user_by_email.sql",
       "020_player_roster_fields.sql",
       "021_competition_squad_rules.sql",
+      "022_platform_branding.sql",
     ]);
   });
 
