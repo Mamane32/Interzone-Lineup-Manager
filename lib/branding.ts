@@ -1,6 +1,6 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { LEVEL_1_TOKENS, LEVEL_2_TOKENS, CSS_VAR_TOKENS } from "@/lib/theme-tokens";
+import { LEVEL_1_TOKENS, LEVEL_2_TOKENS, CSS_VAR_TOKENS, platformBrandingFieldForToken } from "@/lib/theme-tokens";
 import { hexToRgbTriplet } from "@/lib/color-utils";
 import { resolveBrandingChain, type BrandingOverrideLayer } from "@/lib/branding-inheritance";
 
@@ -509,7 +509,14 @@ export function platformBrandingToCssVars(branding: PlatformBranding): Record<st
   const vars: Record<string, string> = {};
   for (const token of LEVEL_1_TOKENS) {
     if (!token.cssVar) continue;
-    const value = asRecord[token.id];
+    // A few tokens (the nine logo/icon variants, platformName) were named
+    // to match their PlatformBranding field's pre-Sprint-3 name rather
+    // than a fresh camelCase-of-the-column id — see
+    // platformBrandingFieldForToken's doc comment. Reading `asRecord[token.id]`
+    // directly here would silently miss all nine logo URLs; resolving the
+    // real field name first is required for "upload a new logo -> it
+    // appears everywhere instantly" to actually work.
+    const value = asRecord[platformBrandingFieldForToken(token.id)];
     if (value === null || value === undefined || value === "") continue;
     if (token.inputType === "color" && typeof value === "string") {
       vars[token.cssVar] = value;
