@@ -5,11 +5,13 @@ import {
   Globe,
   KeyRound,
   Moon,
+  Palette,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
 import { requireAdmin, getProfile, getActiveAssignments } from "@/lib/access";
-import { updateOwnProfile, changeOwnPassword, uploadUserAvatar } from "./actions";
+import { getPlatformBranding } from "@/lib/branding";
+import { updateOwnProfile, changeOwnPassword, uploadUserAvatar, updatePlatformBranding, uploadOrgLogo } from "./actions";
 import PageHeader from "@/components/ui/PageHeader";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -18,7 +20,7 @@ import RoleBadge from "@/components/iam/RoleBadge";
 
 export const dynamic = "force-dynamic";
 
-const SECTIONS = [
+const BASE_SECTIONS = [
   { id: "profile", label: "Profile", icon: UserRound },
   { id: "security", label: "Security", icon: KeyRound },
   { id: "organization", label: "Organization & Access", icon: Building2 },
@@ -31,17 +33,25 @@ const ERRORS: Record<string, string> = {
   short: "Password must be at least 8 characters.",
   mismatch: "Passwords do not match.",
   "password-failed": "Could not update your password. Please try again.",
+  "brand-name-required": "Organization name can't be empty.",
+  "brand-save-failed": "Could not save platform branding. Please try again.",
 };
 
 const SAVED: Record<string, string> = {
   profile: "Profile updated.",
   password: "Password changed.",
+  branding: "Platform branding updated.",
 };
 
 export default async function SettingsPage({ searchParams }: { searchParams: { saved?: string; error?: string } }) {
   const { userId, role } = await requireAdmin();
-  const profile = await getProfile(userId);
-  const assignments = await getActiveAssignments(userId);
+  const isSuperAdmin = role === "super_admin";
+  const [profile, assignments, platform] = await Promise.all([
+    getProfile(userId),
+    getActiveAssignments(userId),
+    isSuperAdmin ? getPlatformBranding() : Promise.resolve(null),
+  ]);
+  const SECTIONS = isSuperAdmin ? [...BASE_SECTIONS, { id: "platform-branding", label: "Platform Branding", icon: Palette }] : BASE_SECTIONS;
 
   const initials = (profile?.full_name || profile?.email || "GG")
     .split(/\s+/)
@@ -125,6 +135,63 @@ export default async function SettingsPage({ searchParams }: { searchParams: { s
               ))}
             </div>
           </section>
+
+          {/* Platform branding — super_admin only. What Section 1A of the GGSP
+              brief calls the "GG header": logo, name, subtitle, and the two
+              theme colors, all editable here instead of hardcoded in
+              components/brand/BrandMark.tsx. Renaming the platform or
+              swapping its logo now takes effect everywhere (admin/coach
+              shell, Broadcast Control Center, login) without a code deploy. */}
+          {isSuperAdmin && platform && (
+            <section id="platform-branding" className="surface-panel scroll-mt-24 p-6">
+              <SectionTitle icon={Palette} title="Platform Branding" description="The GG header's identity across every screen — admin/coach shell, Broadcast Control Center, and login." />
+              <form action={updatePlatformBranding} className="mt-5 flex flex-col gap-5">
+                <ImageUpload
+                  label="Logo"
+                  name="organization_logo_url"
+                  currentUrl={platform.organizationLogoUrl}
+                  action={uploadOrgLogo}
+                  shape="square"
+                  size={64}
+                  helperText="Replaces the GG crest wherever the platform mark appears. Leave empty to keep the default crest."
+                />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Input
+                    id="organization_name"
+                    name="organization_name"
+                    label="Organization name"
+                    defaultValue={platform.organizationName}
+                    placeholder="GoodGrafik"
+                    required
+                  />
+                  <Input
+                    id="organization_subtitle"
+                    name="organization_subtitle"
+                    label="Subtitle"
+                    defaultValue={platform.organizationSubtitle}
+                    placeholder="Sports Platform"
+                  />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="primary_color" className="mb-1.5 block text-sm font-medium text-white/45">Primary color</label>
+                    <div className="flex items-center gap-2.5">
+                      <input id="primary_color" name="primary_color" type="color" defaultValue={platform.primaryColor} className="h-10 w-14 flex-none cursor-pointer rounded-lg border border-white/10 bg-transparent p-1" />
+                      <span className="text-xs text-white/35">{platform.primaryColor}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="secondary_color" className="mb-1.5 block text-sm font-medium text-white/45">Secondary color</label>
+                    <div className="flex items-center gap-2.5">
+                      <input id="secondary_color" name="secondary_color" type="color" defaultValue={platform.secondaryColor} className="h-10 w-14 flex-none cursor-pointer rounded-lg border border-white/10 bg-transparent p-1" />
+                      <span className="text-xs text-white/35">{platform.secondaryColor}</span>
+                    </div>
+                  </div>
+                </div>
+                <Button type="submit" className="w-fit">Save branding</Button>
+              </form>
+            </section>
+          )}
 
           {/* Notifications */}
           <section id="notifications" className="surface-panel scroll-mt-24 p-6">

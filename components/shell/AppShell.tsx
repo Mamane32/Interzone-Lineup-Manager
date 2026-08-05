@@ -52,11 +52,16 @@ export default function AppShell({
   nav,
   user,
   workspaceLabel,
+  branding,
 }: {
   children: React.ReactNode;
   nav: ShellNavGroup[];
   user: { name: string; email: string; role: string; avatarUrl?: string | null };
   workspaceLabel: string;
+  /** Platform identity (Settings → Platform branding). Defaults to
+   * GoodGrafik's own branding when omitted, so callers that don't yet
+   * fetch it keep working unchanged. */
+  branding?: { orgName: string; subtitle: string; logoUrl: string | null };
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -107,7 +112,13 @@ export default function AppShell({
   const sidebar = (
     <aside className={`flex h-full flex-col bg-surface-900 transition-[width] duration-200 ${railWidth}`}>
       <div className={`flex h-16 items-center border-b border-white/[0.06] ${collapsed ? "justify-center px-2" : "justify-between px-5"}`}>
-        <BrandMark href="/admin/dashboard" compact={collapsed} />
+        <BrandMark
+          href="/admin/dashboard"
+          compact={collapsed}
+          orgName={branding?.orgName}
+          subtitle={branding?.subtitle}
+          logoUrl={branding?.logoUrl}
+        />
         <button onClick={() => setMobileOpen(false)} className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-white lg:hidden" aria-label="Close navigation">
           <X size={19} />
         </button>
@@ -184,7 +195,12 @@ export default function AppShell({
           <div className="relative h-full w-[min(88vw,300px)] border-r border-white/[0.08] shadow-2xl">
             <div className="flex h-full flex-col bg-surface-900 w-[min(88vw,300px)]">
               <div className="flex h-16 items-center justify-between border-b border-white/[0.06] px-5">
-                <BrandMark href="/admin/dashboard" />
+                <BrandMark
+                  href="/admin/dashboard"
+                  orgName={branding?.orgName}
+                  subtitle={branding?.subtitle}
+                  logoUrl={branding?.logoUrl}
+                />
                 <button onClick={() => setMobileOpen(false)} className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-white" aria-label="Close navigation">
                   <X size={19} />
                 </button>
@@ -303,6 +319,20 @@ export default function AppShell({
           </div>
         </div>
       </header>
+      {/* Background blur scrim for the notification/profile popovers — sits
+          below the header (z-20 < header's z-30) so the header and its
+          open panel stay sharp and clickable, while everything behind them
+          softens. Also doubles as an extra click-outside target. */}
+      <div
+        aria-hidden="true"
+        onClick={() => {
+          setNotificationsOpen(false);
+          setProfileOpen(false);
+        }}
+        className={`fixed inset-0 z-20 bg-surface-950/40 backdrop-blur-sm transition-opacity duration-150 ease-out ${
+          notificationsOpen || profileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      />
       <main className="mx-auto max-w-[1680px] px-4 py-7 sm:px-6 lg:px-8 lg:py-9">{children}</main>
     </div>
   );

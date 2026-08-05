@@ -1,5 +1,5 @@
 import { getLiveMatch } from "@/lib/live-match";
-import { getBaseBranding, withCompetition } from "@/lib/branding";
+import { getBaseBrandingAsync, withCompetition } from "@/lib/branding";
 import { getVMixStatus } from "@/lib/vmix/client";
 import { WebsiteSync } from "@/lib/broadcast/WebsiteSync";
 import { listProductionQueue } from "@/lib/broadcast/ProductionQueueEngine";
@@ -22,6 +22,7 @@ import AdvertisingPanel from "@/components/live/AdvertisingPanel";
 import ProductionStatusPanel from "@/components/live/ProductionStatusPanel";
 import QuickControlsBar from "@/components/live/QuickControlsBar";
 import CenterTabs from "@/components/live/CenterTabs";
+import CollapsibleSection from "@/components/live/CollapsibleSection";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,7 @@ export default async function LiveControlRoomPage({ params }: { params: { matchI
   const bundle = await getLiveMatch(params.matchId);
   const { match, events, homePlayers, awayPlayers } = bundle;
   const status = match.live_status ?? "pre_match";
-  const branding = withCompetition(getBaseBranding(), match.competition);
+  const branding = withCompetition(await getBaseBrandingAsync(), match.competition);
   const vmixStatus = await getVMixStatus();
   const vmixState = connectionStateToSystemState(vmixStatus.state);
   const [websiteSyncStatus] = await WebsiteSync.getProvidersStatus();
@@ -60,59 +61,78 @@ export default async function LiveControlRoomPage({ params }: { params: { matchI
   const homeStats = statsRows.find((s) => s.team_id === match.home_team_id);
   const awayStats = statsRows.find((s) => s.team_id === match.away_team_id);
 
+  const scoreMeta = (
+    <span className="font-display text-xs font-bold text-white/70">
+      {match.home_score ?? 0}–{match.away_score ?? 0}
+    </span>
+  );
+
   return (
     <div className="flex flex-col gap-4">
-      <MatchHeaderPanel bundle={bundle} branding={branding} venues={venues} />
-      <MatchScorePanel
-        homeTeam={match.home_team}
-        awayTeam={match.away_team}
-        homeScore={match.home_score ?? 0}
-        awayScore={match.away_score ?? 0}
-        status={status}
-        events={events}
-      />
+      {/* Every large section below is individually collapsible, with its
+          open/closed state remembered per browser (GGSP brief, Section 1C)
+          — an operator on a phone shouldn't have to scroll past sections
+          they already know they don't need for this match. */}
+      <CollapsibleSection id="venue-officials" title="Venue & Officials">
+        <MatchHeaderPanel bundle={bundle} branding={branding} venues={venues} />
+      </CollapsibleSection>
+
+      <CollapsibleSection id="score" title="Score" meta={scoreMeta}>
+        <MatchScorePanel
+          homeTeam={match.home_team}
+          awayTeam={match.away_team}
+          homeScore={match.home_score ?? 0}
+          awayScore={match.away_score ?? 0}
+          status={status}
+          events={events}
+        />
+      </CollapsibleSection>
 
       {/* Match Controls / Live Video / Match Timeline */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr_340px]">
-        <div className="flex flex-col gap-4">
-          <StatusControls matchId={match.id} current={status} />
-          <ScoreControl
-            matchId={match.id}
-            homeTeam={match.home_team}
-            awayTeam={match.away_team}
-            homeScore={match.home_score ?? 0}
-            awayScore={match.away_score ?? 0}
-            homePlayers={homePlayers}
-            awayPlayers={awayPlayers}
-            status={status}
-            events={events}
-          />
-          <EventControls
-            matchId={match.id}
-            homeTeam={match.home_team}
-            awayTeam={match.away_team}
-            homePlayers={homePlayers}
-            awayPlayers={awayPlayers}
-            status={status}
-            events={events}
-          />
-        </div>
+        <CollapsibleSection id="match-events" title="Match Events">
+          <div className="flex flex-col gap-4">
+            <StatusControls matchId={match.id} current={status} />
+            <ScoreControl
+              matchId={match.id}
+              homeTeam={match.home_team}
+              awayTeam={match.away_team}
+              homeScore={match.home_score ?? 0}
+              awayScore={match.away_score ?? 0}
+              homePlayers={homePlayers}
+              awayPlayers={awayPlayers}
+              status={status}
+              events={events}
+            />
+            <EventControls
+              matchId={match.id}
+              homeTeam={match.home_team}
+              awayTeam={match.away_team}
+              homePlayers={homePlayers}
+              awayPlayers={awayPlayers}
+              status={status}
+              events={events}
+            />
+          </div>
+        </CollapsibleSection>
 
         <LiveVideoPanel status={status} />
 
-        <div className="lg:min-h-[600px]">
-          <Timeline
-            matchId={match.id}
-            events={events}
-            homeTeam={match.home_team}
-            awayTeam={match.away_team}
-            homePlayers={homePlayers}
-            awayPlayers={awayPlayers}
-          />
-        </div>
+        <CollapsibleSection id="timeline" title="Timeline">
+          <div className="lg:min-h-[600px]">
+            <Timeline
+              matchId={match.id}
+              events={events}
+              homeTeam={match.home_team}
+              awayTeam={match.away_team}
+              homePlayers={homePlayers}
+              awayPlayers={awayPlayers}
+            />
+          </div>
+        </CollapsibleSection>
       </div>
 
-      {/* Statistics / Teams / Highlights  |  Broadcast / Advertising / Production Status */}
+      {/* Statistics / Teams / Highlights  |  Graphics / Advertising / Production Status */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <CenterTabs
           tabs={[
@@ -130,13 +150,15 @@ export default async function LiveControlRoomPage({ params }: { params: { matchI
             { key: "highlights", label: "Highlights", content: <HighlightsIndex bundle={bundle} /> },
           ]}
         />
-        <CenterTabs
-          tabs={[
-            { key: "broadcast", label: "Broadcast", content: <BroadcastPanel matchId={match.id} items={graphicsQueue} /> },
-            { key: "ads", label: "Advertising", content: <AdvertisingPanel /> },
-            { key: "status", label: "Production Status", content: <ProductionStatusPanel vmixState={vmixState} websiteSyncState={websiteSyncState} /> },
-          ]}
-        />
+        <CollapsibleSection id="production-graphics" title="Production & Graphics">
+          <CenterTabs
+            tabs={[
+              { key: "broadcast", label: "Graphics", content: <BroadcastPanel matchId={match.id} items={graphicsQueue} /> },
+              { key: "ads", label: "Advertising", content: <AdvertisingPanel /> },
+              { key: "status", label: "Production Status", content: <ProductionStatusPanel vmixState={vmixState} websiteSyncState={websiteSyncState} /> },
+            ]}
+          />
+        </CollapsibleSection>
       </div>
 
       {/* Quick Action Bar */}

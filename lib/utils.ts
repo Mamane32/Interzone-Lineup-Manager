@@ -112,3 +112,28 @@ export function formatMatchDate(dateStr: string, timeStr: string): string {
     minute: "2-digit",
   });
 }
+
+/**
+ * "Kickoff in 2h 15m" style countdown for a Scheduled match card (GGSP
+ * brief, Section 1D — the redesigned "Scheduled" card needs a real
+ * countdown, not just a static date). Server-computed at render time
+ * (this whole page is force-dynamic, so it's accurate as of the last
+ * load) rather than a ticking client component — a broadcast operator's
+ * match list doesn't need second-by-second precision, just "how soon."
+ * Returns null once kickoff has passed — the caller falls back to the
+ * plain formatted date/time for anything that isn't still upcoming.
+ */
+export function formatKickoffCountdown(dateStr: string, timeStr: string): string | null {
+  const kickoff = new Date(`${dateStr}T${timeStr}`).getTime();
+  const diffMs = kickoff - Date.now();
+  if (diffMs <= 0) return null;
+
+  const totalMinutes = Math.round(diffMs / 60000);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+
+  if (days > 0) return `Kickoff in ${days}d ${hours}h`;
+  if (hours > 0) return `Kickoff in ${hours}h ${minutes}m`;
+  return `Kickoff in ${minutes}m`;
+}
