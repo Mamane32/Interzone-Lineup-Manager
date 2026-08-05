@@ -255,7 +255,7 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
           <div className="surface-panel-solid w-full max-w-sm p-5">
             <p className="text-sm font-semibold">Reset all branding?</p>
             <p className="mt-2 text-xs leading-5 text-white/45">
-              Every field in this draft reverts to the platform's default appearance. Nothing is saved until you click Save — you can still Undo or simply not save.
+              Every field in this draft reverts to the platform&apos;s default appearance. Nothing is saved until you click Save — you can still Undo or simply not save.
             </p>
             <div className="mt-4 flex justify-end gap-2">
               <Button type="button" variant="ghost" onClick={() => setConfirmResetAllOpen(false)}>
