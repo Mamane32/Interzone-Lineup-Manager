@@ -1,6 +1,8 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { LEVEL_1_TOKENS, LEVEL_2_TOKENS, CSS_VAR_TOKENS } from "@/lib/theme-tokens";
+import { hexToRgbTriplet } from "@/lib/color-utils";
+import { resolveBrandingChain, type BrandingOverrideLayer } from "@/lib/branding-inheritance";
 
 /**
  * Branding configuration for the platform's public-facing surfaces —
@@ -36,21 +38,29 @@ import { LEVEL_1_TOKENS, LEVEL_2_TOKENS, CSS_VAR_TOKENS } from "@/lib/theme-toke
  * existing shape and behavior so nothing that already imports them
  * breaks. PlatformBranding is *extended* (new fields), never narrowed.
  *
- * New in Sprint 3: the two-level model from lib/theme-tokens.ts.
+ * New in Sprint 3: the general N-level inheritance model from
+ * lib/branding-inheritance.ts, applied here for the two levels that
+ * actually exist today (Platform, Competition):
  *   - PlatformBranding now carries every Level 1 field (identity, brand
  *     assets, visual theme, typography, layout, behavior).
  *   - CompetitionBranding is the new Level 2 shape (competitions.* plus
  *     the competition_sponsor_logos gallery), read via
  *     getCompetitionBranding(competitionId).
- *   - resolveEffectiveBranding(platform, competition) merges the two for
- *     any given page: platform branding applies everywhere by default;
- *     a competition's own non-null fields override it *for that
- *     competition's surfaces only* — this function never mutates either
- *     input and a competition can never affect another competition or
- *     the platform (multi-tenant isolation guarantee).
- *   - brandingToCssVars() turns either shape into the CSS custom
- *     property map a ThemeScope (Brand Studio live preview, and
- *     eventually the real app shell) sets on its root element.
+ *   - resolveEffectiveBranding(platform, competition) builds a
+ *     BrandingOverrideLayer for the competition and calls
+ *     resolveBrandingChain() rather than re-deriving "later layer wins if
+ *     non-null" itself — the same resolver a future Team or Match layer
+ *     will plug into without this function's logic changing. This
+ *     function never mutates either input; a competition can never
+ *     affect another competition or the platform (multi-tenant isolation
+ *     guarantee).
+ *   - platformBrandingToCssVars()/competitionBrandingToCssVars() turn
+ *     either shape into the CSS custom property map a ThemeScope (Brand
+ *     Studio live preview, and any real page that wraps itself in one)
+ *     sets on its root element. Color tokens emit both a plain hex
+ *     variable and an "-rgb" triplet sibling so Tailwind's opacity
+ *     modifiers (bg-brand-400/25) keep working on branding-driven colors
+ *     — see tailwind.config.ts.
  */
 export interface BrandingConfiguration {
   organizationName: string;
@@ -434,23 +444,46 @@ export interface EffectiveBranding {
 
 /**
  * Merges platform (Level 1) and competition (Level 2) branding for one
- * page's render. Pure function, no I/O, no mutation of either input —
+ * page's render, via lib/branding-inheritance.ts's generic chain
+ * resolver rather than re-implementing "later layer wins if non-null"
+ * here — the same resolver a future Team or Match layer plugs into
+ * without this function's logic changing (see that module's doc
+ * comment). Pure function, no I/O, no mutation of either input —
  * multi-tenant isolation is enforced simply by never writing back to
  * `platform` here and by `competition` only ever being one row's data.
- * Platform branding is the base; a competition overrides only the fields
- * it has actually set (non-null), exactly per spec ("Platform branding
- * automatically applies everywhere unless a competition explicitly
- * overrides local settings").
  */
 export function resolveEffectiveBranding(platform: PlatformBranding, competition: CompetitionBranding | null): EffectiveBranding {
+  const base: Record<string, string | number | boolean> = {
+    organizationName: platform.organizationName,
+    logoUrl: platform.organizationLogoUrl ?? "",
+    primaryColor: platform.primaryColor,
+    accentColor: platform.accentColor,
+  };
+
+  const layers: BrandingOverrideLayer[] = competition
+    ? [
+        {
+          level: "competition",
+          values: {
+            organizationName: competition.name ?? undefined,
+            logoUrl: competition.logoUrl ?? undefined,
+            primaryColor: competition.themeColor ?? undefined,
+            accentColor: competition.accentColor ?? undefined,
+          },
+        },
+      ]
+    : [];
+
+  const { values } = resolveBrandingChain(base, layers);
+
   return {
     platform,
     competition,
-    organizationName: competition?.name || platform.organizationName,
-    logoUrl: competition?.logoUrl ?? platform.organizationLogoUrl,
+    organizationName: String(values.organizationName),
+    logoUrl: (values.logoUrl as string) || null,
     bannerUrl: competition?.bannerUrl ?? null,
-    primaryColor: competition?.themeColor || platform.primaryColor,
-    accentColor: competition?.accentColor || platform.accentColor,
+    primaryColor: String(values.primaryColor),
+    accentColor: String(values.accentColor),
     seasonLabel: competition?.seasonLabel ?? null,
     sponsorLogos: competition?.sponsorLogos ?? [],
     backgroundImageUrl: competition?.backgroundImageUrl ?? null,
@@ -463,7 +496,14 @@ export function resolveEffectiveBranding(platform: PlatformBranding, competition
 // Sprint 3 — design tokens -> CSS custom properties
 // ============================================================================
 
-/** All Level 1 CSS-var tokens, resolved against a PlatformBranding value. Used to build the :root (or a scoped container's) style for the real, saved platform theme. */
+/**
+ * All Level 1 CSS-var tokens, resolved against a PlatformBranding value.
+ * Used to build the :root (or a scoped container's) style for the real,
+ * saved platform theme. Color tokens emit both the plain hex variable
+ * (`--ggsp-color-primary`) and an "-rgb" triplet sibling
+ * (`--ggsp-color-primary-rgb`) — the triplet is what
+ * tailwind.config.ts's opacity-modifier-safe color wiring reads.
+ */
 export function platformBrandingToCssVars(branding: PlatformBranding): Record<string, string> {
   const asRecord = branding as unknown as Record<string, unknown>;
   const vars: Record<string, string> = {};
@@ -471,25 +511,39 @@ export function platformBrandingToCssVars(branding: PlatformBranding): Record<st
     if (!token.cssVar) continue;
     const value = asRecord[token.id];
     if (value === null || value === undefined || value === "") continue;
-    vars[token.cssVar] = typeof value === "number" ? `${value}px` : String(value);
+    if (token.inputType === "color" && typeof value === "string") {
+      vars[token.cssVar] = value;
+      vars[`${token.cssVar}-rgb`] = hexToRgbTriplet(value);
+    } else {
+      vars[token.cssVar] = typeof value === "number" ? `${value}px` : String(value);
+    }
   }
   return vars;
 }
 
-/** Level 2 CSS-var overrides for one competition, to layer on top of platformBrandingToCssVars() inside that competition's surfaces only. */
+/** Level 2 CSS-var overrides for one competition, to layer on top of platformBrandingToCssVars() inside that competition's surfaces only. Same hex + "-rgb" triplet pairing as the platform serializer, for the same opacity-modifier reason. */
 export function competitionBrandingToCssVars(branding: CompetitionBranding): Record<string, string> {
   const vars: Record<string, string> = {};
-  const map: Record<string, string | null> = {
+  const nonColor: Record<string, string | null> = {
     "--ggsp-comp-logo": branding.logoUrl,
     "--ggsp-comp-banner": branding.bannerUrl,
-    "--ggsp-color-primary": branding.themeColor,
-    "--ggsp-color-accent": branding.accentColor,
     "--ggsp-comp-background": branding.backgroundImageUrl,
     "--ggsp-comp-watermark": branding.watermarkUrl,
   };
-  for (const [cssVar, value] of Object.entries(map)) {
+  for (const [cssVar, value] of Object.entries(nonColor)) {
     if (value) vars[cssVar] = value;
   }
+
+  const colors: Record<string, string | null> = {
+    "--ggsp-color-primary": branding.themeColor,
+    "--ggsp-color-accent": branding.accentColor,
+  };
+  for (const [cssVar, value] of Object.entries(colors)) {
+    if (!value) continue;
+    vars[cssVar] = value;
+    vars[`${cssVar}-rgb`] = hexToRgbTriplet(value);
+  }
+
   return vars;
 }
 
