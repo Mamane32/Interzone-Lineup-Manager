@@ -10,6 +10,15 @@ const MAX_BYTES = 5 * 1024 * 1024;
  * never `"team-logos"`; this module is the only place that mapping exists.
  * A bucket rename, a CDN change, or a future storage-provider migration
  * touches only BUCKET_BY_CATEGORY below — no caller anywhere else changes.
+ *
+ * PlatformBrandAsset (Sprint 3, White-Label Branding) is the one category
+ * that isn't one-bucket-per-entity-type — the Brand Studio's nine Level 1
+ * logo/icon variants (Main, Small, Header, Login, Loading, Splash,
+ * Favicon, Browser Icon, Placeholder) all share the single
+ * `platform-brand-assets` bucket, namespaced by `entityId` (the variant's
+ * own slug, e.g. "main-logo") the same way CoachPhoto/UserAvatar already
+ * namespace by their entity's id — see uploadPlatformBrandAsset in
+ * app/admin/brand-studio/actions.ts.
  */
 export const ASSET_CATEGORIES = {
   TeamLogo: "team-logo",
@@ -23,6 +32,7 @@ export const ASSET_CATEGORIES = {
   VenuePhoto: "venue-photo",
   UserAvatar: "user-avatar",
   PlayerPhoto: "player-photo",
+  PlatformBrandAsset: "platform-brand-asset",
 } as const;
 
 export type AssetCategory = (typeof ASSET_CATEGORIES)[keyof typeof ASSET_CATEGORIES];
@@ -30,7 +40,7 @@ export type AssetCategory = (typeof ASSET_CATEGORIES)[keyof typeof ASSET_CATEGOR
 /**
  * The only place an AssetCategory resolves to an actual Supabase Storage
  * bucket id. Bucket ids are the ones created by
- * supabase/schema.sql and supabase/migrations/010, 012, 017 — plural,
+ * supabase/schema.sql and supabase/migrations/010, 012, 017, 026 — plural,
  * hyphenated, and otherwise unrelated to the category names above by
  * design, so nothing outside this file needs to know or care that they
  * happen to look similar.
@@ -47,6 +57,7 @@ const BUCKET_BY_CATEGORY: Record<AssetCategory, string> = {
   [ASSET_CATEGORIES.VenuePhoto]: "venue-photos",
   [ASSET_CATEGORIES.UserAvatar]: "user-avatars",
   [ASSET_CATEGORIES.PlayerPhoto]: "player-photos",
+  [ASSET_CATEGORIES.PlatformBrandAsset]: "platform-brand-assets",
 };
 
 export type ImageUploadResult = { ok: true; url: string } | { ok: false; error: string };
@@ -55,18 +66,20 @@ export type ImageUploadResult = { ok: true; url: string } | { ok: false; error: 
  * The shared asset service — the one place any file actually reaches or is
  * read back from Supabase Storage. Every per-entity upload action
  * (organization logo/banner, competition logo, venue photo, team logo,
- * coach photo, user avatar, and — Sprint 3 — sponsor logos, official
- * photos, general competition assets) calls this instead of repeating the
- * same validate/name/upload/getPublicUrl sequence, and passes a typed
- * AssetCategory, never a bucket string. All future modules needing file
- * storage should consume this module rather than writing their own
- * Supabase Storage calls or hardcoding a bucket name.
+ * coach photo, user avatar, platform brand assets, and — Sprint 3 —
+ * sponsor logos, official photos, general competition assets) calls this
+ * instead of repeating the same validate/name/upload/getPublicUrl
+ * sequence, and passes a typed AssetCategory, never a bucket string. All
+ * future modules needing file storage should consume this module rather
+ * than writing their own Supabase Storage calls or hardcoding a bucket
+ * name.
  *
  * uploadImage has no permission check of its own: the caller's Server
  * Action already gated the request (requireFoundationAccess, requireAdmin,
- * requireCoach — whichever fits that entity), matching how
- * lib/tactical-formation.ts and lib/formation-engine.ts trust their callers
- * instead of re-checking a role they have no way to know here.
+ * requireCoach, requirePlatformBrandingWrite — whichever fits that
+ * entity), matching how lib/tactical-formation.ts and
+ * lib/formation-engine.ts trust their callers instead of re-checking a
+ * role they have no way to know here.
  *
  * The stored path is always an immutable, server-generated identifier —
  * never the original filename (only its extension is kept, for content
@@ -102,6 +115,34 @@ export async function uploadImage(category: AssetCategory, file: File | null, en
 
   const { data } = supabase.storage.from(bucket).getPublicUrl(path);
   return { ok: true, url: data.publicUrl };
+}
+
+/**
+ * Deletes every object namespaced under `<entityId>/` in a category's
+ * bucket. Used by Brand Studio asset deletion (a "Delete" on a logo
+ * variant should actually free the storage, not just clear the DB
+ * column) — first list()s the namespace since Supabase Storage's
+ * remove() needs full object paths, not a folder prefix.
+ */
+export async function deleteImagesForEntity(category: AssetCategory, entityId: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const bucket = BUCKET_BY_CATEGORY[category];
+  const supabase = supabaseAdmin();
+  const { data: objects, error: listError } = await supabase.storage.from(bucket).list(entityId);
+  if (listError) {
+    console.error(`deleteImagesForEntity list failed (category=${category})`, listError);
+    return { ok: false, error: "Could not locate the file to delete." };
+  }
+  if (!objects || objects.length === 0) return { ok: true };
+
+  const paths = objects.filter((o) => o.id !== null).map((o) => `${entityId}/${o.name}`);
+  if (paths.length === 0) return { ok: true };
+
+  const { error } = await supabase.storage.from(bucket).remove(paths);
+  if (error) {
+    console.error(`deleteImagesForEntity remove failed (category=${category})`, error);
+    return { ok: false, error: "Delete failed. Try again." };
+  }
+  return { ok: true };
 }
 
 export type StoredAsset = { name: string; url: string; createdAt: string | null; sizeBytes: number | null };

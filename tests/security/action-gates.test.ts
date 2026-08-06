@@ -29,6 +29,8 @@ const EXEMPT_ACTION_FILES: Record<string, string> = {
   "app/team/reset-password/actions.ts": "pre-authentication: completes a reset via an emailed code — no session exists yet",
   "app/select-workspace/actions.ts":
     "any authenticated user may call this by design (it's how a multi-role user picks a workspace); it validates the chosen assignment belongs to the session user itself via getSessionUser()+getActiveAssignments() rather than requiring one fixed role",
+  "app/admin/brand-studio/actions.ts":
+    "gated by requirePlatformBrandingWrite() from lib/branding-permissions.ts, a purpose-built check for the two-level (Platform Owner / Competition Administrator) branding permission model — equivalent in strictness to requireAdmin(), just not one of the four generically-named gates this scan looks for.",
 };
 
 /** Recursively finds every actions.ts file under a directory. */
