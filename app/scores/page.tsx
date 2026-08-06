@@ -77,7 +77,10 @@ export default async function GGScoreLivePage({ searchParams }: { searchParams: 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-surface-950/95 backdrop-blur-xl">
         <div className="relative mx-auto flex max-w-2xl items-center justify-between px-6 py-2.5">
           <NavItem icon={Home} label="Home" active />
-          <NavItem icon={Trophy} label="Competition" soon />
+          <Link href="/scores/competition" className="flex flex-col items-center gap-1 px-2 py-1">
+            <Trophy size={20} className="text-white/50" />
+            <span className="text-[10px] font-semibold text-white/50">Competition</span>
+          </Link>
 
           <Link
             href={feed.live.length > 0 ? "#live-now" : "#"}
