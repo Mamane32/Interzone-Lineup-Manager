@@ -6,7 +6,14 @@ import { recordAuditEvent } from "@/lib/audit";
 import { uploadImage, deleteImagesForEntity, ASSET_CATEGORIES, type ImageUploadResult } from "@/lib/image-upload";
 import { requirePlatformBrandingWrite } from "@/lib/branding-permissions";
 import { LEVEL_1_TOKENS, tokensByStudioSection, type StudioSection } from "@/lib/theme-tokens";
-import type { PlatformBranding } from "@/lib/branding";
+import { getPlatformBranding, type PlatformBranding } from "@/lib/branding";
+import { draftFromPlatformBranding, type BrandDraft } from "@/components/brand-studio/draft-utils";
+import {
+  listPlatformBrandingVersions,
+  recordPlatformBrandingVersion,
+  getPlatformBrandingVersion,
+  type PlatformBrandingVersion,
+} from "@/lib/branding-versions";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -43,13 +50,22 @@ function draftToColumnPatch(draft: Record<string, unknown>): Record<string, unkn
 }
 
 /**
- * Persists the Brand Studio's full draft state to the platform_branding
- * singleton row. Gated by requirePlatformBrandingWrite() — throws (not
- * redirects) on an unauthorized call, since this is invoked from a client
- * component's fetch to a Server Action, not a form navigation; the client
- * surfaces the thrown error as a toast rather than following a redirect.
+ * Publishes the Brand Studio's full draft state to the platform_branding
+ * singleton row — i.e. makes it live. Gated by requirePlatformBrandingWrite()
+ * — throws (not redirects) on an unauthorized call, since this is invoked
+ * from a client component's fetch to a Server Action, not a form
+ * navigation; the client surfaces the thrown error as a toast rather than
+ * following a redirect.
+ *
+ * Every publish also snapshots the *complete* resulting token set into
+ * platform_branding_versions (migration 032) — not just the changed
+ * fields — so any past version can be restored as a self-consistent whole
+ * regardless of what else changed in between. The snapshot is read back
+ * from the database after the write (not built from `draft` directly) so
+ * it reflects exactly what's now live, including any field the write
+ * validation silently dropped.
  */
-export async function savePlatformBranding(draft: Record<string, unknown>): Promise<ActionResult> {
+export async function savePlatformBranding(draft: Record<string, unknown>, note?: string | null): Promise<ActionResult> {
   const access = await requirePlatformBrandingWrite();
   const patch = draftToColumnPatch(draft);
   if (Object.keys(patch).length === 0) return { ok: false, error: "Nothing to save." };
@@ -61,16 +77,40 @@ export async function savePlatformBranding(draft: Record<string, unknown>): Prom
     return { ok: false, error: "Save failed. Try again." };
   }
 
+  const fresh = await getPlatformBranding();
+  await recordPlatformBrandingVersion(draftFromPlatformBranding(fresh), note?.trim() || null, access.userId);
+
   await recordAuditEvent({
     actorUserId: access.userId,
     action: "platform_branding.saved",
     targetType: "platform_branding",
     targetId: null,
-    metadata: { fields: Object.keys(patch) },
+    metadata: { fields: Object.keys(patch), note: note?.trim() || null },
   });
 
   revalidateBrandingEverywhere();
   return { ok: true };
+}
+
+/** Version History panel data — most recent publishes first. Fetched as its own Server Action (rather than only server-rendered once on page load) so the panel can refresh after a Publish/Restore without a full page reload. */
+export async function listPlatformBrandingVersionsAction(): Promise<PlatformBrandingVersion[]> {
+  await requirePlatformBrandingWrite();
+  return listPlatformBrandingVersions();
+}
+
+/**
+ * Loads one past version's snapshot back into the Studio — returns the
+ * BrandDraft for the *client* to set as its in-memory draft, never writes
+ * it to platform_branding directly. Restoring is reviewed and confirmed
+ * through the exact same Publish flow as any other change (the loaded
+ * values just show up as pending edits with the usual diff/confirm step),
+ * matching "draft changes never affect production until published."
+ */
+export async function restorePlatformBrandingVersion(versionId: string): Promise<{ ok: true; draft: BrandDraft } | { ok: false; error: string }> {
+  await requirePlatformBrandingWrite();
+  const version = await getPlatformBrandingVersion(versionId);
+  if (!version) return { ok: false, error: "That version could not be found." };
+  return { ok: true, draft: version.data as BrandDraft };
 }
 
 /** Resets every token in one Brand Studio section back to its registry default (lib/theme-tokens.ts) — e.g. "Colors" resets all 13 visual-theme columns, leaving Identity/Typography/Layout/etc. untouched. */

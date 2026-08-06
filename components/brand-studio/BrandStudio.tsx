@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { Laptop, Redo2, RotateCcw, Save, Smartphone, Tablet, Undo2 } from "lucide-react";
+import { History, Laptop, Redo2, RotateCcw, Save, Smartphone, Tablet, Undo2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { LEVEL_1_TOKENS, tokensByStudioSection, type StudioSection, type ThemeToken } from "@/lib/theme-tokens";
 import type { PlatformBranding } from "@/lib/branding";
@@ -10,6 +10,16 @@ import { draftFromPlatformBranding, type BrandDraft } from "./draft-utils";
 import ControlPanel from "./ControlPanel";
 import LivePreview, { PREVIEW_TABS, type PreviewTab, type Viewport } from "./LivePreview";
 import AssetManager from "./AssetManager";
+import VersionHistoryPanel from "./VersionHistoryPanel";
+
+/** Short, human-readable "what changed" for the Publish confirmation's compare view — never the raw value for an image (a long Storage URL reads as noise), a plain on/off for a toggle, and a truncated string for everything else. */
+function displayValue(token: ThemeToken, value: unknown): string {
+  if (value === null || value === undefined || value === "") return "—";
+  if (token.inputType === "image") return "Image set";
+  if (token.inputType === "toggle") return value ? "On" : "Off";
+  const str = String(value) + (token.unit && typeof value === "number" ? token.unit : "");
+  return str.length > 32 ? `${str.slice(0, 32)}…` : str;
+}
 
 const MAX_HISTORY = 50;
 
@@ -32,6 +42,8 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
 
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
   const [confirmResetAllOpen, setConfirmResetAllOpen] = useState(false);
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
+  const [publishNote, setPublishNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedFlash, setSavedFlash] = useState(false);
@@ -118,7 +130,7 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
   async function handleConfirmSave() {
     setSaving(true);
     setSaveError(null);
-    const result = await savePlatformBranding(draft);
+    const result = await savePlatformBranding(draft, publishNote);
     setSaving(false);
     if (!result.ok) {
       setSaveError(result.error);
@@ -128,16 +140,20 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
     setHistory([]);
     setFuture([]);
     setConfirmSaveOpen(false);
+    setPublishNote("");
     setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 3000);
   }
 
-  const changedFields = useMemo(() => {
-    const changed: string[] = [];
-    for (const token of LEVEL_1_TOKENS) {
-      if (draft[token.id] !== savedDraft[token.id]) changed.push(token.label);
-    }
-    return changed;
+  function handleRestoreVersion(restored: BrandDraft) {
+    setDraft((current) => {
+      pushHistory(current);
+      return { ...current, ...restored };
+    });
+  }
+
+  const changedTokens = useMemo(() => {
+    return LEVEL_1_TOKENS.filter((token) => draft[token.id] !== savedDraft[token.id]);
   }, [draft, savedDraft]);
 
   const managingUrl = managingToken ? (typeof draft[managingToken.id] === "string" ? (draft[managingToken.id] as string) : null) : null;
@@ -149,7 +165,7 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
       <div className="flex flex-none flex-wrap items-center gap-2 border-b border-white/[0.06] px-4 py-3">
         <div>
           <p className="font-display text-lg font-semibold">Brand Studio</p>
-          <p className="text-[11px] text-white/35">Platform-wide branding — changes preview instantly, save when ready.</p>
+          <p className="text-[11px] text-white/35">Platform-wide branding — changes preview instantly, publish when ready.</p>
         </div>
 
         <div className="ml-auto flex items-center gap-1.5">
@@ -205,13 +221,21 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
             ))}
           </div>
 
+          <button
+            type="button"
+            onClick={() => setVersionHistoryOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] px-2.5 py-1.5 text-[11px] font-semibold text-white/45 transition hover:text-white"
+          >
+            <History size={12} /> Version History
+          </button>
+
           <div className="mx-1 h-6 w-px bg-white/[0.08]" />
 
-          {dirty && !savedFlash && <span className="rounded-full bg-amber-signal/15 px-2.5 py-1 text-[10px] font-semibold text-amber-signal">Unsaved changes</span>}
-          {savedFlash && <span className="rounded-full bg-emerald-400/15 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">Saved</span>}
+          {dirty && !savedFlash && <span className="rounded-full bg-amber-signal/15 px-2.5 py-1 text-[10px] font-semibold text-amber-signal">Unpublished changes</span>}
+          {savedFlash && <span className="rounded-full bg-emerald-400/15 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">Published</span>}
 
           <Button type="button" variant="primary" size="md" className="h-9 px-4 text-xs" onClick={() => setConfirmSaveOpen(true)} disabled={!dirty}>
-            <Save size={13} /> Save
+            <Save size={13} /> Publish
           </Button>
         </div>
       </div>
@@ -277,7 +301,7 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
           <div className="surface-panel-solid w-full max-w-sm p-5">
             <p className="text-sm font-semibold">Reset all branding?</p>
             <p className="mt-2 text-xs leading-5 text-white/45">
-              Every field in this draft reverts to the platform&apos;s default appearance. Nothing is saved until you click Save — you can still Undo or simply not save.
+              Every field in this draft reverts to the platform&apos;s default appearance. Nothing goes live until you publish — you can still Undo or simply not publish.
             </p>
             <div className="mt-4 flex justify-end gap-2">
               <Button type="button" variant="ghost" onClick={() => setConfirmResetAllOpen(false)}>
@@ -293,33 +317,56 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
 
       {confirmSaveOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="surface-panel-solid w-full max-w-sm p-5">
-            <p className="text-sm font-semibold">Save branding changes?</p>
-            {changedFields.length > 0 ? (
-              <div className="mt-2 max-h-40 overflow-y-auto rounded-lg bg-white/[0.03] p-2.5">
-                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-white/30">{changedFields.length} field{changedFields.length === 1 ? "" : "s"} changed</p>
-                <ul className="space-y-0.5 text-xs text-white/60">
-                  {changedFields.map((f) => (
-                    <li key={f}>{f}</li>
+          <div className="surface-panel-solid flex max-h-[85vh] w-full max-w-md flex-col p-5">
+            <p className="text-sm font-semibold">Publish branding changes?</p>
+            {changedTokens.length > 0 ? (
+              <div className="mt-2 max-h-56 overflow-y-auto rounded-lg bg-white/[0.03] p-2.5">
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-white/30">
+                  {changedTokens.length} field{changedTokens.length === 1 ? "" : "s"} changed
+                </p>
+                <ul className="space-y-1.5">
+                  {changedTokens.map((token) => (
+                    <li key={token.id} className="flex items-center justify-between gap-2 text-xs">
+                      <span className="text-white/60">{token.label}</span>
+                      <span className="flex items-center gap-1.5 font-mono text-[11px]">
+                        <span className="text-white/30 line-through">{displayValue(token, savedDraft[token.id])}</span>
+                        <span className="text-white/25">→</span>
+                        <span className="text-white/85">{displayValue(token, draft[token.id])}</span>
+                      </span>
+                    </li>
                   ))}
                 </ul>
               </div>
             ) : (
-              <p className="mt-2 text-xs text-white/45">No changes to save.</p>
+              <p className="mt-2 text-xs text-white/45">No changes to publish.</p>
             )}
-            <p className="mt-3 text-xs leading-5 text-white/45">This applies platform-wide immediately — every page reading platform branding will reflect it on next load.</p>
+            <p className="mt-3 text-xs leading-5 text-white/45">This applies platform-wide immediately — every page reading platform branding will reflect it on next load. A snapshot is saved to Version History.</p>
+
+            <label className="mt-3 flex flex-col gap-1.5">
+              <span className="text-[11px] font-medium text-white/50">Version note (optional)</span>
+              <textarea
+                value={publishNote}
+                onChange={(e) => setPublishNote(e.target.value)}
+                placeholder="e.g. Refreshed primary color for the new season"
+                rows={2}
+                className="rounded-lg border border-white/[0.08] bg-white/[0.035] px-3 py-2 text-xs text-white placeholder:text-white/25 focus:border-brand-400/60 focus:outline-none"
+              />
+            </label>
+
             {saveError && <p className="mt-2 text-xs text-red-300">{saveError}</p>}
             <div className="mt-4 flex justify-end gap-2">
               <Button type="button" variant="ghost" onClick={() => setConfirmSaveOpen(false)} disabled={saving}>
                 Cancel
               </Button>
-              <Button type="button" variant="primary" onClick={handleConfirmSave} disabled={saving || changedFields.length === 0}>
-                {saving ? "Saving…" : "Confirm & save"}
+              <Button type="button" variant="primary" onClick={handleConfirmSave} disabled={saving || changedTokens.length === 0}>
+                {saving ? "Publishing…" : "Publish"}
               </Button>
             </div>
           </div>
         </div>
       )}
+
+      {versionHistoryOpen && <VersionHistoryPanel onRestore={handleRestoreVersion} onClose={() => setVersionHistoryOpen(false)} />}
     </div>
   );
 }
