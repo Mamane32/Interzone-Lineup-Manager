@@ -3,23 +3,15 @@
 import { useCallback, useMemo, useState } from "react";
 import { History, Laptop, Redo2, RotateCcw, Save, Smartphone, Tablet, Undo2 } from "lucide-react";
 import Button from "@/components/ui/Button";
+import { useEscapeKey } from "@/lib/hooks";
 import { LEVEL_1_TOKENS, tokensByStudioSection, type StudioSection, type ThemeToken } from "@/lib/theme-tokens";
 import type { PlatformBranding } from "@/lib/branding";
 import { savePlatformBranding, uploadPlatformBrandAsset, deletePlatformBrandAsset } from "@/app/admin/brand-studio/actions";
 import { draftFromPlatformBranding, type BrandDraft } from "./draft-utils";
-import ControlPanel from "./ControlPanel";
+import ControlPanel, { displayValue } from "./ControlPanel";
 import LivePreview, { PREVIEW_TABS, type PreviewTab, type Viewport } from "./LivePreview";
 import AssetManager from "./AssetManager";
 import VersionHistoryPanel from "./VersionHistoryPanel";
-
-/** Short, human-readable "what changed" for the Publish confirmation's compare view — never the raw value for an image (a long Storage URL reads as noise), a plain on/off for a toggle, and a truncated string for everything else. */
-function displayValue(token: ThemeToken, value: unknown): string {
-  if (value === null || value === undefined || value === "") return "—";
-  if (token.inputType === "image") return "Image set";
-  if (token.inputType === "toggle") return value ? "On" : "Off";
-  const str = String(value) + (token.unit && typeof value === "number" ? token.unit : "");
-  return str.length > 32 ? `${str.slice(0, 32)}…` : str;
-}
 
 const MAX_HISTORY = 50;
 
@@ -47,6 +39,14 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedFlash, setSavedFlash] = useState(false);
+
+  useEscapeKey(
+    () => {
+      if (confirmSaveOpen) setConfirmSaveOpen(false);
+      else if (confirmResetAllOpen) setConfirmResetAllOpen(false);
+    },
+    confirmSaveOpen || confirmResetAllOpen
+  );
 
   const dirty = useMemo(() => !draftsEqual(draft, savedDraft), [draft, savedDraft]);
 
@@ -298,8 +298,8 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
 
       {confirmResetAllOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="surface-panel-solid w-full max-w-sm p-5">
-            <p className="text-sm font-semibold">Reset all branding?</p>
+          <div className="surface-panel-solid w-full max-w-sm p-5" role="alertdialog" aria-modal="true" aria-labelledby="reset-all-title">
+            <p id="reset-all-title" className="text-sm font-semibold">Reset all branding?</p>
             <p className="mt-2 text-xs leading-5 text-white/45">
               Every field in this draft reverts to the platform&apos;s default appearance. Nothing goes live until you publish — you can still Undo or simply not publish.
             </p>
@@ -317,8 +317,8 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
 
       {confirmSaveOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="surface-panel-solid flex max-h-[85vh] w-full max-w-md flex-col p-5">
-            <p className="text-sm font-semibold">Publish branding changes?</p>
+          <div className="surface-panel-solid flex max-h-[85vh] w-full max-w-md flex-col p-5" role="dialog" aria-modal="true" aria-labelledby="publish-confirm-title">
+            <p id="publish-confirm-title" className="text-sm font-semibold">Publish branding changes?</p>
             {changedTokens.length > 0 ? (
               <div className="mt-2 max-h-56 overflow-y-auto rounded-lg bg-white/[0.03] p-2.5">
                 <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-white/30">

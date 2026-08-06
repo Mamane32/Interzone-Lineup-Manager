@@ -53,6 +53,15 @@ const SECTION_GROUPS: { label: string; sections: StudioSection[] }[] = [
   { label: "Behavior", sections: ["motion"] },
 ];
 
+/** Short, human-readable "what changed" for a Publish confirmation's compare view — never the raw value for an image (a long Storage URL reads as noise), a plain on/off for a toggle, and a truncated string for everything else. Shared by both Studios' Publish dialogs (BrandStudio.tsx, CompetitionBrandStudio.tsx). */
+export function displayValue(token: ThemeToken, value: unknown): string {
+  if (value === null || value === undefined || value === "") return "—";
+  if (token.inputType === "image") return "Image set";
+  if (token.inputType === "toggle") return value ? "On" : "Off";
+  const str = String(value) + (token.unit && typeof value === "number" ? token.unit : "");
+  return str.length > 32 ? `${str.slice(0, 32)}…` : str;
+}
+
 export function FieldLabel({ token }: { token: ThemeToken }) {
   return (
     <div className="flex items-baseline justify-between gap-2">

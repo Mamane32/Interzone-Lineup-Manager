@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Download, FileText, Moon, Sun, Trash2, Upload, X } from "lucide-react";
 import Button from "@/components/ui/Button";
+import { useEscapeKey } from "@/lib/hooks";
 import type { ThemeToken } from "@/lib/theme-tokens";
 import type { ImageUploadResult } from "@/lib/image-upload";
 import ImageCropModal from "./ImageCropModal";
@@ -63,6 +64,8 @@ export default function AssetManager({
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEscapeKey(onClose);
 
   const hasFallback = Boolean(fallbackUrl);
   const effectiveUrl = currentUrl ?? fallbackUrl;
@@ -142,10 +145,10 @@ export default function AssetManager({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="surface-panel-solid w-full max-w-sm p-5">
+      <div className="surface-panel-solid w-full max-w-sm p-5" role="dialog" aria-modal="true" aria-labelledby="asset-manager-title">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold">{token.label}</p>
+            <p id="asset-manager-title" className="text-sm font-semibold">{token.label}</p>
             {usingFallback && <p className="text-[11px] text-white/35">Not set — showing {fallbackLabel} fallback</p>}
           </div>
           <button onClick={onClose} className="rounded-lg p-1.5 text-white/40 hover:bg-white/5 hover:text-white" aria-label="Close">

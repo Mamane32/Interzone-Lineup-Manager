@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Moon, Sun, X, ZoomIn } from "lucide-react";
 import Button from "@/components/ui/Button";
+import { useEscapeKey } from "@/lib/hooks";
 
 const BOX_SIZE = 280;
 const OUTPUT_SIZE = 512;
@@ -37,6 +38,8 @@ export default function ImageCropModal({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const objectUrl = useMemo(() => URL.createObjectURL(file), [file]);
+
+  useEscapeKey(onCancel);
 
   useEffect(() => {
     const img = new Image();

@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { Redo2, RotateCcw, Save, Undo2, X } from "lucide-react";
 import Button from "@/components/ui/Button";
+import { useEscapeKey } from "@/lib/hooks";
 import { LEVEL_2_TOKENS, type ThemeToken } from "@/lib/theme-tokens";
 import type { CompetitionBranding, PlatformBranding } from "@/lib/branding";
 import {
@@ -12,7 +13,7 @@ import {
   addCompetitionSponsorLogo,
   removeCompetitionSponsorLogo,
 } from "@/app/admin/competitions/[id]/branding/actions";
-import { FieldLabel, TokenField } from "./ControlPanel";
+import { FieldLabel, TokenField, displayValue } from "./ControlPanel";
 import AssetManager from "./AssetManager";
 import LivePreview, { type Viewport } from "./LivePreview";
 import type { BrandDraft } from "./draft-utils";
@@ -73,6 +74,8 @@ export default function CompetitionBrandStudio({
   const [sponsorPending, setSponsorPending] = useState(false);
   const [sponsorError, setSponsorError] = useState<string | null>(null);
 
+  useEscapeKey(() => setConfirmSaveOpen(false), confirmSaveOpen);
+
   const dirty = useMemo(() => !draftsEqual(draft, savedDraft), [draft, savedDraft]);
 
   const pushHistory = useCallback((current: BrandDraft) => {
@@ -127,13 +130,7 @@ export default function CompetitionBrandStudio({
     setTimeout(() => setSavedFlash(false), 3000);
   }
 
-  const changedFields = useMemo(() => {
-    const changed: string[] = [];
-    for (const token of LEVEL_2_TOKENS) {
-      if (draft[token.id] !== savedDraft[token.id]) changed.push(token.label);
-    }
-    return changed;
-  }, [draft, savedDraft]);
+  const changedTokens = useMemo(() => LEVEL_2_TOKENS.filter((token) => draft[token.id] !== savedDraft[token.id]), [draft, savedDraft]);
 
   const managingUrl = managingToken && typeof draft[managingToken.id] === "string" ? (draft[managingToken.id] as string) : null;
 
@@ -199,10 +196,10 @@ export default function CompetitionBrandStudio({
               <Redo2 size={14} />
             </button>
             <div className="mx-1 h-6 w-px bg-white/[0.08]" />
-            {dirty && !savedFlash && <span className="rounded-full bg-amber-signal/15 px-2.5 py-1 text-[10px] font-semibold text-amber-signal">Unsaved changes</span>}
-            {savedFlash && <span className="rounded-full bg-emerald-400/15 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">Saved</span>}
+            {dirty && !savedFlash && <span className="rounded-full bg-amber-signal/15 px-2.5 py-1 text-[10px] font-semibold text-amber-signal">Unpublished changes</span>}
+            {savedFlash && <span className="rounded-full bg-emerald-400/15 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">Published</span>}
             <Button type="button" variant="primary" size="md" className="h-9 px-4 text-xs" onClick={() => setConfirmSaveOpen(true)} disabled={!dirty}>
-              <Save size={13} /> Save
+              <Save size={13} /> Publish
             </Button>
           </div>
         )}
@@ -278,6 +275,7 @@ export default function CompetitionBrandStudio({
             <section className="rounded-xl border border-white/[0.07] bg-white/[0.015] p-4">
               <p className="text-sm font-semibold text-white/85">Sponsor Logos</p>
               <p className="mb-3 text-[11px] leading-4 text-white/35">A gallery of sponsor marks for this competition. Saved immediately — not part of the draft above.</p>
+              {sponsorLogos.length === 0 && <p className="mb-3 text-xs text-white/30">No sponsor logos yet.</p>}
               {sponsorLogos.length > 0 && (
                 <div className="mb-3 grid grid-cols-3 gap-2">
                   {sponsorLogos.map((logo) => (
@@ -362,19 +360,28 @@ export default function CompetitionBrandStudio({
 
       {confirmSaveOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="surface-panel-solid w-full max-w-sm p-5">
-            <p className="text-sm font-semibold">Save branding changes?</p>
-            {changedFields.length > 0 ? (
+          <div className="surface-panel-solid w-full max-w-sm p-5" role="dialog" aria-modal="true" aria-labelledby="competition-publish-title">
+            <p id="competition-publish-title" className="text-sm font-semibold">Publish branding changes?</p>
+            {changedTokens.length > 0 ? (
               <div className="mt-2 max-h-40 overflow-y-auto rounded-lg bg-white/[0.03] p-2.5">
-                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-white/30">{changedFields.length} field{changedFields.length === 1 ? "" : "s"} changed</p>
-                <ul className="space-y-0.5 text-xs text-white/60">
-                  {changedFields.map((f) => (
-                    <li key={f}>{f}</li>
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-white/30">
+                  {changedTokens.length} field{changedTokens.length === 1 ? "" : "s"} changed
+                </p>
+                <ul className="space-y-1.5">
+                  {changedTokens.map((token) => (
+                    <li key={token.id} className="flex items-center justify-between gap-2 text-xs">
+                      <span className="text-white/60">{token.label}</span>
+                      <span className="flex items-center gap-1.5 font-mono text-[11px]">
+                        <span className="text-white/30 line-through">{displayValue(token, savedDraft[token.id])}</span>
+                        <span className="text-white/25">→</span>
+                        <span className="text-white/85">{displayValue(token, draft[token.id]) === "—" ? "Inherit" : displayValue(token, draft[token.id])}</span>
+                      </span>
+                    </li>
                   ))}
                 </ul>
               </div>
             ) : (
-              <p className="mt-2 text-xs text-white/45">No changes to save.</p>
+              <p className="mt-2 text-xs text-white/45">No changes to publish.</p>
             )}
             <p className="mt-3 text-xs leading-5 text-white/45">This applies to {competitionLabel} immediately.</p>
             {saveError && <p className="mt-2 text-xs text-red-300">{saveError}</p>}
@@ -382,8 +389,8 @@ export default function CompetitionBrandStudio({
               <Button type="button" variant="ghost" onClick={() => setConfirmSaveOpen(false)} disabled={saving}>
                 Cancel
               </Button>
-              <Button type="button" variant="primary" onClick={handleConfirmSave} disabled={saving || changedFields.length === 0}>
-                {saving ? "Saving…" : "Confirm & save"}
+              <Button type="button" variant="primary" onClick={handleConfirmSave} disabled={saving || changedTokens.length === 0}>
+                {saving ? "Publishing…" : "Publish"}
               </Button>
             </div>
           </div>

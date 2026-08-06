@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { History, RotateCcw, X } from "lucide-react";
 import Button from "@/components/ui/Button";
+import { useEscapeKey } from "@/lib/hooks";
 import { listPlatformBrandingVersionsAction, restorePlatformBrandingVersion } from "@/app/admin/brand-studio/actions";
 import type { PlatformBrandingVersion } from "@/lib/branding-versions";
 import type { BrandDraft } from "./draft-utils";
@@ -34,6 +35,8 @@ export default function VersionHistoryPanel({ onRestore, onClose }: { onRestore:
   const [restoringId, setRestoringId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEscapeKey(onClose);
+
   useEffect(() => {
     listPlatformBrandingVersionsAction().then(setVersions).catch(() => setVersions([]));
   }, []);
@@ -56,9 +59,9 @@ export default function VersionHistoryPanel({ onRestore, onClose }: { onRestore:
 
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="surface-panel-solid flex max-h-[80vh] w-full max-w-md flex-col p-5">
+      <div className="surface-panel-solid flex max-h-[80vh] w-full max-w-md flex-col p-5" role="dialog" aria-modal="true" aria-labelledby="version-history-title">
         <div className="mb-3 flex items-center justify-between">
-          <p className="flex items-center gap-2 text-sm font-semibold">
+          <p id="version-history-title" className="flex items-center gap-2 text-sm font-semibold">
             <History size={15} /> Version History
           </p>
           <button onClick={onClose} className="rounded-lg p-1.5 text-white/40 hover:bg-white/5 hover:text-white" aria-label="Close">
