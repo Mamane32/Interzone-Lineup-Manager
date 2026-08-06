@@ -17,7 +17,8 @@ export type PublicGroup = {
   standings: StandingRow[];
 };
 
-export async function getPublicGroups(): Promise<PublicGroup[]> {
+/** `competitionId` scopes to one competition's groups — used by the Archive (Phase 7) to pull a past edition's final standings without touching every other competition's groups. Omitted, every active group across every competition comes back, same as before. */
+export async function getPublicGroups(filters: { competitionId?: string } = {}): Promise<PublicGroup[]> {
   const supabase = supabaseAdmin();
 
   const { data: groups } = await supabase
@@ -26,11 +27,15 @@ export async function getPublicGroups(): Promise<PublicGroup[]> {
     .eq("status", "active")
     .order("display_order");
 
-  const groupList = (groups ?? []) as unknown as {
+  let groupList = (groups ?? []) as unknown as {
     id: string;
     name: string;
     stage: { division: { season: { competition: { id: string; name: string } | null } | null } | null } | null;
   }[];
+
+  if (filters.competitionId) {
+    groupList = groupList.filter((g) => g.stage?.division?.season?.competition?.id === filters.competitionId);
+  }
 
   if (groupList.length === 0) return [];
 

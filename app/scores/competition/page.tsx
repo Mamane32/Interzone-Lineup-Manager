@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { ChevronDown, Trophy } from "lucide-react";
 import { getPublicGroups, type PublicGroup } from "@/lib/public-groups";
 import { getPublicBracket } from "@/lib/public-bracket";
 import { getPublicScoresFeed } from "@/lib/public-scores";
 import BracketMatchCard from "@/components/scores/BracketMatchCard";
 import StandingsTable from "@/components/scores/StandingsTable";
+import CompetitionTabs from "@/components/scores/CompetitionTabs";
 import PublicNav from "@/components/scores/PublicNav";
 import EmptyState from "@/components/ui/EmptyState";
 
@@ -26,24 +26,7 @@ export default async function CompetitionPage({ searchParams }: { searchParams: 
       </header>
 
       <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 pt-6">
-        <div className="flex gap-1 rounded-xl border border-white/[0.08] bg-white/[0.03] p-1">
-          <Link
-            href="/scores/competition?view=groups"
-            className={`flex-1 rounded-lg py-2 text-center font-display text-xs font-bold uppercase tracking-wide transition ${
-              view === "groups" ? "bg-brand-400 text-surface-950" : "text-white/45 hover:text-white/80"
-            }`}
-          >
-            Klasman
-          </Link>
-          <Link
-            href="/scores/competition?view=bracket"
-            className={`flex-1 rounded-lg py-2 text-center font-display text-xs font-bold uppercase tracking-wide transition ${
-              view === "bracket" ? "bg-brand-400 text-surface-950" : "text-white/45 hover:text-white/80"
-            }`}
-          >
-            Bracket
-          </Link>
-        </div>
+        <CompetitionTabs active={view} />
 
         {view === "groups" &&
           (groups.length === 0 ? (
