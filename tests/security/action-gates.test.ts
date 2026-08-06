@@ -33,6 +33,8 @@ const EXEMPT_ACTION_FILES: Record<string, string> = {
     "gated by requirePlatformBrandingWrite() from lib/branding-permissions.ts, a purpose-built check for the two-level (Platform Owner / Competition Administrator) branding permission model — equivalent in strictness to requireAdmin(), just not one of the four generically-named gates this scan looks for.",
   "app/admin/competitions/[id]/branding/actions.ts":
     "gated by requireCompetitionBrandingWrite() from lib/branding-permissions.ts — the Level 2 (Competition Administrator) counterpart to requirePlatformBrandingWrite() above, scoped to the one competition a call actually targets rather than the whole platform.",
+  "app/scores/actions.ts":
+    "no auth by design: GGScoreLive (app/scores/**) is the platform's public, anonymous-facing site — this action only reads the same public match DTO (lib/public-scores.ts's searchPublicMatches) every visitor to /scores already sees server-rendered, just from a client-side search box instead of a page load.",
 };
 
 /** Recursively finds every actions.ts file under a directory. */

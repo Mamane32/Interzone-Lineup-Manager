@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { getPublicGroups, type PublicGroup } from "@/lib/public-groups";
 import { resolveQuarterfinals, type ResolvedSlot } from "@/lib/bracket";
+import { getPublicScoresFeed } from "@/lib/public-scores";
 import TeamCrest from "@/components/scores/TeamCrest";
 import BracketSlot from "@/components/scores/BracketSlot";
+import PublicNav from "@/components/scores/PublicNav";
 import EmptyState from "@/components/ui/EmptyState";
 import { Trophy } from "lucide-react";
 
@@ -11,12 +13,12 @@ export const dynamic = "force-dynamic";
 type View = "groups" | "bracket";
 
 export default async function CompetitionPage({ searchParams }: { searchParams: { view?: string } }) {
-  const groups = await getPublicGroups();
+  const [groups, feed] = await Promise.all([getPublicGroups(), getPublicScoresFeed()]);
   const view: View = searchParams.view === "bracket" ? "bracket" : "groups";
   const quarterfinals = resolveQuarterfinals(groups);
 
   return (
-    <div className="min-h-screen bg-surface-950 pb-16 text-white">
+    <div className="min-h-screen bg-surface-950 pb-28 text-white">
       <header className="border-b border-white/[0.06] bg-surface-950/90 px-5 pb-6 pt-8 backdrop-blur-xl">
         <div className="mx-auto max-w-2xl text-center">
           <p className="eyebrow">Championnat Interzone Du Nord&apos;Ouest</p>
@@ -70,6 +72,8 @@ export default async function CompetitionPage({ searchParams }: { searchParams: 
           </div>
         )}
       </main>
+
+      <PublicNav active="competition" hasLive={feed.live.length > 0} />
     </div>
   );
 }

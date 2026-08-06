@@ -2,10 +2,12 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { MapPin, ShieldCheck, Radio } from "lucide-react";
 import { getPublicMatchView, type PublicMatchEvent, type PublicMatchStatistics, type PublicMatchTeam } from "@/lib/public-match";
+import { getPublicScoresFeed } from "@/lib/public-scores";
 import { getBaseBranding, withCompetition } from "@/lib/branding";
 import { formatMatchDate } from "@/lib/utils";
 import { EVENT_META } from "@/lib/event-meta";
 import BrandBar from "@/components/live/BrandBar";
+import PublicNav from "@/components/scores/PublicNav";
 import { getTheme } from "@/lib/team-theme";
 
 export const dynamic = "force-dynamic";
@@ -46,7 +48,7 @@ const COUNTER_LABELS: { key: keyof PublicMatchStatistics; label: string; suffix?
  * private data) is safe to reuse as-is.
  */
 export default async function PublicMatchPage({ params }: { params: { matchId: string } }) {
-  const view = await getPublicMatchView(params.matchId);
+  const [view, feed] = await Promise.all([getPublicMatchView(params.matchId), getPublicScoresFeed()]);
   if (!view) notFound();
 
   const branding = withCompetition(getBaseBranding(), {
@@ -60,7 +62,7 @@ export default async function PublicMatchPage({ params }: { params: { matchId: s
   const isLive = view.phase === "live";
 
   return (
-    <div className="min-h-screen bg-surface-950 text-white">
+    <div className="min-h-screen bg-surface-950 pb-28 text-white">
       <header className="border-b border-white/10 px-4 py-3">
         <div className="mx-auto max-w-3xl">
           <BrandBar branding={branding} compact />
@@ -136,6 +138,8 @@ export default async function PublicMatchPage({ params }: { params: { matchId: s
           <div className="surface-panel p-6 text-center text-sm text-white/50">Kicks off {formatMatchDate(view.matchDate, view.matchTime)}.</div>
         )}
       </main>
+
+      <PublicNav active="home" hasLive={feed.live.length > 0} />
     </div>
   );
 }

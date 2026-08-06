@@ -1,9 +1,15 @@
-import Link from "next/link";
-import { CalendarDays, Home, Newspaper, Radio, Trophy, User } from "lucide-react";
-import { getPublicScoresFeed, type PublicScoreMatch } from "@/lib/public-scores";
+import { CalendarDays, Radio } from "lucide-react";
+import { getPublicScoresFeed, getPublicMatchesForDate, listPublicCompetitions, todayInHaiti, type PublicScoreMatch } from "@/lib/public-scores";
+import { getPlatformBranding } from "@/lib/branding";
 import MatchRow from "@/components/scores/MatchRow";
 import LiveNowCard from "@/components/scores/LiveNowCard";
+import ScoresHero from "@/components/scores/ScoresHero";
+import CompetitionSelector from "@/components/scores/CompetitionSelector";
+import DateStrip from "@/components/scores/DateStrip";
+import ScoresSearch from "@/components/scores/ScoresSearch";
+import PublicNav from "@/components/scores/PublicNav";
 import EmptyState from "@/components/ui/EmptyState";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -17,22 +23,54 @@ const EMPTY_COPY: Record<Tab, string> = {
   next: "Pa gen match pwograme pou pita.",
 };
 
-export default async function GGScoreLivePage({ searchParams }: { searchParams: { tab?: string } }) {
-  const feed = await getPublicScoresFeed();
+export default async function GGScoreLivePage({
+  searchParams,
+}: {
+  searchParams: { tab?: string; competition?: string; date?: string };
+}) {
+  const competitionId = searchParams.competition || undefined;
+  const [feed, competitions, platform] = await Promise.all([
+    getPublicScoresFeed(competitionId),
+    listPublicCompetitions(),
+    getPlatformBranding(),
+  ]);
+
+  const today = todayInHaiti();
+  const selectedDate = searchParams.date;
+  const dateMatches = selectedDate ? await getPublicMatchesForDate(selectedDate, competitionId) : null;
+
   const activeTab: Tab = TABS.includes(searchParams.tab as Tab) ? (searchParams.tab as Tab) : "today";
   const lists: Record<Tab, PublicScoreMatch[]> = { past: feed.past, today: feed.today, next: feed.next };
-  const activeList = lists[activeTab];
+  const activeList = dateMatches ?? lists[activeTab];
+
+  const activeCompetition = competitions.find((c) => c.id === competitionId) ?? (competitions.length === 1 ? competitions[0] : null);
+  const allMatches = [...feed.live, ...feed.today, ...feed.past, ...feed.next];
+  const teamNames = new Set<string>();
+  for (const m of allMatches) {
+    teamNames.add(m.homeTeam.name);
+    teamNames.add(m.awayTeam.name);
+  }
 
   return (
     <div className="min-h-screen bg-surface-950 pb-28 text-white">
-      <header className="border-b border-white/[0.06] bg-surface-950/90 px-5 pb-6 pt-8 backdrop-blur-xl">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="eyebrow">Championnat Interzone Du Nord&apos;Ouest</p>
-          <h1 className="mt-2 font-display text-3xl font-black tracking-tight text-brand-400">GGScoreLive</h1>
+      <header className="border-b border-white/[0.06] bg-surface-950/90 px-4 pb-4 pt-6 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
+          <h1 className="font-display text-lg font-black tracking-tight text-brand-400">GGScoreLive</h1>
+          <ScoresSearch competitionId={competitionId} />
         </div>
       </header>
 
-      <main className="mx-auto flex max-w-2xl flex-col gap-8 px-4 pt-6">
+      <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 pt-5">
+        <ScoresHero
+          organizationName={platform.organizationName}
+          competitionName={activeCompetition?.name ?? null}
+          liveCount={feed.live.length}
+          teamCount={teamNames.size}
+          nextMatch={feed.next[0] ?? null}
+        />
+
+        <CompetitionSelector competitions={competitions} activeCompetitionId={competitionId} searchParams={searchParams} />
+
         {feed.live.length > 0 && (
           <section id="live-now" className="flex flex-col gap-3">
             <div className="flex items-center gap-2 px-1">
@@ -48,22 +86,36 @@ export default async function GGScoreLivePage({ searchParams }: { searchParams: 
         )}
 
         <section className="flex flex-col gap-3">
-          <div className="flex gap-1 rounded-xl border border-white/[0.08] bg-white/[0.03] p-1">
-            {TABS.map((tab) => (
-              <Link
-                key={tab}
-                href={`/scores?tab=${tab}`}
-                className={`flex-1 rounded-lg py-2 text-center font-display text-xs font-bold uppercase tracking-wide transition ${
-                  tab === activeTab ? "bg-brand-400 text-surface-950" : "text-white/45 hover:text-white/80"
-                }`}
-              >
-                {TAB_LABEL[tab]}
+          <DateStrip today={today} selectedDate={selectedDate} searchParams={searchParams} />
+
+          {!selectedDate && (
+            <div className="flex gap-1 rounded-xl border border-white/[0.08] bg-white/[0.03] p-1">
+              {TABS.map((tab) => (
+                <Link
+                  key={tab}
+                  href={`/scores?tab=${tab}${competitionId ? `&competition=${competitionId}` : ""}`}
+                  className={`flex-1 rounded-lg py-2 text-center font-display text-xs font-bold uppercase tracking-wide transition ${
+                    tab === activeTab ? "bg-brand-400 text-surface-950" : "text-white/45 hover:text-white/80"
+                  }`}
+                >
+                  {TAB_LABEL[tab]}
+                </Link>
+              ))}
+            </div>
+          )}
+          {selectedDate && (
+            <div className="flex items-center justify-between px-1">
+              <p className="text-xs font-semibold text-white/45">
+                Match {new Date(`${selectedDate}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
+              </p>
+              <Link href={competitionId ? `/scores?competition=${competitionId}` : "/scores"} className="text-xs font-semibold text-brand-400">
+                Efase dat la
               </Link>
-            ))}
-          </div>
+            </div>
+          )}
 
           {activeList.length === 0 ? (
-            <EmptyState compact icon={CalendarDays} title="Anyen isit la" description={EMPTY_COPY[activeTab]} />
+            <EmptyState compact icon={CalendarDays} title="Anyen isit la" description={selectedDate ? "Pa gen match pwograme jou sa a." : EMPTY_COPY[activeTab]} />
           ) : (
             <div className="flex flex-col gap-2">
               {activeList.map((m) => (
@@ -74,49 +126,7 @@ export default async function GGScoreLivePage({ searchParams }: { searchParams: 
         </section>
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-surface-950/95 backdrop-blur-xl">
-        <div className="relative mx-auto flex max-w-2xl items-center justify-between px-6 py-2.5">
-          <NavItem icon={Home} label="Home" active />
-          <Link href="/scores/competition" className="flex flex-col items-center gap-1 px-2 py-1">
-            <Trophy size={20} className="text-white/50" />
-            <span className="text-[10px] font-semibold text-white/50">Competition</span>
-          </Link>
-
-          <Link
-            href={feed.live.length > 0 ? "#live-now" : "#"}
-            aria-disabled={feed.live.length === 0}
-            className={`-mt-7 flex h-14 w-14 flex-none flex-col items-center justify-center gap-0.5 rounded-full border-4 border-surface-950 font-display text-[9px] font-bold uppercase tracking-wide shadow-lg transition ${
-              feed.live.length > 0 ? "bg-brand-400 text-surface-950" : "pointer-events-none bg-white/10 text-white/30"
-            }`}
-          >
-            <Radio size={16} />
-            Live
-          </Link>
-
-          <NavItem icon={Newspaper} label="News" soon />
-          <NavItem icon={User} label="Account" soon />
-        </div>
-      </nav>
-    </div>
-  );
-}
-
-function NavItem({
-  icon: Icon,
-  label,
-  active = false,
-  soon = false,
-}: {
-  icon: typeof Home;
-  label: string;
-  active?: boolean;
-  soon?: boolean;
-}) {
-  return (
-    <div className={`flex flex-col items-center gap-1 px-2 py-1 ${soon ? "opacity-40" : ""}`}>
-      <Icon size={20} className={active ? "text-brand-400" : "text-white/50"} />
-      <span className={`text-[10px] font-semibold ${active ? "text-brand-400" : "text-white/50"}`}>{label}</span>
-      {soon && <span className="text-[7px] font-bold uppercase tracking-wide text-white/25">Byento</span>}
+      <PublicNav active="home" hasLive={feed.live.length > 0} />
     </div>
   );
 }
