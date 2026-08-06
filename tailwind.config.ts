@@ -8,14 +8,22 @@ const config: Config = {
         brand: {
           50: "#FFF8E8",
           100: "#FFECC0",
-          400: "#FFB62E",
+          // Wired to the Brand Studio's Primary Color / Button Color tokens
+          // (--ggsp-color-primary-rgb). Falls back to the original hardcoded
+          // swatch (255 182 46 = #FFB62E) when no ThemeScope sets the var,
+          // so nothing changes visually until platform/competition branding
+          // is actually applied. rgb(...)/<alpha-value> keeps opacity
+          // modifiers (bg-brand-400/25) working — see lib/color-utils.ts.
+          400: "rgb(var(--ggsp-color-primary-rgb, 255 182 46) / <alpha-value>)",
           500: "#F59E0B",
           600: "#D97706",
         },
         surface: {
-          950: "#07090D",
+          // Wired to the Brand Studio's Background Color token.
+          950: "rgb(var(--ggsp-color-background-rgb, 7 9 13) / <alpha-value>)",
           900: "#0D1117",
-          850: "#111720",
+          // Wired to the Brand Studio's Surface/Card Color token.
+          850: "rgb(var(--ggsp-color-surface-rgb, 17 23 32) / <alpha-value>)",
           800: "#161D27",
           700: "#222C39",
         },
@@ -35,9 +43,10 @@ const config: Config = {
           line: "#E1E7EC",
         },
         status: {
-          submitted: "#22C55E",
-          waiting: "#EAB308",
-          correction: "#EF4444",
+          // Wired to the Brand Studio's Success / Warning / Error Color tokens.
+          submitted: "rgb(var(--ggsp-color-success-rgb, 34 197 94) / <alpha-value>)",
+          waiting: "rgb(var(--ggsp-color-warning-rgb, 234 179 8) / <alpha-value>)",
+          correction: "rgb(var(--ggsp-color-error-rgb, 239 68 68) / <alpha-value>)",
         },
       },
       fontFamily: {
