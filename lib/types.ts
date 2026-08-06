@@ -319,6 +319,12 @@ export interface Match {
   assistant_referee_2_name?: string | null;
   fourth_official_name?: string | null;
   var_official_name?: string | null;
+  // Sprint 4 — Streaming Experience (supabase/migrations/034_streaming.sql).
+  // One watch link per match, same "plain nullable column" pattern as venue
+  // and referee_name above. `is_featured_broadcast` is an editorial pin,
+  // independent of kickoff time or live_status.
+  stream_url?: string | null;
+  is_featured_broadcast?: boolean;
 }
 
 export interface MatchEvent {

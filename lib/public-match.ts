@@ -104,6 +104,7 @@ export type PublicMatchView = {
   venueName: string | null;
   venueCity: string | null;
   refereeName: string | null;
+  streamUrl: string | null;
   events: PublicMatchEvent[];
   homeStatistics: PublicMatchStatistics | null;
   awayStatistics: PublicMatchStatistics | null;
@@ -176,7 +177,7 @@ export async function getPublicMatchView(matchId: string): Promise<PublicMatchVi
   const { data: matchRow } = await supabase
     .from("matches")
     .select(
-      `id, competition_id, group_id, round, match_date, match_time, live_status, home_score, away_score, referee_name, home_team_id, away_team_id,
+      `id, competition_id, group_id, round, match_date, match_time, live_status, home_score, away_score, referee_name, stream_url, home_team_id, away_team_id,
        competition:competitions(name, logo_url, organization:organizations(name, logo_url)),
        home_team:teams!matches_home_team_id_fkey(name, logo_url, coach_name, coach_photo_url),
        away_team:teams!matches_away_team_id_fkey(name, logo_url, coach_name, coach_photo_url),
@@ -203,6 +204,7 @@ export async function getPublicMatchView(matchId: string): Promise<PublicMatchVi
     home_score: number | null;
     away_score: number | null;
     referee_name: string | null;
+    stream_url: string | null;
     home_team_id: string;
     away_team_id: string;
     competition: { name: string; logo_url: string | null; organization: { name: string; logo_url: string | null } | null } | null;
@@ -288,6 +290,7 @@ export async function getPublicMatchView(matchId: string): Promise<PublicMatchVi
     venueName: match.venue_record?.name ?? null,
     venueCity: match.venue_record?.city ?? null,
     refereeName: match.referee_name ?? null,
+    streamUrl: match.stream_url,
     events: publicEvents,
     homeStatistics: toPublicStatistics(statsByTeam.get(match.home_team_id)),
     awayStatistics: toPublicStatistics(statsByTeam.get(match.away_team_id)),

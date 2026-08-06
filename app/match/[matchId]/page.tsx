@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin, ShieldCheck, Radio, Trophy, CalendarDays } from "lucide-react";
+import { MapPin, ShieldCheck, Radio, Trophy, CalendarDays, Play } from "lucide-react";
 import { getPublicMatchView, type PublicMatchEvent, type PublicMatchStatistics, type PublicMatchTeam } from "@/lib/public-match";
 import { getPublicScoresFeed, getPublicRelatedMatches } from "@/lib/public-scores";
 import { getPublicGroups, type PublicGroup } from "@/lib/public-groups";
@@ -133,6 +133,27 @@ export default async function PublicMatchPage({ params }: { params: { matchId: s
             </span>
           )}
         </div>
+
+        {view.streamUrl && (
+          <a
+            href={view.streamUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold uppercase tracking-wide transition ${
+              isLive ? "bg-red-500 text-white hover:bg-red-400" : "bg-white/10 text-white/80 hover:bg-white/15"
+            }`}
+          >
+            {isLive ? (
+              <>
+                <Radio size={14} className="animate-pulse" /> Gade Live
+              </>
+            ) : (
+              <>
+                <Play size={14} /> {view.phase === "upcoming" ? "Kanal Stream" : "Gade Replay"}
+              </>
+            )}
+          </a>
+        )}
 
         {view.phase !== "upcoming" && (
           <>

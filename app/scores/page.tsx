@@ -1,4 +1,4 @@
-import { CalendarDays, Radio } from "lucide-react";
+import { CalendarDays, Radio, Tv } from "lucide-react";
 import { getPublicScoresFeed, getPublicMatchesForDate, listPublicCompetitions, todayInHaiti, type PublicScoreMatch } from "@/lib/public-scores";
 import { getPlatformBranding } from "@/lib/branding";
 import MatchRow from "@/components/scores/MatchRow";
@@ -88,9 +88,14 @@ export default async function GGScoreLivePage({
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between px-1">
             <h2 className="font-display text-sm font-bold uppercase tracking-wide">Match</h2>
-            <Link href="/scores/calendar" className="flex items-center gap-1.5 text-xs font-semibold text-brand-400">
-              <CalendarDays size={13} /> Tout kalandriye a
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link href="/scores/streaming" className="flex items-center gap-1.5 text-xs font-semibold text-brand-400">
+                <Tv size={13} /> Streaming
+              </Link>
+              <Link href="/scores/calendar" className="flex items-center gap-1.5 text-xs font-semibold text-brand-400">
+                <CalendarDays size={13} /> Tout kalandriye a
+              </Link>
+            </div>
           </div>
           <DateStrip today={today} selectedDate={selectedDate} searchParams={searchParams} />
 

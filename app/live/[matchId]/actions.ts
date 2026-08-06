@@ -330,6 +330,9 @@ export async function setManualScore(matchId: string, homeScore: number, awaySco
  * Match Header — venue, referee, and the rest of the officiating crew
  * (Sprint 3: assistant referees, fourth official, VAR official — plain
  * nullable columns per product decision, not a separate entities table).
+ * Sprint 4 added the stream watch link and its Featured Broadcasts pin
+ * (migration 034) to this same form, for the same reason: one match, one
+ * of each, no new table.
  */
 export async function updateMatchHeaderInfo(matchId: string, formData: FormData) {
   const { userId } = await requireRole(["broadcast_operator", "admin", "super_admin"]);
@@ -341,6 +344,8 @@ export async function updateMatchHeaderInfo(matchId: string, formData: FormData)
   const fourthOfficialName = str("fourthOfficialName");
   const varOfficialName = str("varOfficialName");
   const venueId = str("venueId");
+  const streamUrl = str("streamUrl");
+  const isFeaturedBroadcast = formData.get("isFeaturedBroadcast") === "on";
 
   const supabase = supabaseAdmin();
   const { error } = await supabase
@@ -353,6 +358,8 @@ export async function updateMatchHeaderInfo(matchId: string, formData: FormData)
       assistant_referee_2_name: assistantReferee2Name,
       fourth_official_name: fourthOfficialName,
       var_official_name: varOfficialName,
+      stream_url: streamUrl,
+      is_featured_broadcast: isFeaturedBroadcast,
     })
     .eq("id", matchId);
   revalidateMatch(matchId);

@@ -51,6 +51,7 @@ describe("migration integrity", () => {
       "031_motion_expansion_v2.sql",
       "032_branding_version_history.sql",
       "033_news_center.sql",
+      "034_streaming.sql",
     ]);
   });
 
