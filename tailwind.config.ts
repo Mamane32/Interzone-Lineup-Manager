@@ -8,15 +8,28 @@ const config: Config = {
         brand: {
           50: "#FFF8E8",
           100: "#FFECC0",
-          // Wired to the Brand Studio's Primary Color / Button Color tokens
-          // (--ggsp-color-primary-rgb). Falls back to the original hardcoded
-          // swatch (255 182 46 = #FFB62E) when no ThemeScope sets the var,
-          // so nothing changes visually until platform/competition branding
-          // is actually applied. rgb(...)/<alpha-value> keeps opacity
-          // modifiers (bg-brand-400/25) working — see lib/color-utils.ts.
-          400: "rgb(var(--ggsp-color-primary-rgb, 255 182 46) / <alpha-value>)",
+          // Wired to the Brand Studio's Primary Color token
+          // (--ggsp-color-primary-rgb). Fallback (245 166 35 = #f5a623)
+          // matches DEFAULT_PLATFORM_BRANDING/the platform_branding row's
+          // actual default — not the pre-Brand-Studio hardcoded #FFB62E —
+          // so a page with no ThemeScope still renders the platform's real
+          // configured color, not a stale placeholder. rgb(...)/<alpha-value>
+          // keeps opacity modifiers (bg-brand-400/25) working — see
+          // lib/color-utils.ts.
+          400: "rgb(var(--ggsp-color-primary-rgb, 245 166 35) / <alpha-value>)",
           500: "#F59E0B",
           600: "#D97706",
+        },
+        // Secondary / Accent — additive, opt-in color groups (bg-secondary-*,
+        // bg-accent-*). Nothing in the app used these class names before, so
+        // introducing them changes no existing page; components adopt them
+        // deliberately going forward. Same CSS-var + fallback pattern as
+        // brand/surface/status, fallback matching DEFAULT_PLATFORM_BRANDING.
+        secondary: {
+          400: "rgb(var(--ggsp-color-secondary-rgb, 13 17 23) / <alpha-value>)",
+        },
+        accent: {
+          400: "rgb(var(--ggsp-color-accent-rgb, 34 197 94) / <alpha-value>)",
         },
         surface: {
           // Wired to the Brand Studio's Background Color token.
@@ -43,10 +56,11 @@ const config: Config = {
           line: "#E1E7EC",
         },
         status: {
-          // Wired to the Brand Studio's Success / Warning / Error Color tokens.
+          // Wired to the Brand Studio's Success / Warning / Error / Info Color tokens.
           submitted: "rgb(var(--ggsp-color-success-rgb, 34 197 94) / <alpha-value>)",
           waiting: "rgb(var(--ggsp-color-warning-rgb, 234 179 8) / <alpha-value>)",
           correction: "rgb(var(--ggsp-color-error-rgb, 239 68 68) / <alpha-value>)",
+          info: "rgb(var(--ggsp-color-info-rgb, 56 189 248) / <alpha-value>)",
         },
       },
       fontFamily: {
