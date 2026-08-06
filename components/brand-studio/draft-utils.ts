@@ -59,7 +59,7 @@ export function draftToCssVars(draft: BrandDraft): Record<string, string> {
       vars[token.cssVar] = value;
       vars[`${token.cssVar}-rgb`] = hexToRgbTriplet(value);
     } else {
-      vars[token.cssVar] = typeof value === "number" ? `${value}px` : String(value);
+      vars[token.cssVar] = typeof value === "number" ? `${value}${token.unit ?? "px"}` : String(value);
     }
   }
   return vars;

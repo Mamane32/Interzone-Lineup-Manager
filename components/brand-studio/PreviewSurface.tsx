@@ -14,6 +14,7 @@ import type { ReadinessReport } from "@/lib/readiness";
 import type { SystemState } from "@/components/live/ProductionStatusPanel";
 import { draftToCssVars, draftToPlatformBranding, type BrandDraft } from "./draft-utils";
 import type { PreviewTab } from "./preview-types";
+import TypographySpecimen from "./TypographySpecimen";
 
 const FONT_STACKS: Record<string, string> = {
   Inter: "'Inter', system-ui, sans-serif",
@@ -50,15 +51,13 @@ const SAMPLE_USER = { name: "Alex Morgan", email: "alex@example.com", role: "Sup
 /**
  * The actual branded content for one preview tab — extracted out of
  * LivePreview so it can render in two places with identical output: (1)
- * inside LivePreview's own DeviceFrame for desktop/tablet widths, where
- * Tailwind's `lg:`/`sm:` breakpoints read the *real* browser window and
- * are therefore accurate anyway, and (2) inside
- * app/admin/brand-studio/preview (an iframe), which is what the Mobile
- * tab actually uses — an iframe gets its own independent viewport, so
- * AdminShell's sidebar-vs-hamburger `lg:` breakpoint (and every other
- * responsive class) evaluates against the *frame's* width instead of the
- * parent tab's. That's what fixes menus/cards clipping instead of
- * reflowing in the old fixed-width, non-iframe Mobile preview.
+ * inside app/brand-studio-preview — a real, separate document loaded in an
+ * <iframe> by LivePreview.tsx, kept in sync purely via postMessage. Every
+ * tab gets its own independent viewport this way, so AdminShell's
+ * sidebar-vs-hamburger `lg:` breakpoint (and every other responsive class)
+ * evaluates against the *frame's* actual width instead of the browser
+ * window's — what fixes menus/cards clipping instead of reflowing in the
+ * old fixed-width, non-iframe preview.
  */
 export default function PreviewSurface({ draft, saved, tab }: { draft: BrandDraft; saved: PlatformBranding; tab: PreviewTab }) {
   const branding = useMemo(() => draftToPlatformBranding(draft, saved), [draft, saved]);
@@ -67,6 +66,10 @@ export default function PreviewSurface({ draft, saved, tab }: { draft: BrandDraf
   const fontFamily = typeof draft.fontFamily === "string" ? FONT_STACKS[draft.fontFamily] ?? FONT_STACKS.Inter : FONT_STACKS.Inter;
   const shadowValue = typeof draft.shadowStyle === "string" ? SHADOW_VALUES[draft.shadowStyle] ?? SHADOW_VALUES.soft : SHADOW_VALUES.soft;
   const radiusPx = typeof draft.borderRadius === "number" ? draft.borderRadius : 16;
+  const letterSpacingEm = typeof draft.letterSpacing === "number" ? draft.letterSpacing : 0;
+  const lineHeightValue = typeof draft.lineHeight === "number" ? draft.lineHeight : 1.6;
+  const paragraphSpacingPx = typeof draft.paragraphSpacing === "number" ? draft.paragraphSpacing : 16;
+  const textTransformValue = typeof draft.textTransform === "string" ? draft.textTransform : "none";
 
   const shellIdentity = { orgName: branding.organizationName, subtitle: branding.organizationSubtitle, logoUrl: branding.organizationLogoUrl };
   const heroIdentity = { organizationName: branding.organizationName, organizationSubtitle: branding.organizationSubtitle, organizationLogoUrl: branding.organizationLogoUrl };
@@ -92,12 +95,14 @@ export default function PreviewSurface({ draft, saved, tab }: { draft: BrandDraf
          need this: the six wired swatches (tailwind.config.ts) already
          read their CSS vars directly. */}
       <style>{`
-        .ggsp-preview-scope { font-family: ${fontFamily}; }
+        .ggsp-preview-scope { font-family: ${fontFamily}; letter-spacing: ${letterSpacingEm}em; line-height: ${lineHeightValue}; }
         .ggsp-preview-scope .font-display,
         .ggsp-preview-scope .font-body { font-family: ${fontFamily} !important; }
         .ggsp-preview-scope [class*="rounded-xl"] { border-radius: ${radiusPx}px !important; }
         .ggsp-preview-scope [class*="shadow-glow"],
         .ggsp-preview-scope [class*="shadow-panel"] { box-shadow: ${shadowValue} !important; }
+        .ggsp-preview-scope p { margin-bottom: ${paragraphSpacingPx}px; }
+        .ggsp-preview-scope .font-display { text-transform: ${textTransformValue}; }
       `}</style>
 
       {tab === "login" && (
@@ -137,6 +142,12 @@ export default function PreviewSurface({ draft, saved, tab }: { draft: BrandDraf
       {tab === "public" && (
         <div className="min-h-full bg-surface-950">
           <PlatformHero platform={heroIdentity} className="min-h-full" />
+        </div>
+      )}
+
+      {tab === "typography" && (
+        <div className="min-h-full bg-surface-950 text-white">
+          <TypographySpecimen draft={draft} />
         </div>
       )}
     </ThemeScope>

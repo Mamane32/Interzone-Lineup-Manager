@@ -127,6 +127,33 @@ function TokenField({
   }
 
   if (token.inputType === "number") {
+    const numValue = typeof value === "number" ? value : typeof token.default === "number" ? token.default : 0;
+    if (token.min !== undefined && token.max !== undefined) {
+      return (
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-baseline justify-between gap-2">
+            <label htmlFor={`token-${token.id}`} className="text-sm font-medium text-white/70">
+              {token.label}
+            </label>
+            <span className="font-mono text-xs text-white/50">
+              {numValue}
+              {token.unit}
+            </span>
+          </div>
+          <input
+            id={`token-${token.id}`}
+            type="range"
+            min={token.min}
+            max={token.max}
+            step={token.step ?? 1}
+            value={numValue}
+            onChange={(e) => onChange(token.id, Number(e.target.value))}
+            className="w-full accent-brand-400"
+          />
+          {token.helperText && <span className="text-[10px] leading-tight text-white/30">{token.helperText}</span>}
+        </div>
+      );
+    }
     return (
       <div className="flex flex-col gap-1.5">
         <FieldLabel token={token} />

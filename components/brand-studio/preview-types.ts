@@ -2,7 +2,7 @@
  * and app/admin/brand-studio/preview (the iframe's own document) — kept in
  * one file so the two can never drift apart on tab ids or viewport widths. */
 
-export type PreviewTab = "login" | "dashboard" | "broadcast" | "public" | "mobile";
+export type PreviewTab = "login" | "dashboard" | "broadcast" | "public" | "mobile" | "typography";
 export type Viewport = "desktop" | "tablet" | "mobile";
 
 export const PREVIEW_TABS: { id: PreviewTab; label: string }[] = [
@@ -11,6 +11,7 @@ export const PREVIEW_TABS: { id: PreviewTab; label: string }[] = [
   { id: "broadcast", label: "Broadcast Control Room" },
   { id: "public", label: "Public Website" },
   { id: "mobile", label: "Mobile" },
+  { id: "typography", label: "Typography" },
 ];
 
 export const VIEWPORT_WIDTH: Record<Viewport, number> = {

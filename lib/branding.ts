@@ -128,6 +128,11 @@ export interface PlatformBranding {
   fontWeight: string;
   headingStyle: string;
   textStyle: string;
+  letterSpacing: number;
+  lineHeight: number;
+  paragraphSpacing: number;
+  textTransform: string;
+  fontSizeScale: number;
 
   // Layout
   logoSize: number;
@@ -185,6 +190,11 @@ export const DEFAULT_PLATFORM_BRANDING: PlatformBranding = {
   fontWeight: "normal",
   headingStyle: "display",
   textStyle: "regular",
+  letterSpacing: 0,
+  lineHeight: 1.6,
+  paragraphSpacing: 16,
+  textTransform: "none",
+  fontSizeScale: 1,
 
   logoSize: 40,
   logoPadding: 8,
@@ -248,6 +258,11 @@ function rowToPlatformBranding(data: Record<string, unknown>): PlatformBranding 
     fontWeight: str(data.font_weight, d.fontWeight),
     headingStyle: str(data.heading_style, d.headingStyle),
     textStyle: str(data.text_style, d.textStyle),
+    letterSpacing: num(data.letter_spacing_em as number, d.letterSpacing),
+    lineHeight: num(data.line_height as number, d.lineHeight),
+    paragraphSpacing: num(data.paragraph_spacing_px as number, d.paragraphSpacing),
+    textTransform: str(data.text_transform, d.textTransform),
+    fontSizeScale: num(data.font_size_scale as number, d.fontSizeScale),
 
     logoSize: num(data.logo_size as number, d.logoSize),
     logoPadding: num(data.logo_padding as number, d.logoPadding),
@@ -522,7 +537,7 @@ export function platformBrandingToCssVars(branding: PlatformBranding): Record<st
       vars[token.cssVar] = value;
       vars[`${token.cssVar}-rgb`] = hexToRgbTriplet(value);
     } else {
-      vars[token.cssVar] = typeof value === "number" ? `${value}px` : String(value);
+      vars[token.cssVar] = typeof value === "number" ? `${value}${token.unit ?? "px"}` : String(value);
     }
   }
   return vars;

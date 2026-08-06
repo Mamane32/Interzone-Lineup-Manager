@@ -45,6 +45,7 @@ describe("migration integrity", () => {
       "025_branding_permission_grants.sql",
       "026_platform_brand_asset_bucket.sql",
       "027_platform_color_studio.sql",
+      "028_typography_expansion.sql",
     ]);
   });
 

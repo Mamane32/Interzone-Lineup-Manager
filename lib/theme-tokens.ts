@@ -96,6 +96,12 @@ export interface ThemeToken {
   colorGroup?: ColorGroup;
   /** Which piece of a gradient pair this token is — see ColorRole's doc comment. Only set on the small number of gradient-related tokens. */
   colorRole?: ColorRole;
+  /** CSS unit an `inputType: "number"` token's value is serialized with (draft-utils.ts's draftToCssVars, lib/branding.ts's platformBrandingToCssVars) — defaults to "px" when omitted, matching every number token that predates this field (logoSize, headerHeight, borderRadius, ...). Set "em" or "" (unitless, e.g. a line-height multiplier or a scale ratio) on a token whose CSS property isn't a pixel length. */
+  unit?: "px" | "em" | "";
+  /** Renders as a range slider (ControlPanel's TokenField) instead of a plain number input when both are set. */
+  min?: number;
+  max?: number;
+  step?: number;
 }
 
 export const LEVEL_1_IDENTITY_TOKENS: ThemeToken[] = [
@@ -188,6 +194,11 @@ export const LEVEL_1_TYPOGRAPHY_TOKENS: ThemeToken[] = [
   { id: "fontWeight", label: "Font Weight", category: "typography", studioSection: "typography", level: 1, column: "font_weight", cssVar: "--ggsp-font-weight", inputType: "select", default: "normal", options: ["light", "normal", "medium", "semibold", "bold"] },
   { id: "headingStyle", label: "Heading Style", category: "typography", studioSection: "typography", level: 1, column: "heading_style", cssVar: "--ggsp-heading-style", inputType: "select", default: "display", options: ["display", "condensed", "classic", "uppercase"] },
   { id: "textStyle", label: "Text Style", category: "typography", studioSection: "typography", level: 1, column: "text_style", cssVar: "--ggsp-text-style", inputType: "select", default: "regular", options: ["regular", "relaxed", "compact"] },
+  { id: "letterSpacing", label: "Letter Spacing", category: "typography", studioSection: "typography", level: 1, column: "letter_spacing_em", cssVar: "--ggsp-letter-spacing", inputType: "number", unit: "em", default: 0, min: -0.02, max: 0.15, step: 0.005, helperText: "em · live in the Typography preview" },
+  { id: "lineHeight", label: "Line Height", category: "typography", studioSection: "typography", level: 1, column: "line_height", cssVar: "--ggsp-line-height", inputType: "number", unit: "", default: 1.6, min: 1.1, max: 2, step: 0.05, helperText: "× font size · live in the Typography preview" },
+  { id: "paragraphSpacing", label: "Paragraph Spacing", category: "typography", studioSection: "typography", level: 1, column: "paragraph_spacing_px", cssVar: "--ggsp-paragraph-spacing", inputType: "number", unit: "px", default: 16, min: 0, max: 48, step: 2, helperText: "px between paragraphs · live in the Typography preview" },
+  { id: "textTransform", label: "Text Transform", category: "typography", studioSection: "typography", level: 1, column: "text_transform", cssVar: "--ggsp-text-transform", inputType: "select", default: "none", options: ["none", "uppercase", "lowercase", "capitalize"], helperText: "Applied to headings · live in the Typography preview" },
+  { id: "fontSizeScale", label: "Font Size Scale", category: "typography", studioSection: "typography", level: 1, column: "font_size_scale", cssVar: "--ggsp-font-size-scale", inputType: "number", unit: "", default: 1, min: 0.85, max: 1.3, step: 0.01, helperText: "Reserved — scales the Typography specimen only for now; a sitewide rem-based rollout risks also rescaling spacing/icons that share Tailwind's rem units, so it needs a considered follow-up, not this token alone." },
 ];
 
 export const LEVEL_1_LAYOUT_TOKENS: ThemeToken[] = [
