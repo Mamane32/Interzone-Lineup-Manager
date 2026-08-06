@@ -1,13 +1,19 @@
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin, ShieldCheck, Radio } from "lucide-react";
+import { MapPin, ShieldCheck, Radio, Trophy, CalendarDays } from "lucide-react";
 import { getPublicMatchView, type PublicMatchEvent, type PublicMatchStatistics, type PublicMatchTeam } from "@/lib/public-match";
-import { getPublicScoresFeed } from "@/lib/public-scores";
+import { getPublicScoresFeed, getPublicRelatedMatches } from "@/lib/public-scores";
+import { getPublicGroups, type PublicGroup } from "@/lib/public-groups";
 import { getBaseBranding, withCompetition } from "@/lib/branding";
 import { formatMatchDate } from "@/lib/utils";
 import { EVENT_META } from "@/lib/event-meta";
 import BrandBar from "@/components/live/BrandBar";
 import PublicNav from "@/components/scores/PublicNav";
+import MatchRow from "@/components/scores/MatchRow";
+import TeamCrest from "@/components/scores/TeamCrest";
+import StandingsTable from "@/components/scores/StandingsTable";
+import PublicLineups from "@/components/scores/PublicLineups";
 import { getTheme } from "@/lib/team-theme";
 
 export const dynamic = "force-dynamic";
@@ -48,8 +54,11 @@ const COUNTER_LABELS: { key: keyof PublicMatchStatistics; label: string; suffix?
  * private data) is safe to reuse as-is.
  */
 export default async function PublicMatchPage({ params }: { params: { matchId: string } }) {
-  const [view, feed] = await Promise.all([getPublicMatchView(params.matchId), getPublicScoresFeed()]);
+  const [view, feed, groups] = await Promise.all([getPublicMatchView(params.matchId), getPublicScoresFeed(), getPublicGroups()]);
   if (!view) notFound();
+
+  const group = view.groupId ? groups.find((g) => g.groupId === view.groupId) ?? null : null;
+  const relatedMatches = view.groupId ? await getPublicRelatedMatches(view.groupId, view.matchId) : [];
 
   const branding = withCompetition(getBaseBranding(), {
     name: view.competitionName,
@@ -136,6 +145,23 @@ export default async function PublicMatchPage({ params }: { params: { matchId: s
 
         {view.phase === "upcoming" && (
           <div className="surface-panel p-6 text-center text-sm text-white/50">Kicks off {formatMatchDate(view.matchDate, view.matchTime)}.</div>
+        )}
+
+        <PublicLineups homeTeamName={view.homeTeam.name} awayTeamName={view.awayTeam.name} homeLineup={view.homeLineup} awayLineup={view.awayLineup} />
+
+        {group && <PublicStandingsCard group={group} homeName={view.homeTeam.name} awayName={view.awayTeam.name} />}
+
+        {relatedMatches.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <h2 className="flex items-center gap-1.5 px-1 text-xs font-semibold uppercase tracking-wide text-white/40">
+              <CalendarDays size={13} /> Lòt Match Nan {group?.name ?? "Menm Gwoup"}
+            </h2>
+            <div className="flex flex-col gap-2">
+              {relatedMatches.map((m) => (
+                <MatchRow key={m.matchId} match={m} />
+              ))}
+            </div>
+          </div>
         )}
       </main>
 
@@ -251,6 +277,18 @@ function PublicStatistics({
           <span className="w-10 text-right font-semibold text-white/30">{awayStats.expectedGoals ?? "—"}</span>
         </div>
       </div>
+    </div>
+  );
+}
+
+function PublicStandingsCard({ group, homeName, awayName }: { group: PublicGroup; homeName: string; awayName: string }) {
+  return (
+    <div className="surface-panel overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-white/[0.08] px-4 py-3">
+        <Trophy size={14} className="text-brand-400" />
+        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-brand-400">{group.name}</h2>
+      </div>
+      <StandingsTable group={group} highlightTeamNames={[homeName, awayName]} />
     </div>
   );
 }

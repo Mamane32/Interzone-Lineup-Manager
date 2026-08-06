@@ -122,6 +122,19 @@ export async function getPublicMatchesForDate(date: string, competitionId?: stri
   return ((data ?? []) as unknown as MatchRow[]).filter((r) => r.home_team && r.away_team).map(toPublicScoreMatch);
 }
 
+/** Every other match in the same group — the Live Match Center's "Related Matches" rail. Excludes the match being viewed, chronological. */
+export async function getPublicRelatedMatches(groupId: string, excludeMatchId: string): Promise<PublicScoreMatch[]> {
+  const supabase = supabaseAdmin();
+  const { data } = await supabase
+    .from("matches")
+    .select(MATCH_SELECT)
+    .eq("group_id", groupId)
+    .neq("id", excludeMatchId)
+    .order("match_date", { ascending: true })
+    .order("match_time", { ascending: true });
+  return ((data ?? []) as unknown as MatchRow[]).filter((r) => r.home_team && r.away_team).map(toPublicScoreMatch);
+}
+
 /**
  * Team-name search across every match — GGScoreLive's Search box. A plain
  * ILIKE against the two team-name columns (via a join filter) rather than

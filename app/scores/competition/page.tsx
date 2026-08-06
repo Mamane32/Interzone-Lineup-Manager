@@ -2,8 +2,8 @@ import Link from "next/link";
 import { getPublicGroups, type PublicGroup } from "@/lib/public-groups";
 import { resolveQuarterfinals, type ResolvedSlot } from "@/lib/bracket";
 import { getPublicScoresFeed } from "@/lib/public-scores";
-import TeamCrest from "@/components/scores/TeamCrest";
 import BracketSlot from "@/components/scores/BracketSlot";
+import StandingsTable from "@/components/scores/StandingsTable";
 import PublicNav from "@/components/scores/PublicNav";
 import EmptyState from "@/components/ui/EmptyState";
 import { Trophy } from "lucide-react";
@@ -84,44 +84,7 @@ function GroupTable({ group }: { group: PublicGroup }) {
       <div className="border-b border-white/[0.08] px-4 py-3">
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-brand-400">{group.name}</h2>
       </div>
-      {group.standings.length === 0 ? (
-        <p className="p-4 text-sm text-white/35">Pa gen match pwograme nan gwoup sa a ankò.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="text-white/35">
-              <tr>
-                <th className="px-4 py-2 font-medium">Ekip</th>
-                <th className="px-2 py-2 text-center font-medium">MJ</th>
-                <th className="px-2 py-2 text-center font-medium">V</th>
-                <th className="px-2 py-2 text-center font-medium">N</th>
-                <th className="px-2 py-2 text-center font-medium">D</th>
-                <th className="px-2 py-2 text-center font-medium">DIF</th>
-                <th className="px-3 py-2 text-center font-medium">PTS</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/[0.06]">
-              {group.standings.map((row, i) => (
-                <tr key={row.teamId}>
-                  <td className="flex items-center gap-2 px-4 py-2.5">
-                    <span className="w-3 flex-none text-white/30 tabular-nums">{i + 1}</span>
-                    <TeamCrest name={row.teamName} logoUrl={row.logoUrl} size={22} />
-                    <span className="truncate font-medium text-white/90">{row.teamName}</span>
-                  </td>
-                  <td className="px-2 py-2.5 text-center tabular-nums text-white/60">{row.played}</td>
-                  <td className="px-2 py-2.5 text-center tabular-nums text-white/60">{row.won}</td>
-                  <td className="px-2 py-2.5 text-center tabular-nums text-white/60">{row.drawn}</td>
-                  <td className="px-2 py-2.5 text-center tabular-nums text-white/60">{row.lost}</td>
-                  <td className="px-2 py-2.5 text-center tabular-nums text-white/60">
-                    {row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}
-                  </td>
-                  <td className="px-3 py-2.5 text-center font-display font-bold tabular-nums text-white">{row.points}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <StandingsTable group={group} />
     </div>
   );
 }
