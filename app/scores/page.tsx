@@ -86,6 +86,12 @@ export default async function GGScoreLivePage({
         )}
 
         <section className="flex flex-col gap-3">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="font-display text-sm font-bold uppercase tracking-wide">Match</h2>
+            <Link href="/scores/calendar" className="flex items-center gap-1.5 text-xs font-semibold text-brand-400">
+              <CalendarDays size={13} /> Tout kalandriye a
+            </Link>
+          </div>
           <DateStrip today={today} selectedDate={selectedDate} searchParams={searchParams} />
 
           {!selectedDate && (

@@ -28,15 +28,15 @@ function completeRoundRobin(teamIds: string[]) {
 function buildGroup(name: string, teamNames: string[]): PublicGroup {
   const teams = teamNames.map((n, i) => team(`${name}-${i}`, n));
   const matches = completeRoundRobin(teams.map((t) => t.id));
-  return { groupId: `group-${name}`, name: `Gwoup ${name}`, competitionName: "Interzone", standings: computeStandings(teams, matches) };
+  return { groupId: `group-${name}`, name: `Gwoup ${name}`, competitionId: null, competitionName: "Interzone", standings: computeStandings(teams, matches) };
 }
 
 describe("resolveQuarterfinals", () => {
   it("leaves every slot as a placeholder when no group is complete", () => {
     const groups: PublicGroup[] = [
-      { groupId: "a", name: "Gwoup A", competitionName: null, standings: computeStandings([team("a1", "Kriminal FC")], []) },
-      { groupId: "b", name: "Gwoup B", competitionName: null, standings: computeStandings([team("b1", "Jean Rabel FC")], []) },
-      { groupId: "c", name: "Gwoup C", competitionName: null, standings: computeStandings([team("c1", "Real Cassave FC")], []) },
+      { groupId: "a", name: "Gwoup A", competitionId: null, competitionName: null, standings: computeStandings([team("a1", "Kriminal FC")], []) },
+      { groupId: "b", name: "Gwoup B", competitionId: null, competitionName: null, standings: computeStandings([team("b1", "Jean Rabel FC")], []) },
+      { groupId: "c", name: "Gwoup C", competitionId: null, competitionName: null, standings: computeStandings([team("c1", "Real Cassave FC")], []) },
     ];
 
     const qfs = resolveQuarterfinals(groups);
@@ -46,8 +46,8 @@ describe("resolveQuarterfinals", () => {
 
   it("resolves group-position slots as soon as that specific group finishes, independent of the others", () => {
     const groupA = buildGroup("A", ["Kriminal FC", "Desmelus FC", "La Tortue FC", "Desroulins FC", "Legends FC"]);
-    const groupBIncomplete: PublicGroup = { groupId: "b", name: "Gwoup B", competitionName: null, standings: computeStandings([team("b1", "Jean Rabel FC")], []) };
-    const groupCIncomplete: PublicGroup = { groupId: "c", name: "Gwoup C", competitionName: null, standings: computeStandings([team("c1", "Real Cassave FC")], []) };
+    const groupBIncomplete: PublicGroup = { groupId: "b", name: "Gwoup B", competitionId: null, competitionName: null, standings: computeStandings([team("b1", "Jean Rabel FC")], []) };
+    const groupCIncomplete: PublicGroup = { groupId: "c", name: "Gwoup C", competitionId: null, competitionName: null, standings: computeStandings([team("c1", "Real Cassave FC")], []) };
 
     const qfs = resolveQuarterfinals([groupA, groupBIncomplete, groupCIncomplete]);
 

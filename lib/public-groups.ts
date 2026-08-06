@@ -12,6 +12,7 @@ import type { MatchLiveStatus } from "@/lib/types";
 export type PublicGroup = {
   groupId: string;
   name: string;
+  competitionId: string | null;
   competitionName: string | null;
   standings: StandingRow[];
 };
@@ -21,14 +22,14 @@ export async function getPublicGroups(): Promise<PublicGroup[]> {
 
   const { data: groups } = await supabase
     .from("competition_groups")
-    .select("id, name, display_order, status, stage:stages(division:divisions(season:seasons(competition:competitions(name))))")
+    .select("id, name, display_order, status, stage:stages(division:divisions(season:seasons(competition:competitions(id, name))))")
     .eq("status", "active")
     .order("display_order");
 
   const groupList = (groups ?? []) as unknown as {
     id: string;
     name: string;
-    stage: { division: { season: { competition: { name: string } | null } | null } | null } | null;
+    stage: { division: { season: { competition: { id: string; name: string } | null } | null } | null } | null;
   }[];
 
   if (groupList.length === 0) return [];
@@ -84,6 +85,7 @@ export async function getPublicGroups(): Promise<PublicGroup[]> {
     return {
       groupId: g.id,
       name: g.name,
+      competitionId: g.stage?.division?.season?.competition?.id ?? null,
       competitionName: g.stage?.division?.season?.competition?.name ?? null,
       standings,
     };

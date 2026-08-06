@@ -15,6 +15,7 @@ export type PublicScoreMatch = {
   matchId: string;
   competitionId: string | null;
   competitionName: string | null;
+  groupId: string | null;
   round: string | null;
   matchDate: string;
   matchTime: string;
@@ -35,7 +36,7 @@ export type PublicScoresFeed = {
 
 export type PublicCompetitionOption = { id: string; name: string };
 
-const MATCH_SELECT = `id, competition_id, round, match_date, match_time, live_status, home_score, away_score,
+const MATCH_SELECT = `id, competition_id, group_id, round, match_date, match_time, live_status, home_score, away_score,
        competition:competitions(name),
        home_team:teams!matches_home_team_id_fkey(name, logo_url),
        away_team:teams!matches_away_team_id_fkey(name, logo_url)`;
@@ -43,6 +44,7 @@ const MATCH_SELECT = `id, competition_id, round, match_date, match_time, live_st
 type MatchRow = {
   id: string;
   competition_id: string | null;
+  group_id: string | null;
   round: string | null;
   match_date: string;
   match_time: string;
@@ -67,6 +69,7 @@ function toPublicScoreMatch(r: MatchRow): PublicScoreMatch {
     matchId: r.id,
     competitionId: r.competition_id,
     competitionName: r.competition?.name ?? null,
+    groupId: r.group_id,
     round: r.round,
     matchDate: r.match_date,
     matchTime: r.match_time,
@@ -152,6 +155,24 @@ export async function searchPublicMatches(query: string, competitionId?: string)
         r.round?.toLowerCase().includes(needle)
     )
     .map(toPublicScoreMatch);
+}
+
+/**
+ * Every match, chronological — the Match Calendar's (Sprint 4 Phase 2)
+ * base query. Team filtering happens in the page rather than here: there's
+ * no indexed "team name" column to filter on server-side without an extra
+ * join, and the platform's total match count is small enough that
+ * fetching competition/group-scoped matches once and filtering by team in
+ * memory (same approach searchPublicMatches already takes) is simpler
+ * than adding one.
+ */
+export async function getPublicCalendarMatches(filters: { competitionId?: string; groupId?: string } = {}): Promise<PublicScoreMatch[]> {
+  const supabase = supabaseAdmin();
+  let query = supabase.from("matches").select(MATCH_SELECT).order("match_date", { ascending: true }).order("match_time", { ascending: true });
+  if (filters.competitionId) query = query.eq("competition_id", filters.competitionId);
+  if (filters.groupId) query = query.eq("group_id", filters.groupId);
+  const { data } = await query;
+  return ((data ?? []) as unknown as MatchRow[]).filter((r) => r.home_team && r.away_team).map(toPublicScoreMatch);
 }
 
 /** Every active competition, for the home page's Competition Selector. Archived competitions are excluded — same "active" convention CompetitionsExplorer/getPublicGroups already use, and a null status (pre-Foundation-migration rows) counts as active. */
