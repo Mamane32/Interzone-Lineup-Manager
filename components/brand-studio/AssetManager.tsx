@@ -1,11 +1,22 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Download, Moon, Sun, Trash2, Upload, X } from "lucide-react";
+import { Download, FileText, Moon, Sun, Trash2, Upload, X } from "lucide-react";
 import Button from "@/components/ui/Button";
 import type { ThemeToken } from "@/lib/theme-tokens";
 import { uploadPlatformBrandAsset, deletePlatformBrandAsset } from "@/app/admin/brand-studio/actions";
 import ImageCropModal from "./ImageCropModal";
+
+const MAX_BYTES = 5 * 1024 * 1024;
+
+function isPdfUrl(url: string | null): boolean {
+  return Boolean(url?.toLowerCase().split("?")[0].endsWith(".pdf"));
+}
+
+/** Vector formats aren't square-cropped the way a raster logo is — cropping an SVG through the canvas pipeline would rasterize it, and there's no meaningful canvas render for a PDF at all. Both upload as-is, unlike PNG/JPEG/WEBP which go through ImageCropModal. */
+function skipsCrop(file: File): boolean {
+  return file.type === "image/svg+xml" || file.type === "application/pdf";
+}
 
 /**
  * Per-asset upload/replace/delete/crop workflow, opened from
@@ -39,31 +50,15 @@ export default function AssetManager({
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const isMainLogo = token.id === "mainLogo";
   const effectiveUrl = currentUrl ?? (isMainLogo ? null : mainLogoUrl);
   const usingFallback = !currentUrl && !isMainLogo && Boolean(mainLogoUrl);
+  const previewIsPdf = isPdfUrl(effectiveUrl);
 
-  function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setError("Only image files are allowed.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Image must be smaller than 5MB.");
-      return;
-    }
-    setError(null);
-    setPendingFile(file);
-    e.target.value = "";
-  }
-
-  async function handleCropApplied(blob: Blob) {
-    setPendingFile(null);
-    const file = new File([blob], `${token.id}.png`, { type: "image/png" });
+  async function uploadDirect(file: File) {
     setPending(true);
     setError(null);
     try {
@@ -78,6 +73,41 @@ export default function AssetManager({
     } finally {
       setPending(false);
     }
+  }
+
+  function processFile(file: File) {
+    if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
+      setError("Only image or PDF files are allowed.");
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      setError("File must be smaller than 5MB.");
+      return;
+    }
+    setError(null);
+    if (skipsCrop(file)) {
+      void uploadDirect(file);
+    } else {
+      setPendingFile(file);
+    }
+  }
+
+  function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
+    e.target.value = "";
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processFile(file);
+  }
+
+  async function handleCropApplied(blob: Blob) {
+    setPendingFile(null);
+    await uploadDirect(new File([blob], `${token.id}.png`, { type: "image/png" }));
   }
 
   async function handleDelete() {
@@ -134,19 +164,39 @@ export default function AssetManager({
           ))}
         </div>
 
-        <div className="mt-3 flex h-32 items-center justify-center overflow-hidden rounded-xl border border-white/10" style={previewStyle}>
+        {/* Doubles as the drag & drop target — dropping a file here replaces the asset directly, same validation/crop-routing as the file picker. */}
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
+          className={`relative mt-3 flex h-32 items-center justify-center overflow-hidden rounded-xl border transition ${dragOver ? "border-brand-400/60" : "border-white/10"}`}
+          style={previewStyle}
+        >
           {effectiveUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={effectiveUrl} alt="" className="max-h-full max-w-full object-contain p-4" />
+            previewIsPdf ? (
+              <span className="flex flex-col items-center gap-1.5 text-black/50">
+                <FileText size={26} />
+                <span className="text-[11px] font-medium">PDF file</span>
+              </span>
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={effectiveUrl} alt="" className="max-h-full max-w-full object-contain p-4" />
+            )
           ) : (
             <span className="text-xs text-white/30">No image</span>
+          )}
+          {dragOver && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-brand-400/10 text-xs font-semibold text-brand-400">Drop to upload</div>
           )}
         </div>
 
         {error && <p className="mt-3 text-xs text-red-300">{error}</p>}
 
         <div className="mt-4 flex gap-2">
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelected} />
+          <input ref={fileInputRef} type="file" accept="image/*,.pdf,application/pdf" className="hidden" onChange={handleFileSelected} />
           <Button type="button" variant="secondary" className="flex-1" onClick={() => fileInputRef.current?.click()} disabled={pending}>
             <Upload size={14} /> {currentUrl ? "Replace" : "Upload"}
           </Button>
@@ -167,6 +217,7 @@ export default function AssetManager({
             </Button>
           )}
         </div>
+        <p className="mt-2 text-[10px] text-white/25">PNG, JPEG, WEBP, SVG, or PDF · up to 5MB. Drag a file onto the preview above, or use Upload.</p>
 
         {confirmingDelete && (
           <div className="mt-3 rounded-xl border border-red-400/25 bg-red-400/[0.06] p-3">

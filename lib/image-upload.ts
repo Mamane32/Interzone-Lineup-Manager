@@ -95,8 +95,16 @@ export type ImageUploadResult = { ok: true; url: string } | { ok: false; error: 
  */
 export async function uploadImage(category: AssetCategory, file: File | null, entityId?: string): Promise<ImageUploadResult> {
   if (!file || file.size === 0) return { ok: false, error: "No file selected." };
-  if (!file.type.startsWith("image/")) return { ok: false, error: "Only image files are allowed." };
-  if (file.size > MAX_BYTES) return { ok: false, error: "Image must be smaller than 5MB." };
+  // PDF alongside images: brand kits often ship a vector logo as PDF, and
+  // this is the one shared path every category's upload flows through.
+  // Harmless to allow everywhere — every other category's file picker
+  // still only offers "image/*", so this only actually matters for
+  // PlatformBrandAsset, whose picker explicitly adds it (see
+  // components/brand-studio/AssetManager.tsx).
+  if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
+    return { ok: false, error: "Only image or PDF files are allowed." };
+  }
+  if (file.size > MAX_BYTES) return { ok: false, error: "File must be smaller than 5MB." };
 
   const bucket = BUCKET_BY_CATEGORY[category];
   const supabase = supabaseAdmin();
