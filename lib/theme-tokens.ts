@@ -141,23 +141,36 @@ export const LEVEL_1_VISUAL_THEME_TOKENS: ThemeToken[] = [
   { id: "successColor", label: "Success", category: "visual-theme", studioSection: "colors", level: 1, column: "success_color", cssVar: "--ggsp-color-success", inputType: "color", default: "#22c55e", helperText: "Live in preview — drives submitted/positive status.", colorGroup: "semantic" },
   { id: "warningColor", label: "Warning", category: "visual-theme", studioSection: "colors", level: 1, column: "warning_color", cssVar: "--ggsp-color-warning", inputType: "color", default: "#eab308", helperText: "Live in preview — drives waiting/attention status.", colorGroup: "semantic" },
   { id: "errorColor", label: "Danger", category: "visual-theme", studioSection: "colors", level: 1, column: "error_color", cssVar: "--ggsp-color-error", inputType: "color", default: "#ef4444", helperText: "Live in preview — drives correction/negative status.", colorGroup: "semantic" },
-  { id: "infoColor", label: "Info", category: "visual-theme", studioSection: "colors", level: 1, column: "info_color", cssVar: "--ggsp-color-info", inputType: "color", default: "#38bdf8", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "semantic" },
+  { id: "infoColor", label: "Info", category: "visual-theme", studioSection: "colors", level: 1, column: "info_color", cssVar: "--ggsp-color-info", inputType: "color", default: "#38bdf8", helperText: "Live in preview — a fourth status color alongside Success/Warning/Danger.", colorGroup: "semantic" },
 
   // --- Surface / background / border ---
   { id: "backgroundColor", label: "Background", category: "visual-theme", studioSection: "colors", level: 1, column: "background_color", cssVar: "--ggsp-color-background", inputType: "color", default: "#07090d", helperText: "Live in preview — page background.", colorGroup: "surface" },
   { id: "surfaceColor", label: "Surface / Card", category: "visual-theme", studioSection: "colors", level: 1, column: "surface_color", cssVar: "--ggsp-color-surface", inputType: "color", default: "#111720", helperText: "Live in preview — card and panel background.", colorGroup: "surface" },
-  { id: "borderColor", label: "Border", category: "visual-theme", studioSection: "colors", level: 1, column: "border_color", cssVar: "--ggsp-color-border", inputType: "color", default: "#232b35", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "surface" },
+  // Deliberately NOT wired into .surface-panel/.surface-subtle's border —
+  // those rely on a *light*, translucent white hairline for the glass-panel
+  // reflection effect (app/globals.css); this token's own default (a dark
+  // navy) would visibly break that on every card in the app. A true
+  // "inherit until explicitly overridden" behavior needs border_color to be
+  // nullable so an unset value can mean "don't touch," not "apply my
+  // not-null default" — this project's migrations are additive/no-ALTER-
+  // COLUMN by discipline (tests/migrations/migration-integrity.test.ts), so
+  // that's a real schema decision for a follow-up, not a mechanical fix.
+  { id: "borderColor", label: "Border", category: "visual-theme", studioSection: "colors", level: 1, column: "border_color", cssVar: "--ggsp-color-border", inputType: "color", default: "#232b35", helperText: "Reserved — limited effect in the current theme. The glass-panel border stays translucent white regardless, to protect the panel reflection effect.", colorGroup: "surface" },
 
   // --- Text ---
-  { id: "textPrimaryColor", label: "Text Primary", category: "visual-theme", studioSection: "colors", level: 1, column: "text_primary_color", cssVar: "--ggsp-color-text-primary", inputType: "color", default: "#f5f7fa", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "text" },
-  { id: "textSecondaryColor", label: "Text Secondary", category: "visual-theme", studioSection: "colors", level: 1, column: "text_secondary_color", cssVar: "--ggsp-color-text-secondary", inputType: "color", default: "#8b98a5", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "text" },
+  // Also Reserved: text-white/NN opacity utilities are used directly at
+  // hundreds of call sites (not through a shared class the way borders
+  // mostly are), so retargeting "Text Primary"/"Text Secondary" safely
+  // needs a real migration plan, not a blind find-and-replace.
+  { id: "textPrimaryColor", label: "Text Primary", category: "visual-theme", studioSection: "colors", level: 1, column: "text_primary_color", cssVar: "--ggsp-color-text-primary", inputType: "color", default: "#f5f7fa", helperText: "Reserved — limited effect in the current theme. Body text is styled with opacity-modified white at hundreds of call sites; a safe migration is a follow-up.", colorGroup: "text" },
+  { id: "textSecondaryColor", label: "Text Secondary", category: "visual-theme", studioSection: "colors", level: 1, column: "text_secondary_color", cssVar: "--ggsp-color-text-secondary", inputType: "color", default: "#8b98a5", helperText: "Reserved — limited effect in the current theme. Same reason as Text Primary.", colorGroup: "text" },
 
-  // --- Additional surfaces (legacy — saved, not yet wired to a live component) ---
-  { id: "navigationColor", label: "Navigation", category: "visual-theme", studioSection: "colors", level: 1, column: "navigation_color", cssVar: "--ggsp-color-navigation", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "legacy" },
-  { id: "headerColor", label: "Header", category: "visual-theme", studioSection: "colors", level: 1, column: "header_color", cssVar: "--ggsp-color-header", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "legacy" },
-  { id: "sidebarColor", label: "Sidebar", category: "visual-theme", studioSection: "colors", level: 1, column: "sidebar_color", cssVar: "--ggsp-color-sidebar", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "legacy" },
-  { id: "buttonColor", label: "Button", category: "visual-theme", studioSection: "colors", level: 1, column: "button_color", cssVar: "--ggsp-color-button", inputType: "color", default: "#f5a623", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "legacy" },
-  { id: "linkColor", label: "Link", category: "visual-theme", studioSection: "colors", level: 1, column: "link_color", cssVar: "--ggsp-color-link", inputType: "color", default: "#f5a623", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "legacy" },
+  // --- Additional surfaces (each repurposed to one real, scoped target — see components/shell/AppShell.tsx and components/ui/Button.tsx) ---
+  { id: "navigationColor", label: "Navigation", category: "visual-theme", studioSection: "colors", level: 1, column: "navigation_color", cssVar: "--ggsp-color-navigation", inputType: "color", default: "#0d1117", helperText: "Live in preview — the active nav item's accent bar (layered on Primary's pill, not replacing it).", colorGroup: "legacy" },
+  { id: "headerColor", label: "Header", category: "visual-theme", studioSection: "colors", level: 1, column: "header_color", cssVar: "--ggsp-color-header", inputType: "color", default: "#0d1117", helperText: "Live in preview — the top app header bar, independent from the page Background.", colorGroup: "legacy" },
+  { id: "sidebarColor", label: "Sidebar", category: "visual-theme", studioSection: "colors", level: 1, column: "sidebar_color", cssVar: "--ggsp-color-sidebar", inputType: "color", default: "#0d1117", helperText: "Live in preview — the sidebar surface, independent from the page Background.", colorGroup: "legacy" },
+  { id: "buttonColor", label: "Button", category: "visual-theme", studioSection: "colors", level: 1, column: "button_color", cssVar: "--ggsp-color-button", inputType: "color", default: "#f5a623", helperText: "Live in preview — secondary buttons only. Primary CTA buttons stay on Primary Color.", colorGroup: "legacy" },
+  { id: "linkColor", label: "Link", category: "visual-theme", studioSection: "colors", level: 1, column: "link_color", cssVar: "--ggsp-color-link", inputType: "color", default: "#f5a623", helperText: "Live in preview — breadcrumb navigation links today; more inline-link surfaces are a follow-up.", colorGroup: "legacy" },
 ];
 
 /** Every Level 1 "color" token that has a `colorGroup` — what ColorStudio.tsx renders instead of ControlPanel's generic token grid when the "Colors" section is active. */

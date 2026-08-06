@@ -10,7 +10,7 @@ import type { BrandDraft } from "./draft-utils";
 const SECTION_DESCRIPTIONS: Partial<Record<StudioSection, string>> = {
   identity: "Platform name, tagline, and the text shown in the browser tab and footer.",
   "logos-assets": "Upload, replace, or remove every logo and icon variant the platform uses.",
-  colors: "Primary, background, surface, and status colors. Six of these are already live everywhere in this preview — the rest are saved now and wired platform-wide by a follow-up.",
+  colors: "Primary, background, surface, status, navigation, and button colors. 14 of 17 are live platform-wide today — Border and the two Text colors are reserved until they have a safe, scoped target (see each field's note).",
   typography: "Font family, weight, and heading/text style.",
   layout: "Logo sizing and spacing.",
   components: "Corner radius and shadow depth for cards and buttons.",

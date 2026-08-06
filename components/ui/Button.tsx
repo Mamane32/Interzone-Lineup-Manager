@@ -6,8 +6,13 @@ type Size = "md" | "lg";
 const variantClasses: Record<Variant, string> = {
   primary:
     "bg-gradient-to-b from-brand-100 to-brand-400 text-surface-950 shadow-glow hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_rgba(255,182,46,0.4),0_22px_45px_-16px_rgba(245,158,11,0.65)] active:translate-y-0 active:brightness-95 disabled:translate-y-0 disabled:opacity-40 disabled:shadow-none",
+  // hover:border-button — Button Color's real target: secondary buttons
+  // only, so a change here is visible without touching the Primary CTA
+  // gradient above. Defaults to the same value as Primary
+  // (--ggsp-color-button-rgb's fallback), so this looks identical to
+  // before until an admin sets Button Color to something else.
   secondary:
-    "bg-white/[0.045] text-white border border-white/[0.1] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] hover:-translate-y-0.5 hover:border-brand-400/45 hover:bg-white/[0.07] disabled:translate-y-0 disabled:opacity-40",
+    "bg-white/[0.045] text-white border border-white/[0.1] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] hover:-translate-y-0.5 hover:border-button/45 hover:bg-white/[0.07] disabled:translate-y-0 disabled:opacity-40",
   danger:
     "bg-status-correction text-white hover:-translate-y-0.5 hover:brightness-95 disabled:translate-y-0 disabled:opacity-40",
   ghost:

@@ -62,6 +62,18 @@ const config: Config = {
           correction: "rgb(var(--ggsp-color-error-rgb, 239 68 68) / <alpha-value>)",
           info: "rgb(var(--ggsp-color-info-rgb, 56 189 248) / <alpha-value>)",
         },
+        // The five "legacy" Brand Studio tokens, each repurposed to one
+        // real, safe target (see components/shell/AppShell.tsx and
+        // components/ui/Button.tsx) — never the shared glass-panel border,
+        // which stays untouched (see Border Color's doc comment in
+        // lib/theme-tokens.ts for why). Fallbacks match each token's actual
+        // platform_branding default, so nothing shifts beyond what wiring
+        // the token honestly implies.
+        navigation: "rgb(var(--ggsp-color-navigation-rgb, 13 17 23) / <alpha-value>)",
+        header: "rgb(var(--ggsp-color-header-rgb, 13 17 23) / <alpha-value>)",
+        sidebar: "rgb(var(--ggsp-color-sidebar-rgb, 13 17 23) / <alpha-value>)",
+        button: "rgb(var(--ggsp-color-button-rgb, 245 166 35) / <alpha-value>)",
+        link: "rgb(var(--ggsp-color-link-rgb, 245 166 35) / <alpha-value>)",
       },
       fontFamily: {
         display: ["var(--font-oswald)", "sans-serif"],
