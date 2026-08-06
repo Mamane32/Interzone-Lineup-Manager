@@ -116,15 +116,22 @@ export const LEVEL_1_IDENTITY_TOKENS: ThemeToken[] = [
 ];
 
 export const LEVEL_1_BRAND_ASSET_TOKENS: ThemeToken[] = [
-  { id: "mainLogo", label: "Main Logo", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "organization_logo_url", cssVar: "--ggsp-logo-main", inputType: "image", default: null },
-  { id: "smallLogo", label: "Small Logo", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "small_logo_url", cssVar: "--ggsp-logo-small", inputType: "image", default: null },
-  { id: "headerLogo", label: "Header Logo", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "header_logo_url", cssVar: "--ggsp-logo-header", inputType: "image", default: null },
-  { id: "loginLogo", label: "Login Logo", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "login_logo_url", cssVar: "--ggsp-logo-login", inputType: "image", default: null },
-  { id: "loadingLogo", label: "Loading Logo", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "loading_logo_url", cssVar: "--ggsp-logo-loading", inputType: "image", default: null },
-  { id: "splashScreen", label: "Splash Screen", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "splash_screen_url", cssVar: "--ggsp-splash-screen", inputType: "image", default: null },
-  { id: "favicon", label: "Browser Favicon", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "favicon_url", cssVar: null, inputType: "image", default: null },
-  { id: "browserIcon", label: "Browser Icon", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "browser_icon_url", cssVar: null, inputType: "image", default: null },
-  { id: "placeholderLogo", label: "Default Placeholder Logo", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "placeholder_logo_url", cssVar: "--ggsp-logo-placeholder", inputType: "image", default: null },
+  { id: "mainLogo", label: "Main Logo", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "organization_logo_url", cssVar: "--ggsp-logo-main", inputType: "image", default: null, helperText: "Live sitewide — BrandMark.tsx, used in the sidebar, header, login screen, and footer." },
+  // The eight variants below are saved, previewable, and exposed as CSS
+  // vars, but (unlike Main Logo) no real component reads them yet — each
+  // needs a page/component that doesn't exist today (a loading screen, a
+  // splash screen, a distinct login-only mark) or duplicates Main Logo's
+  // job (a second app icon). Marked Reserved rather than silently implying
+  // they already do something, same as Border/Text color in the Colors
+  // section — a real target for each is a follow-up, not a UI-only fix.
+  { id: "smallLogo", label: "Small Logo", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "small_logo_url", cssVar: "--ggsp-logo-small", inputType: "image", default: null, helperText: "Reserved — no compact/collapsed surface reads this yet; the sidebar's collapsed rail still uses Main Logo." },
+  { id: "headerLogo", label: "Header Logo", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "header_logo_url", cssVar: "--ggsp-logo-header", inputType: "image", default: null, helperText: "Reserved — the app header uses Main Logo via BrandMark; a header-specific override is a follow-up." },
+  { id: "loginLogo", label: "Login Logo", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "login_logo_url", cssVar: "--ggsp-logo-login", inputType: "image", default: null, helperText: "Reserved — the login screen (AuthFrameView) shows Main Logo today." },
+  { id: "loadingLogo", label: "Loading Logo", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "loading_logo_url", cssVar: "--ggsp-logo-loading", inputType: "image", default: null, helperText: "Reserved — LoadingState.tsx has no logo mark to swap yet." },
+  { id: "splashScreen", label: "Splash Screen", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "splash_screen_url", cssVar: "--ggsp-splash-screen", inputType: "image", default: null, helperText: "Reserved — the platform has no splash/boot screen yet." },
+  { id: "favicon", label: "Browser Favicon", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "favicon_url", cssVar: null, inputType: "image", default: null, helperText: "Reserved — not yet wired into the page's <link rel=\"icon\">; the static favicon still shows in the browser tab." },
+  { id: "browserIcon", label: "Browser Icon", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "browser_icon_url", cssVar: null, inputType: "image", default: null, helperText: "Reserved — overlaps Favicon's purpose; not yet wired to a distinct target." },
+  { id: "placeholderLogo", label: "Default Placeholder Logo", category: "brand-assets", studioSection: "logos-assets", level: 1, column: "placeholder_logo_url", cssVar: "--ggsp-logo-placeholder", inputType: "image", default: null, helperText: "Reserved — no team/organization-without-a-crest surface falls back to this yet." },
 ];
 
 export const LEVEL_1_VISUAL_THEME_TOKENS: ThemeToken[] = [

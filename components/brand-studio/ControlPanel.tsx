@@ -20,10 +20,11 @@ import Button from "@/components/ui/Button";
 import { LEVEL_1_TOKENS, STUDIO_SECTIONS, tokensByStudioSection, type StudioSection, type ThemeToken } from "@/lib/theme-tokens";
 import type { BrandDraft } from "./draft-utils";
 import ColorStudio from "./ColorStudio";
+import AssetGrid from "./AssetGrid";
 
 const SECTION_DESCRIPTIONS: Partial<Record<StudioSection, string>> = {
   identity: "Platform name, tagline, and the text shown in the browser tab and footer.",
-  "logos-assets": "Upload, replace, or remove every logo and icon variant the platform uses.",
+  "logos-assets": "Upload, replace, crop, or download every logo and icon variant. Main Logo is live sitewide; the rest preview here and are marked Reserved until a real page adopts them.",
   colors: "Primary, background, surface, status, navigation, and button colors. 14 of 17 are live platform-wide today — Border and the two Text colors are reserved until they have a safe, scoped target (see each field's note).",
   typography: "Font family, weight, and heading/text style.",
   layout: "Logo sizing and spacing.",
@@ -352,6 +353,8 @@ export default function ControlPanel({
 
               {activeSection === "colors" ? (
                 <ColorStudio draft={draft} onChange={onChange} />
+              ) : activeSection === "logos-assets" ? (
+                <AssetGrid draft={draft} onManageAsset={onManageAsset} />
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {tokens.map((token) => (

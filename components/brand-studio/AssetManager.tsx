@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Moon, Sun, Trash2, Upload, X } from "lucide-react";
+import { Download, Moon, Sun, Trash2, Upload, X } from "lucide-react";
 import Button from "@/components/ui/Button";
 import type { ThemeToken } from "@/lib/theme-tokens";
 import { uploadPlatformBrandAsset, deletePlatformBrandAsset } from "@/app/admin/brand-studio/actions";
@@ -150,6 +150,17 @@ export default function AssetManager({
           <Button type="button" variant="secondary" className="flex-1" onClick={() => fileInputRef.current?.click()} disabled={pending}>
             <Upload size={14} /> {currentUrl ? "Replace" : "Upload"}
           </Button>
+          {currentUrl && (
+            <a
+              href={currentUrl}
+              download
+              className="flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-white/[0.1] text-white/70 transition hover:bg-white/[0.07]"
+              aria-label="Download"
+              title="Download"
+            >
+              <Download size={14} />
+            </a>
+          )}
           {currentUrl && (
             <Button type="button" variant="danger" onClick={() => setConfirmingDelete(true)} disabled={pending}>
               <Trash2 size={14} />
