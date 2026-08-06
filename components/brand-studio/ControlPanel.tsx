@@ -6,6 +6,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { STUDIO_SECTIONS, tokensByStudioSection, type StudioSection, type ThemeToken } from "@/lib/theme-tokens";
 import type { BrandDraft } from "./draft-utils";
+import ColorStudio from "./ColorStudio";
 
 const SECTION_DESCRIPTIONS: Partial<Record<StudioSection, string>> = {
   identity: "Platform name, tagline, and the text shown in the browser tab and footer.",
@@ -212,14 +213,18 @@ export default function ControlPanel({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {tokens.map((token) => (
-            <div key={token.id} className={token.inputType === "textarea" || token.inputType === "image" ? "sm:col-span-2" : ""}>
-              <TokenField token={token} value={draft[token.id]} onChange={onChange} onManageAsset={onManageAsset} />
-            </div>
-          ))}
-          {tokens.length === 0 && <p className="col-span-2 text-sm text-white/30">Nothing to configure in this section yet.</p>}
-        </div>
+        {activeSection === "colors" ? (
+          <ColorStudio draft={draft} onChange={onChange} />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {tokens.map((token) => (
+              <div key={token.id} className={token.inputType === "textarea" || token.inputType === "image" ? "sm:col-span-2" : ""}>
+                <TokenField token={token} value={draft[token.id]} onChange={onChange} onManageAsset={onManageAsset} />
+              </div>
+            ))}
+            {tokens.length === 0 && <p className="col-span-2 text-sm text-white/30">Nothing to configure in this section yet.</p>}
+          </div>
+        )}
       </div>
     </div>
   );
