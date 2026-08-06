@@ -153,6 +153,22 @@ export async function deleteImagesForEntity(category: AssetCategory, entityId: s
   return { ok: true };
 }
 
+/** Deletes exactly one stored object identified by its public URL — for galleries (e.g. competition sponsor logos) where removing one item must not touch its siblings, unlike deleteImagesForEntity's whole-namespace sweep. No-op (not an error) if the URL doesn't look like it belongs to this category's bucket. */
+export async function deleteImageByUrl(category: AssetCategory, url: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const bucket = BUCKET_BY_CATEGORY[category];
+  const marker = `/object/public/${bucket}/`;
+  const idx = url.indexOf(marker);
+  if (idx === -1) return { ok: true };
+  const path = decodeURIComponent(url.slice(idx + marker.length));
+  const supabase = supabaseAdmin();
+  const { error } = await supabase.storage.from(bucket).remove([path]);
+  if (error) {
+    console.error(`deleteImageByUrl failed (category=${category})`, error);
+    return { ok: false, error: "Delete failed. Try again." };
+  }
+  return { ok: true };
+}
+
 export type StoredAsset = { name: string; url: string; createdAt: string | null; sizeBytes: number | null };
 export type ListAssetsResult = { ok: true; assets: StoredAsset[] } | { ok: false; error: string };
 

@@ -5,7 +5,7 @@ import { Laptop, Redo2, RotateCcw, Save, Smartphone, Tablet, Undo2 } from "lucid
 import Button from "@/components/ui/Button";
 import { LEVEL_1_TOKENS, tokensByStudioSection, type StudioSection, type ThemeToken } from "@/lib/theme-tokens";
 import type { PlatformBranding } from "@/lib/branding";
-import { savePlatformBranding } from "@/app/admin/brand-studio/actions";
+import { savePlatformBranding, uploadPlatformBrandAsset, deletePlatformBrandAsset } from "@/app/admin/brand-studio/actions";
 import { draftFromPlatformBranding, type BrandDraft } from "./draft-utils";
 import ControlPanel from "./ControlPanel";
 import LivePreview, { PREVIEW_TABS, type PreviewTab, type Viewport } from "./LivePreview";
@@ -259,9 +259,16 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
         <AssetManager
           token={managingToken}
           currentUrl={managingUrl}
-          mainLogoUrl={mainLogoUrl}
+          fallbackUrl={managingToken.id === "mainLogo" ? null : mainLogoUrl}
+          fallbackLabel="Main Logo"
           onClose={() => setManagingToken(null)}
           onChange={(url) => handleAssetApplied(managingToken.id, url)}
+          onUpload={(file) => {
+            const formData = new FormData();
+            formData.append("file", file);
+            return uploadPlatformBrandAsset(managingToken.id, formData);
+          }}
+          onDelete={() => deletePlatformBrandAsset(managingToken.id, managingToken.column)}
         />
       )}
 

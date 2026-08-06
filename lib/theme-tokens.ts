@@ -348,17 +348,44 @@ export const LEVEL_1_TOKENS: ThemeToken[] = [
  * so it's listed separately in lib/branding.ts rather than here.
  */
 export const LEVEL_2_TOKENS: ThemeToken[] = [
-  { id: "competitionName", label: "Competition Name", category: "competition-identity", studioSection: "identity", level: 2, column: "name", cssVar: null, inputType: "text", default: null },
-  { id: "competitionShortName", label: "Competition Short Name", category: "competition-identity", studioSection: "identity", level: 2, column: "short_name", cssVar: null, inputType: "text", default: null },
-  { id: "competitionSeason", label: "Season", category: "competition-identity", studioSection: "identity", level: 2, column: "season_label", cssVar: null, inputType: "text", default: null },
-  { id: "competitionLogo", label: "Competition Logo", category: "competition-assets", studioSection: "logos-assets", level: 2, column: "logo_url", cssVar: "--ggsp-comp-logo", inputType: "image", default: null },
-  { id: "competitionBanner", label: "Competition Banner", category: "competition-assets", studioSection: "logos-assets", level: 2, column: "banner_url", cssVar: "--ggsp-comp-banner", inputType: "image", default: null },
-  { id: "competitionThemeColor", label: "Competition Theme Color", category: "competition-theme", studioSection: "colors", level: 2, column: "theme_color", cssVar: "--ggsp-color-primary", inputType: "color", default: null },
-  { id: "competitionAccentColor", label: "Competition Accent Color", category: "competition-theme", studioSection: "colors", level: 2, column: "accent_color", cssVar: "--ggsp-color-accent", inputType: "color", default: null },
-  { id: "competitionBackgroundImage", label: "Competition Background Image", category: "competition-media", studioSection: "logos-assets", level: 2, column: "background_image_url", cssVar: "--ggsp-comp-background", inputType: "image", default: null },
-  { id: "competitionIntroVideo", label: "Competition Intro Video", category: "competition-media", studioSection: "logos-assets", level: 2, column: "intro_video_url", cssVar: null, inputType: "text", default: null },
-  { id: "competitionWatermark", label: "Competition Watermark", category: "competition-media", studioSection: "logos-assets", level: 2, column: "watermark_url", cssVar: "--ggsp-comp-watermark", inputType: "image", default: null },
+  { id: "competitionName", label: "Competition Name", category: "competition-identity", studioSection: "identity", level: 2, column: "name", cssVar: null, inputType: "text", default: null, helperText: "Live — overrides the organization name shown on this competition's Broadcast Control Room and public pages." },
+  { id: "competitionShortName", label: "Competition Short Name", category: "competition-identity", studioSection: "identity", level: 2, column: "short_name", cssVar: null, inputType: "text", default: null, helperText: "Reserved — saved, no page reads it yet." },
+  { id: "competitionSeason", label: "Season", category: "competition-identity", studioSection: "identity", level: 2, column: "season_label", cssVar: null, inputType: "text", default: null, helperText: "Reserved — saved, no page reads it yet." },
+  { id: "competitionLogo", label: "Competition Logo", category: "competition-assets", studioSection: "logos-assets", level: 2, column: "logo_url", cssVar: "--ggsp-comp-logo", inputType: "image", default: null, helperText: "Live — overrides the platform logo shown on this competition's Broadcast Control Room and public pages." },
+  { id: "competitionBanner", label: "Competition Banner", category: "competition-assets", studioSection: "logos-assets", level: 2, column: "banner_url", cssVar: "--ggsp-comp-banner", inputType: "image", default: null, helperText: "Reserved — saved, no page reads it yet." },
+  { id: "competitionThemeColor", label: "Competition Theme Color", category: "competition-theme", studioSection: "colors", level: 2, column: "theme_color", cssVar: "--ggsp-color-primary", inputType: "color", default: null, helperText: "Live — overrides Primary Color on this competition's Broadcast Control Room and public pages." },
+  { id: "competitionAccentColor", label: "Competition Accent Color", category: "competition-theme", studioSection: "colors", level: 2, column: "accent_color", cssVar: "--ggsp-color-accent", inputType: "color", default: null, helperText: "Live — overrides Accent Color on this competition's Broadcast Control Room and public pages." },
+  { id: "competitionBackgroundImage", label: "Competition Background Image", category: "competition-media", studioSection: "logos-assets", level: 2, column: "background_image_url", cssVar: "--ggsp-comp-background", inputType: "image", default: null, helperText: "Reserved — saved, no page reads it yet." },
+  { id: "competitionIntroVideo", label: "Competition Intro Video", category: "competition-media", studioSection: "logos-assets", level: 2, column: "intro_video_url", cssVar: null, inputType: "text", default: null, helperText: "Reserved — saved, no page reads it yet." },
+  { id: "competitionWatermark", label: "Competition Watermark", category: "competition-media", studioSection: "logos-assets", level: 2, column: "watermark_url", cssVar: "--ggsp-comp-watermark", inputType: "image", default: null, helperText: "Reserved — saved, no page reads it yet." },
 ];
+
+/**
+ * Level 2 counterpart to PLATFORM_BRANDING_FIELD_BY_TOKEN_ID — maps a
+ * LEVEL_2_TOKENS id to its real CompetitionBranding (lib/branding.ts)
+ * field name, since e.g. "competitionLogo" doesn't mechanically become
+ * "logoUrl" by stripping the "competition" prefix. Every id is listed
+ * (unlike the Level 1 table, which only lists the handful that differ) —
+ * none of the ten happen to match their field name after prefix-stripping,
+ * so a partial table would be more confusing than a complete one here.
+ */
+export const LEVEL_2_FIELD_BY_TOKEN_ID: Record<string, string> = {
+  competitionName: "name",
+  competitionShortName: "shortName",
+  competitionSeason: "seasonLabel",
+  competitionLogo: "logoUrl",
+  competitionBanner: "bannerUrl",
+  competitionThemeColor: "themeColor",
+  competitionAccentColor: "accentColor",
+  competitionBackgroundImage: "backgroundImageUrl",
+  competitionIntroVideo: "introVideoUrl",
+  competitionWatermark: "watermarkUrl",
+};
+
+/** Resolves the `CompetitionBranding` object key a given Level 2 token's value actually lives under — see LEVEL_2_FIELD_BY_TOKEN_ID above. */
+export function competitionBrandingFieldForToken(tokenId: string): string {
+  return LEVEL_2_FIELD_BY_TOKEN_ID[tokenId] ?? tokenId;
+}
 
 export const ALL_TOKENS: ThemeToken[] = [...LEVEL_1_TOKENS, ...LEVEL_2_TOKENS];
 

@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { Download, FileText, Moon, Sun, Trash2, Upload, X } from "lucide-react";
 import Button from "@/components/ui/Button";
 import type { ThemeToken } from "@/lib/theme-tokens";
-import { uploadPlatformBrandAsset, deletePlatformBrandAsset } from "@/app/admin/brand-studio/actions";
+import type { ImageUploadResult } from "@/lib/image-upload";
 import ImageCropModal from "./ImageCropModal";
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -20,30 +20,41 @@ function skipsCrop(file: File): boolean {
 
 /**
  * Per-asset upload/replace/delete/crop workflow, opened from
- * ControlPanel's "Manage" button on any image token. A successful upload
- * updates the Brand Studio's draft state immediately (so the live
- * preview reflects it without Save) — the underlying file lands in
- * Supabase Storage right away (lib/image-upload.ts), but the
- * `platform_branding` row itself is only written when Save is confirmed,
- * matching "changes update the preview instantly; save persists only
- * after confirmation." Delete is the one immediate, already-confirmed
- * exception (see app/admin/brand-studio/actions.ts's deletePlatformBrandAsset
- * doc comment) — it also clears the DB column right away rather than
- * waiting for Save, since an admin who clicks Delete has already made an
- * unambiguous, confirmed decision.
+ * ControlPanel's "Manage" button (Level 1) or CompetitionBrandStudio's
+ * equivalent (Level 2) on any image token. Level-agnostic by design —
+ * `onUpload`/`onDelete` are passed in by the caller, which is what lets
+ * both Studios share this one component instead of Level 2 needing its
+ * own copy. A successful upload updates the caller's draft state
+ * immediately (so the live preview reflects it without Save) — the
+ * underlying file lands in Supabase Storage right away, but the
+ * database row itself is only written when Save is confirmed, matching
+ * "changes update the preview instantly; save persists only after
+ * confirmation." Delete is the one immediate, already-confirmed
+ * exception (see either level's deleteXBrandAsset doc comment) — it also
+ * clears the DB column right away rather than waiting for Save, since an
+ * admin who clicks Delete has already made an unambiguous, confirmed
+ * decision.
  */
 export default function AssetManager({
   token,
   currentUrl,
-  mainLogoUrl,
+  fallbackUrl,
+  fallbackLabel,
   onClose,
   onChange,
+  onUpload,
+  onDelete,
 }: {
   token: ThemeToken;
   currentUrl: string | null;
-  mainLogoUrl: string | null;
+  /** What renders/is implied when this variant has no value of its own — Level 1's Main Logo fallback, or Level 2's inherited platform value. Null when this token has no fallback concept (e.g. Level 1's own Main Logo). */
+  fallbackUrl: string | null;
+  /** Name shown in the "falls back to X" messaging — "Main Logo" (Level 1) or "the platform default" (Level 2). */
+  fallbackLabel: string;
   onClose: () => void;
   onChange: (url: string | null) => void;
+  onUpload: (file: File) => Promise<ImageUploadResult>;
+  onDelete: () => Promise<{ ok: true } | { ok: false; error: string }>;
 }) {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<"dark" | "light" | "transparent">("dark");
@@ -53,18 +64,16 @@ export default function AssetManager({
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const isMainLogo = token.id === "mainLogo";
-  const effectiveUrl = currentUrl ?? (isMainLogo ? null : mainLogoUrl);
-  const usingFallback = !currentUrl && !isMainLogo && Boolean(mainLogoUrl);
+  const hasFallback = Boolean(fallbackUrl);
+  const effectiveUrl = currentUrl ?? fallbackUrl;
+  const usingFallback = !currentUrl && hasFallback;
   const previewIsPdf = isPdfUrl(effectiveUrl);
 
   async function uploadDirect(file: File) {
     setPending(true);
     setError(null);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const result = await uploadPlatformBrandAsset(token.id, formData);
+      const result = await onUpload(file);
       if (!result.ok) {
         setError(result.error);
         return;
@@ -114,7 +123,7 @@ export default function AssetManager({
     setPending(true);
     setError(null);
     try {
-      const result = await deletePlatformBrandAsset(token.id, token.column);
+      const result = await onDelete();
       if (!result.ok) {
         setError(result.error);
         return;
@@ -137,7 +146,7 @@ export default function AssetManager({
         <div className="mb-4 flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold">{token.label}</p>
-            {usingFallback && <p className="text-[11px] text-white/35">Not set — showing Main Logo fallback</p>}
+            {usingFallback && <p className="text-[11px] text-white/35">Not set — showing {fallbackLabel} fallback</p>}
           </div>
           <button onClick={onClose} className="rounded-lg p-1.5 text-white/40 hover:bg-white/5 hover:text-white" aria-label="Close">
             <X size={16} />
@@ -222,7 +231,7 @@ export default function AssetManager({
         {confirmingDelete && (
           <div className="mt-3 rounded-xl border border-red-400/25 bg-red-400/[0.06] p-3">
             <p className="text-xs text-red-200">
-              Delete this file{isMainLogo ? "" : " — this variant will fall back to Main Logo"}? This removes the stored file immediately and cannot be undone from here.
+              Delete this file{hasFallback ? ` — this variant will fall back to ${fallbackLabel}` : ""}? This removes the stored file immediately and cannot be undone from here.
             </p>
             <div className="mt-2 flex justify-end gap-2">
               <Button type="button" variant="ghost" size="md" className="h-8 px-3 text-xs" onClick={() => setConfirmingDelete(false)}>
