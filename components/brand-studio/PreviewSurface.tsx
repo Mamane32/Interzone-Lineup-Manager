@@ -70,6 +70,8 @@ export default function PreviewSurface({ draft, saved, tab }: { draft: BrandDraf
   const lineHeightValue = typeof draft.lineHeight === "number" ? draft.lineHeight : 1.6;
   const paragraphSpacingPx = typeof draft.paragraphSpacing === "number" ? draft.paragraphSpacing : 16;
   const textTransformValue = typeof draft.textTransform === "string" ? draft.textTransform : "none";
+  const hoverEffectsEnabled = draft.hoverEffectsEnabled !== false;
+  const reducedMotionEnabled = draft.reducedMotion === true;
 
   const shellIdentity = { orgName: branding.organizationName, subtitle: branding.organizationSubtitle, logoUrl: branding.organizationLogoUrl };
   const heroIdentity = { organizationName: branding.organizationName, organizationSubtitle: branding.organizationSubtitle, organizationLogoUrl: branding.organizationLogoUrl };
@@ -86,14 +88,23 @@ export default function PreviewSurface({ draft, saved, tab }: { draft: BrandDraf
   };
 
   return (
-    <ThemeScope vars={cssVars} className="ggsp-preview-scope block min-h-full">
+    <ThemeScope
+      vars={cssVars}
+      className={`ggsp-preview-scope block min-h-full${reducedMotionEnabled ? " ggsp-reduced-motion" : ""}`}
+    >
       {/* Scoped, preview-pane-only overrides for tokens that don't yet
          have a wired Tailwind class (font family, corner radius, shadow
          depth) — never touches anything outside .ggsp-preview-scope, so
          the real app's appearance is unaffected when no override is
          configured, exactly as required. The color tokens above don't
          need this: the six wired swatches (tailwind.config.ts) already
-         read their CSS vars directly. */}
+         read their CSS vars directly.
+
+         Hover Effects has no cssVar (unlike the other Motion toggles,
+         which multiply into app/globals.css's calc() durations via
+         draftToCssVars) — it's an on/off for Button/AppShell's
+         hover:-translate-y lift, not a duration, so it's expressed here
+         as a plain conditional rule instead of a --ggsp- variable. */}
       <style>{`
         .ggsp-preview-scope { font-family: ${fontFamily}; letter-spacing: ${letterSpacingEm}em; line-height: ${lineHeightValue}; }
         .ggsp-preview-scope .font-display,
@@ -103,6 +114,10 @@ export default function PreviewSurface({ draft, saved, tab }: { draft: BrandDraf
         .ggsp-preview-scope [class*="shadow-panel"] { box-shadow: ${shadowValue} !important; }
         .ggsp-preview-scope p { margin-bottom: ${paragraphSpacingPx}px; }
         .ggsp-preview-scope .font-display { text-transform: ${textTransformValue}; }
+        ${hoverEffectsEnabled ? "" : `
+        .ggsp-preview-scope [class*="hover:-translate-y"]:hover { transform: none !important; }
+        .ggsp-preview-scope [class*="hover:scale"]:hover { transform: none !important; }
+        `}
       `}</style>
 
       {tab === "login" && (

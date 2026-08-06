@@ -58,6 +58,11 @@ export function draftToCssVars(draft: BrandDraft): Record<string, string> {
     if (token.inputType === "color" && typeof value === "string") {
       vars[token.cssVar] = value;
       vars[`${token.cssVar}-rgb`] = hexToRgbTriplet(value);
+    } else if (typeof value === "boolean") {
+      // "1"/"0", not "true"/"false" — every boolean-toggle cssVar is
+      // multiplied into a calc() expression (see app/globals.css's Motion
+      // rules), which only accepts a real <number>.
+      vars[token.cssVar] = value ? "1" : "0";
     } else {
       vars[token.cssVar] = typeof value === "number" ? `${value}${token.unit ?? "px"}` : String(value);
     }

@@ -216,6 +216,20 @@ export const LEVEL_1_BEHAVIOR_TOKENS: ThemeToken[] = [
   { id: "darkModeEnabled", label: "Dark Mode", category: "behavior", studioSection: "motion", level: 1, column: "dark_mode_enabled", cssVar: null, inputType: "toggle", default: true },
   { id: "defaultTheme", label: "Default Theme", category: "behavior", studioSection: "motion", level: 1, column: "default_theme", cssVar: null, inputType: "select", default: "dark", options: ["dark", "light", "system"] },
   { id: "animationLevel", label: "Animation Level", category: "behavior", studioSection: "motion", level: 1, column: "animation_level", cssVar: "--ggsp-animation-level", inputType: "select", default: "normal", options: ["none", "reduced", "normal", "playful"] },
+
+  // --- Granular motion controls (each with a real, verified target — see
+  // app/globals.css's .ggsp-motion-scope rules and components/ui/Modal.tsx /
+  // LoadingState.tsx). "Page Transitions" and "Toast Animation" aren't
+  // included: this app has no route-transition system and no toast
+  // component to attach either to yet — adding the field without the
+  // target it's supposed to control would be the exact "wire it for the
+  // sake of the checklist" mistake Border Color already warned against. ---
+  { id: "animationSpeed", label: "Animation Speed", category: "behavior", studioSection: "motion", level: 1, column: "animation_speed", cssVar: "--ggsp-animation-speed", inputType: "number", unit: "", default: 1, min: 0.25, max: 2, step: 0.05, helperText: "× · live in preview — scales every fade/slide/pulse animation's duration" },
+  { id: "hoverEffectsEnabled", label: "Hover Effects", category: "behavior", studioSection: "motion", level: 1, column: "hover_effects_enabled", cssVar: "--ggsp-hover-effects", inputType: "toggle", default: true, helperText: "Live in preview — button/card lift-on-hover micro-interactions" },
+  { id: "modalAnimationEnabled", label: "Modal Animation", category: "behavior", studioSection: "motion", level: 1, column: "modal_animation_enabled", cssVar: "--ggsp-modal-animation", inputType: "toggle", default: true, helperText: "Live in preview — the scale-in every Modal opens with" },
+  { id: "loadingAnimationEnabled", label: "Loading Animation", category: "behavior", studioSection: "motion", level: 1, column: "loading_animation_enabled", cssVar: "--ggsp-loading-animation", inputType: "toggle", default: true, helperText: "Live in preview — the pulse LoadingState shows while content loads" },
+  { id: "smoothScrollEnabled", label: "Smooth Scroll", category: "behavior", studioSection: "motion", level: 1, column: "smooth_scroll_enabled", cssVar: null, inputType: "toggle", default: true, helperText: "Live in preview — anchor/programmatic scrolling" },
+  { id: "reducedMotion", label: "Reduced Motion", category: "behavior", studioSection: "motion", level: 1, column: "reduced_motion", cssVar: null, inputType: "toggle", default: false, helperText: "Live in preview — forces the same near-instant motion prefers-reduced-motion gives, regardless of the visitor's OS setting" },
 ];
 
 export const LEVEL_1_TOKENS: ThemeToken[] = [

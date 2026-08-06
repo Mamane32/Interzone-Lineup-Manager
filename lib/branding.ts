@@ -148,6 +148,12 @@ export interface PlatformBranding {
   darkModeEnabled: boolean;
   defaultTheme: string;
   animationLevel: string;
+  animationSpeed: number;
+  hoverEffectsEnabled: boolean;
+  modalAnimationEnabled: boolean;
+  loadingAnimationEnabled: boolean;
+  smoothScrollEnabled: boolean;
+  reducedMotion: boolean;
 }
 
 export const DEFAULT_PLATFORM_BRANDING: PlatformBranding = {
@@ -208,6 +214,12 @@ export const DEFAULT_PLATFORM_BRANDING: PlatformBranding = {
   darkModeEnabled: true,
   defaultTheme: "dark",
   animationLevel: "normal",
+  animationSpeed: 1,
+  hoverEffectsEnabled: true,
+  modalAnimationEnabled: true,
+  loadingAnimationEnabled: true,
+  smoothScrollEnabled: true,
+  reducedMotion: false,
 };
 
 /** Maps a raw platform_branding DB row (snake_case) onto PlatformBranding (camelCase), falling back per-field to DEFAULT_PLATFORM_BRANDING — used by both getPlatformBranding() and the Brand Studio's "load current values" path. */
@@ -276,6 +288,12 @@ function rowToPlatformBranding(data: Record<string, unknown>): PlatformBranding 
     darkModeEnabled: bool(data.dark_mode_enabled as boolean, d.darkModeEnabled),
     defaultTheme: str(data.default_theme, d.defaultTheme),
     animationLevel: str(data.animation_level, d.animationLevel),
+    animationSpeed: num(data.animation_speed as number, d.animationSpeed),
+    hoverEffectsEnabled: bool(data.hover_effects_enabled as boolean, d.hoverEffectsEnabled),
+    modalAnimationEnabled: bool(data.modal_animation_enabled as boolean, d.modalAnimationEnabled),
+    loadingAnimationEnabled: bool(data.loading_animation_enabled as boolean, d.loadingAnimationEnabled),
+    smoothScrollEnabled: bool(data.smooth_scroll_enabled as boolean, d.smoothScrollEnabled),
+    reducedMotion: bool(data.reduced_motion as boolean, d.reducedMotion),
   };
 }
 
@@ -536,6 +554,9 @@ export function platformBrandingToCssVars(branding: PlatformBranding): Record<st
     if (token.inputType === "color" && typeof value === "string") {
       vars[token.cssVar] = value;
       vars[`${token.cssVar}-rgb`] = hexToRgbTriplet(value);
+    } else if (typeof value === "boolean") {
+      // "1"/"0" — see draft-utils.ts's draftToCssVars for why (calc()-multiplied Motion vars need a real <number>).
+      vars[token.cssVar] = value ? "1" : "0";
     } else {
       vars[token.cssVar] = typeof value === "number" ? `${value}${token.unit ?? "px"}` : String(value);
     }

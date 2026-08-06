@@ -5,6 +5,10 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    /* Fallback only — app/layout.tsx sets the real value as an inline
+       style on <html> from the platform's Smooth Scroll toggle (Motion).
+       Inline style always wins, so this rule only matters for the
+       instant before that's applied. */
     scroll-behavior: smooth;
   }
   body {
@@ -105,12 +109,15 @@
   50% { opacity: .8; }
 }
 
+/* Every animation duration below is multiplied by Brand Studio's Motion ->
+   Animation Speed token (--ggsp-animation-speed, default 1 = unchanged) —
+   inherited from the ThemeScope app/layout.tsx wraps <body> in. */
 .animate-soft-pulse {
-  animation: soft-pulse 3s ease-in-out infinite;
+  animation: soft-pulse calc(3s * var(--ggsp-animation-speed, 1)) ease-in-out infinite;
 }
 
 .animate-fade-up {
-  animation: fade-up 0.35s ease-out both;
+  animation: fade-up calc(0.35s * var(--ggsp-animation-speed, 1)) ease-out both;
 }
 
 @keyframes slide-in-right {
@@ -125,7 +132,7 @@
 }
 
 .animate-slide-in {
-  animation: slide-in-right 0.3s ease-out both;
+  animation: slide-in-right calc(0.3s * var(--ggsp-animation-speed, 1)) ease-out both;
 }
 
 @keyframes scale-in {
@@ -140,7 +147,10 @@
 }
 
 .animate-scale-in {
-  animation: scale-in 0.16s ease-out both;
+  /* Modal.tsx's open animation — also gated by the Modal Animation toggle
+     below (which zeroes this same duration, rather than being a second,
+     competing rule). */
+  animation: scale-in calc(0.16s * var(--ggsp-animation-speed, 1) * var(--ggsp-modal-animation, 1)) ease-out both;
 }
 
 @keyframes success-pop {
@@ -165,6 +175,29 @@
    style="--stagger: N" or the utility classes below for common list sizes. */
 .animate-fade-up[style*="--stagger"] {
   animation-delay: calc(var(--stagger, 0) * 60ms);
+}
+
+/* Overrides Tailwind's own .animate-pulse utility (LoadingState.tsx) —
+   comes after @tailwind utilities in source order, so it wins at equal
+   (single-class) specificity. Gated by the Loading Animation toggle the
+   same way .animate-scale-in is gated by Modal Animation above. */
+.animate-pulse {
+  animation-duration: calc(2s * var(--ggsp-animation-speed, 1) * var(--ggsp-loading-animation, 1));
+}
+
+/* Brand Studio's Reduced Motion toggle (Motion) — the exact same rules as
+   the OS-level media query below, applied instead from
+   platform_branding.reduced_motion via a class app/layout.tsx puts on
+   <body> when the platform owner has explicitly forced it on, regardless
+   of the visitor's own OS setting. */
+.ggsp-reduced-motion,
+.ggsp-reduced-motion *,
+.ggsp-reduced-motion *::before,
+.ggsp-reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

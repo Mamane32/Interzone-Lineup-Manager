@@ -42,10 +42,16 @@ export default async function RootLayout({
   // on any read error — a bad branding row can never blank the app.
   const platform = await getPlatformBranding();
   const cssVars = platformBrandingToCssVars(platform);
+  const bodyClassName = `min-h-screen bg-surface-950 text-white${platform.reducedMotion ? " ggsp-reduced-motion" : ""}`;
 
   return (
-    <html lang="en" className={`${oswald.variable} ${inter.variable}`} suppressHydrationWarning>
-      <ThemeScope as="body" vars={cssVars} className="min-h-screen bg-surface-950 text-white">
+    <html
+      lang="en"
+      className={`${oswald.variable} ${inter.variable}`}
+      style={{ scrollBehavior: platform.smoothScrollEnabled === false ? "auto" : "smooth" }}
+      suppressHydrationWarning
+    >
+      <ThemeScope as="body" vars={cssVars} className={bodyClassName}>
         {children}
       </ThemeScope>
     </html>
