@@ -5,6 +5,7 @@ import { formatMatchDate } from "@/lib/utils";
 import { getBaseBranding } from "@/lib/branding";
 import { requireRole } from "@/lib/access";
 import BrandBar from "@/components/live/BrandBar";
+import BrandMark from "@/components/brand/BrandMark";
 import type { Match, Team } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +28,8 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default async function BroadcastControlCenterIndexPage() {
-  await requireRole(["broadcast_operator", "admin", "super_admin"]);
+  const { role } = await requireRole(["broadcast_operator", "admin", "super_admin"]);
+  const homeHref = role === "admin" || role === "super_admin" ? "/admin/dashboard" : "/live";
   const supabase = supabaseAdmin();
   const { data: matches } = await supabase
     .from("matches")
@@ -44,6 +46,7 @@ export default async function BroadcastControlCenterIndexPage() {
     <div className="min-h-screen bg-surface-950 px-4 py-10 text-white">
       <div className="mx-auto max-w-3xl">
         <div className="mb-8 flex items-center justify-between gap-3">
+          <BrandMark compact size="sm" href={homeHref} />
           <div className="flex items-center gap-2">
             <Radio size={18} className="text-red-400" />
             <div>

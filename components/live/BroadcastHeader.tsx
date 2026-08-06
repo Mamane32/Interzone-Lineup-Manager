@@ -46,11 +46,15 @@ const STRIP_SYSTEM_KEYS = ["stream", "graphics", "vmix", "recording"];
  * permanent brand shortcut back to the Overview, and Formation/Readiness/
  * Report read as three unrelated buttons rather than one nav cluster with
  * a "you are here" state. Both fixed here: `BrandMark` (the same GG crest
- * used everywhere else in the product, not a new one) links to /live, and
- * all four modules now render as one active-state-aware nav group.
+ * used everywhere else in the product, not a new one) links straight back
+ * to Admin -> Dashboard for admin/super_admin, or /live for a
+ * broadcast_operator without dashboard access (see `homeHref`, set by the
+ * layout from the signed-in user's role) — and all four modules now render
+ * as one active-state-aware nav group.
  */
 export default function BroadcastHeader({
   branding,
+  homeHref = "/live",
   matchToken,
   homeTeamName,
   awayTeamName,
@@ -62,6 +66,7 @@ export default function BroadcastHeader({
   readiness,
 }: {
   branding: BrandingConfiguration;
+  homeHref?: string;
   matchToken: string;
   homeTeamName: string;
   awayTeamName: string;
@@ -96,7 +101,7 @@ export default function BroadcastHeader({
     <header className={`sticky top-0 z-30 border-b bg-black/90 backdrop-blur-xl transition-colors ${isLive ? "border-red-500/25" : "border-white/10"}`}>
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-2.5">
         <div className="flex items-center gap-3">
-          <BrandMark compact size="sm" href="/live" className="flex-none" />
+          <BrandMark compact size="sm" href={homeHref} className="flex-none" />
           <span className="hidden h-4 w-px bg-white/10 sm:block" />
           <div className="hidden sm:block">
             <BrandBar branding={branding} compact />

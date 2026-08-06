@@ -17,7 +17,8 @@ export default async function BroadcastControlCenterLayout({
   children: React.ReactNode;
   params: { matchId: string };
 }) {
-  await requireRole(["broadcast_operator", "admin", "super_admin"]);
+  const { role } = await requireRole(["broadcast_operator", "admin", "super_admin"]);
+  const homeHref = role === "admin" || role === "super_admin" ? "/admin/dashboard" : "/live";
   const { match, homeLineup, awayLineup } = await getLiveMatch(params.matchId);
   const branding = withCompetition(getBaseBranding(), match.competition);
 
@@ -52,6 +53,7 @@ export default async function BroadcastControlCenterLayout({
     <div className="min-h-screen bg-surface-950 text-white">
       <BroadcastHeader
         branding={branding}
+        homeHref={homeHref}
         matchToken={params.matchId}
         homeTeamName={match.home_team.name}
         awayTeamName={match.away_team.name}
