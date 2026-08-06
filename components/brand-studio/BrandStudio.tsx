@@ -133,7 +133,7 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
   const mainLogoUrl = typeof draft.mainLogo === "string" ? (draft.mainLogo as string) : null;
 
   return (
-    <div className="flex h-[calc(100vh-6rem)] min-h-[640px] flex-col overflow-hidden rounded-2xl border border-white/[0.07] bg-surface-900">
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-white/[0.07] bg-surface-900 lg:h-[calc(100vh-6rem)] lg:min-h-[640px]">
       {/* Top bar — reset all, undo/redo, unsaved indicator, viewport switcher, save. */}
       <div className="flex flex-none flex-wrap items-center gap-2 border-b border-white/[0.06] px-4 py-3">
         <div>
@@ -205,9 +205,12 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
         </div>
       </div>
 
-      {/* Two-panel workspace. */}
-      <div className="flex min-h-0 flex-1">
-        <div className="w-[420px] flex-none border-r border-white/[0.06]">
+      {/* Two-panel workspace — stacked (edit panel above preview) below
+         lg, since side-by-side 420px-plus-preview never fits a phone
+         width; side-by-side with each panel independently scrollable
+         inside the fixed-height shell from lg up. */}
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <div className="flex-none border-b border-white/[0.06] lg:w-[420px] lg:border-b-0 lg:border-r">
           <ControlPanel
             draft={draft}
             activeSection={activeSection}
@@ -234,7 +237,7 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
               </button>
             ))}
           </nav>
-          <div className="min-h-0 flex-1 overflow-auto p-4">
+          <div className="min-h-[420px] flex-1 overflow-auto p-4 lg:min-h-0">
             <LivePreview draft={draft} saved={initial} tab={previewTab} viewport={viewport} />
           </div>
         </div>
