@@ -50,11 +50,11 @@ export default function MatchScorePanel({
         </span>
       </div>
 
-      <div className="grid grid-cols-3 items-center gap-2">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <TeamColumn team={homeTeam} />
 
         <div className="flex flex-col items-center gap-1">
-          <div className="font-display text-6xl font-black tabular-nums leading-none tracking-tight">
+          <div className="whitespace-nowrap font-display text-4xl font-black tabular-nums leading-none tracking-tight sm:text-6xl">
             {homeScore} <span className="text-white/15">–</span> {awayScore}
           </div>
           <div className="mt-3 flex items-baseline gap-1.5 rounded-full bg-white/5 px-3 py-1">

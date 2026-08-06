@@ -15,12 +15,12 @@ export default function LiveNowCard({ match }: { match: PublicScoreMatch }) {
         </span>
         {match.competitionName && <span className="truncate text-[10px] uppercase tracking-wide text-white/35">{match.competitionName}</span>}
       </div>
-      <div className="grid grid-cols-3 items-center gap-1">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
         <div className="flex flex-col items-center gap-1.5 text-center">
           <TeamCrest name={match.homeTeam.name} logoUrl={match.homeTeam.logoUrl} size={36} />
           <span className="line-clamp-2 text-[11px] font-semibold leading-tight text-white/85">{match.homeTeam.name}</span>
         </div>
-        <p className="text-center font-display text-2xl font-black tabular-nums leading-none">
+        <p className="whitespace-nowrap text-center font-display text-2xl font-black tabular-nums leading-none">
           {match.homeScore}&ndash;{match.awayScore}
         </p>
         <div className="flex flex-col items-center gap-1.5 text-center">

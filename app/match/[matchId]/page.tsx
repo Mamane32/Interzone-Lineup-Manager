@@ -80,13 +80,13 @@ export default async function PublicMatchPage({ params }: { params: { matchId: s
             </span>
           </div>
 
-          <div className="grid grid-cols-3 items-center gap-2">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
             <TeamColumn team={view.homeTeam} />
             <div className="flex flex-col items-center gap-1">
               {view.phase === "upcoming" ? (
                 <p className="font-display text-2xl font-black text-white/40">VS</p>
               ) : (
-                <p className="font-display text-6xl font-black tabular-nums leading-none tracking-tight">
+                <p className="whitespace-nowrap font-display text-4xl font-black tabular-nums leading-none tracking-tight sm:text-6xl">
                   {view.homeScore} <span className="text-white/15">–</span> {view.awayScore}
                 </p>
               )}
