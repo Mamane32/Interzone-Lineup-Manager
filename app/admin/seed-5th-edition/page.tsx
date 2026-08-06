@@ -19,7 +19,7 @@ export default async function SeedFifthEditionPage({
       <PageHeader
         eyebrow="One-off data entry"
         title="Seed: 5th Edition — Interzone Nord'Ouest"
-        description="Creates (or updates) the real competition, 3 groups, 15 teams, and the 30 group-stage fixtures with the 6 results known so far."
+        description="Creates (or updates) the real competition, 3 groups, 15 teams, and the 30 group-stage fixtures with the 10 results known so far — 4 of them with full goal scorers and cards."
       />
 
       {searchParams.done && (
@@ -45,7 +45,7 @@ export default async function SeedFifthEditionPage({
               <li>• Organization: Ligue Football De Port-de-Paix</li>
               <li>• Competition: Championnat Interzone Du Nord&apos;Ouest — Coupe Rock Clavaroche (5è Edisyon 2026)</li>
               <li>• Groupe A, B, C — 5 teams each, 15 total</li>
-              <li>• 30 group-stage fixtures (24 Jiyè – 24 Out 2026), 6 with real results already recorded</li>
+              <li>• 30 group-stage fixtures (24 Jiyè – 24 Out 2026), 10 with real results already recorded (4 with goal scorers and cards)</li>
             </ul>
             <p className="mt-4 text-sm text-white/40">
               Safe to run more than once — every insert is checked against what already exists, so re-running this updates scores in place

@@ -26,6 +26,13 @@ export const GROUPS: Record<GroupLetter, string[]> = {
   C: ["FC Real Cassave", "Beauchamp FC", "Billio FC", "Gladiators FC", "Resolution FC"],
 };
 
+type FixtureEvent = {
+  minute: string;
+  type: "goal" | "yellow_card" | "second_yellow" | "red_card";
+  side: "home" | "away";
+  player: string;
+};
+
 type FixtureRow = {
   n: number;
   date: string;
@@ -33,13 +40,15 @@ type FixtureRow = {
   away: string;
   group: GroupLetter;
   score?: [number, number];
+  events?: FixtureEvent[];
 };
 
-// Official calendar (24 Jiyè – 24 Out 2026) + known weekly results as of
-// 2026-08-05. Match 5's score is recorded home/away as the calendar lists
-// the fixture (La Pointe home, Inazuma away); the weekly results bulletin
-// reported it the other way around ("Inazuma 2-1 La Pointe") — same
-// result, order flipped here.
+// Official calendar (24 Jiyè – 24 Out 2026) + known results as of 2026-08-05
+// (weekly results bulletin for matches 4-9; official post-match graphics,
+// with scorers/cards, for matches 10-13). Match 5's score is recorded
+// home/away as the calendar lists the fixture (La Pointe home, Inazuma
+// away); the weekly results bulletin reported it the other way around
+// ("Inazuma 2-1 La Pointe") — same result, order flipped here.
 export const FIXTURES: FixtureRow[] = [
   { n: 1, date: "2026-07-24", home: "Kriminal FC", away: "FC Desmelus", group: "A" },
   { n: 2, date: "2026-07-25", home: "Jean Rabel FC", away: "FC Dimanche Matin", group: "B" },
@@ -50,10 +59,70 @@ export const FIXTURES: FixtureRow[] = [
   { n: 7, date: "2026-07-30", home: "FC Desmelus", away: "La Tortue FC", group: "A", score: [2, 1] },
   { n: 8, date: "2026-07-31", home: "FC Dimanche Matin", away: "Mikado FC", group: "B", score: [7, 1] },
   { n: 9, date: "2026-08-01", home: "FC Real Cassave", away: "Billio FC", group: "C", score: [3, 0] },
-  { n: 10, date: "2026-08-02", home: "Kriminal FC", away: "Legends FC", group: "A" },
-  { n: 11, date: "2026-08-03", home: "Jean Rabel FC", away: "Inazuma SC", group: "B" },
-  { n: 12, date: "2026-08-04", home: "Beauchamp FC", away: "Gladiators FC", group: "C" },
-  { n: 13, date: "2026-08-05", home: "FC Desroulins", away: "La Tortue FC", group: "A" },
+  {
+    n: 10,
+    date: "2026-08-02",
+    home: "Kriminal FC",
+    away: "Legends FC",
+    group: "A",
+    score: [5, 1],
+    events: [
+      { minute: "38", type: "goal", side: "home", player: "Geralson Desamour" },
+      { minute: "45", type: "goal", side: "home", player: "Rivaldo Jean Noel" },
+      { minute: "59", type: "goal", side: "home", player: "Pedro Alexis" },
+      { minute: "61", type: "goal", side: "away", player: "Louis Jeune Wideley" },
+      { minute: "62", type: "yellow_card", side: "away", player: "Guy Jeanty" },
+      { minute: "75", type: "goal", side: "home", player: "Ronel Joanelus" },
+      { minute: "77", type: "goal", side: "home", player: "Pedro Alexis" },
+      { minute: "?", type: "yellow_card", side: "home", player: "Berveley Dieujuste" },
+      { minute: "?", type: "yellow_card", side: "home", player: "Fertilus Termesley" },
+    ],
+  },
+  {
+    n: 11,
+    date: "2026-08-03",
+    home: "Jean Rabel FC",
+    away: "Inazuma SC",
+    group: "B",
+    score: [2, 1],
+    events: [
+      { minute: "3", type: "goal", side: "home", player: "Georges Richecarde" },
+      { minute: "33", type: "yellow_card", side: "home", player: "Rold Guillot" },
+      { minute: "34", type: "goal", side: "away", player: "Fedlet Frederic" },
+      { minute: "45", type: "yellow_card", side: "away", player: "Fredlet Frederic" },
+      { minute: "86", type: "yellow_card", side: "away", player: "Lovensky Bejasma" },
+    ],
+  },
+  {
+    n: 12,
+    date: "2026-08-04",
+    home: "Beauchamp FC",
+    away: "Gladiators FC",
+    group: "C",
+    score: [2, 1],
+    events: [
+      { minute: "9", type: "yellow_card", side: "home", player: "Joseph Schinaider" },
+      { minute: "19", type: "goal", side: "home", player: "Charles Donley" },
+      { minute: "28", type: "goal", side: "home", player: "Joseph Schinaider" },
+      { minute: "38", type: "yellow_card", side: "home", player: "Alex Exantus" },
+      { minute: "69", type: "goal", side: "away", player: "Joseph Adans" },
+      { minute: "71", type: "second_yellow", side: "home", player: "Paul Sovens" },
+      { minute: "90+3", type: "yellow_card", side: "home", player: "Guency" },
+    ],
+  },
+  {
+    n: 13,
+    date: "2026-08-05",
+    home: "FC Desroulins",
+    away: "La Tortue FC",
+    group: "A",
+    score: [0, 2],
+    events: [
+      { minute: "45+3", type: "yellow_card", side: "home", player: "Nicolas Jean Bernard" },
+      { minute: "46", type: "goal", side: "away", player: "Joseph Jmjason" },
+      { minute: "55", type: "goal", side: "away", player: "Fenelus Nouvesko" },
+    ],
+  },
   { n: 14, date: "2026-08-06", home: "La Pointe FC", away: "Mikado FC", group: "B" },
   { n: 15, date: "2026-08-07", home: "Billio FC", away: "Resolution FC", group: "C" },
   { n: 16, date: "2026-08-08", home: "FC Desmelus", away: "Legends FC", group: "A" },
@@ -157,24 +226,46 @@ export async function runFifthEditionSeed(supabase: SupabaseClient, generateToke
 
     const { data: existing } = await supabase.from("matches").select("id").match({ home_team_id, away_team_id, match_date: fx.date }).maybeSingle();
 
+    let matchId: string;
     if (existing) {
       const { error } = await supabase.from("matches").update({ live_status, home_score, away_score, group_id, round: `Match ${fx.n}` }).eq("id", existing.id);
       if (error) throw new Error(`update match ${fx.n} failed: ${error.message}`);
+      matchId = existing.id;
       matchesUpdated++;
     } else {
-      const { error } = await supabase.from("matches").insert({
-        home_team_id,
-        away_team_id,
-        match_date: fx.date,
-        match_time: DEFAULT_MATCH_TIME,
-        group_id,
-        round: `Match ${fx.n}`,
-        live_status,
-        home_score,
-        away_score,
-      });
+      const { data: inserted, error } = await supabase
+        .from("matches")
+        .insert({
+          home_team_id,
+          away_team_id,
+          match_date: fx.date,
+          match_time: DEFAULT_MATCH_TIME,
+          group_id,
+          round: `Match ${fx.n}`,
+          live_status,
+          home_score,
+          away_score,
+        })
+        .select("id")
+        .single();
       if (error) throw new Error(`insert match ${fx.n} failed: ${error.message}`);
+      matchId = (inserted as { id: string }).id;
       matchesCreated++;
+    }
+
+    if (fx.events && fx.events.length > 0) {
+      const { error: deleteError } = await supabase.from("match_events").delete().eq("match_id", matchId);
+      if (deleteError) throw new Error(`clearing events for match ${fx.n} failed: ${deleteError.message}`);
+
+      const eventRows = fx.events.map((e) => ({
+        match_id: matchId,
+        minute: e.minute,
+        type: e.type,
+        team_id: e.side === "home" ? home_team_id : away_team_id,
+        description: e.player,
+      }));
+      const { error: eventsError } = await supabase.from("match_events").insert(eventRows);
+      if (eventsError) throw new Error(`inserting events for match ${fx.n} failed: ${eventsError.message}`);
     }
   }
 
