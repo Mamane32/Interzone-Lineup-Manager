@@ -37,7 +37,7 @@ export async function getPublicGroups(): Promise<PublicGroup[]> {
   const { data: matches } = await supabase
     .from("matches")
     .select(
-      `group_id, home_score, away_score, live_status,
+      `group_id, home_score, away_score, live_status, match_date,
        home_team:teams!matches_home_team_id_fkey(id, name, logo_url),
        away_team:teams!matches_away_team_id_fkey(id, name, logo_url)`
     )
@@ -51,6 +51,7 @@ export async function getPublicGroups(): Promise<PublicGroup[]> {
     home_score: number | null;
     away_score: number | null;
     live_status: MatchLiveStatus | null;
+    match_date: string;
     home_team: { id: string; name: string; logo_url: string | null };
     away_team: { id: string; name: string; logo_url: string | null };
   };
@@ -79,6 +80,7 @@ export async function getPublicGroups(): Promise<PublicGroup[]> {
         homeScore: m.home_score ?? 0,
         awayScore: m.away_score ?? 0,
         isFinished: m.live_status === "full_time",
+        matchDate: m.match_date,
       }))
     );
 

@@ -50,7 +50,7 @@ export default async function CompetitionPage({ searchParams }: { searchParams: 
           (groups.length === 0 ? (
             <EmptyState compact icon={Trophy} title="Pa gen gwoup ankò" description="Gwoup yo ap parèt isit la yon fwa yo konfigire." />
           ) : (
-            groups.map((g) => <GroupTable key={g.groupId} group={g} />)
+            groups.map((g) => <GroupTable key={g.groupId} group={g} allGroups={groups} />)
           ))}
 
         {view === "bracket" && (
@@ -78,13 +78,13 @@ export default async function CompetitionPage({ searchParams }: { searchParams: 
   );
 }
 
-function GroupTable({ group }: { group: PublicGroup }) {
+function GroupTable({ group, allGroups }: { group: PublicGroup; allGroups: PublicGroup[] }) {
   return (
     <div className="surface-panel overflow-hidden">
       <div className="border-b border-white/[0.08] px-4 py-3">
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-brand-400">{group.name}</h2>
       </div>
-      <StandingsTable group={group} />
+      <StandingsTable group={group} allGroups={allGroups} />
     </div>
   );
 }

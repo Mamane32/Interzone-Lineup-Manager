@@ -15,7 +15,11 @@ export type StandingsInputMatch = {
   homeScore: number;
   awayScore: number;
   isFinished: boolean;
+  /** "YYYY-MM-DD" — only needed for the Form Guide's chronological ordering. A match with no date is still counted in every points/goal-difference total, just left out of `form` (there's no reliable position to place it in the sequence). */
+  matchDate?: string;
 };
+
+export type MatchResult = "W" | "D" | "L";
 
 export type StandingRow = {
   teamId: string;
@@ -29,6 +33,8 @@ export type StandingRow = {
   goalsAgainst: number;
   goalDifference: number;
   points: number;
+  /** Oldest first, most recent last, capped at the team's 5 most recent finished+dated matches. */
+  form: MatchResult[];
 };
 
 export type StandingsPoints = { win: number; draw: number; loss: number };
@@ -54,6 +60,7 @@ export function computeStandings(
       goalsAgainst: 0,
       goalDifference: 0,
       points: 0,
+      form: [],
     });
   }
 
@@ -90,6 +97,32 @@ export function computeStandings(
 
   for (const r of rows.values()) {
     r.goalDifference = r.goalsFor - r.goalsAgainst;
+  }
+
+  // Form Guide — chronological (oldest first), so it's built as a
+  // separate pass over date-sorted matches rather than inline above
+  // (the main loop doesn't assume `matches` arrives in any particular
+  // order, and shouldn't have to just to support this).
+  const datedFinished = matches
+    .filter((m): m is StandingsInputMatch & { matchDate: string } => m.isFinished && typeof m.matchDate === "string")
+    .sort((a, b) => a.matchDate.localeCompare(b.matchDate));
+  for (const m of datedFinished) {
+    const home = rows.get(m.homeTeamId);
+    const away = rows.get(m.awayTeamId);
+    if (!home || !away) continue;
+    if (m.homeScore > m.awayScore) {
+      home.form.push("W");
+      away.form.push("L");
+    } else if (m.homeScore < m.awayScore) {
+      home.form.push("L");
+      away.form.push("W");
+    } else {
+      home.form.push("D");
+      away.form.push("D");
+    }
+  }
+  for (const r of rows.values()) {
+    r.form = r.form.slice(-5);
   }
 
   return [...rows.values()].sort(

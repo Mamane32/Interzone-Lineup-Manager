@@ -1,4 +1,5 @@
 import type { PublicGroup } from "@/lib/public-groups";
+import type { StandingRow } from "@/lib/standings";
 
 /**
  * Pure knockout-bracket resolution — no DB access, testable with fixtures.
@@ -65,18 +66,49 @@ export function resolveSlot(
   const allComplete = (["A", "B", "C"] as const).every((g) => isGroupComplete(groupsByLetter[g], expectedTeamsPerGroup));
   if (!allComplete) return { resolved: false, label: `${ref.rank}e pi bon 3è plas` };
 
-  const thirdPlaces = (["A", "B", "C"] as const)
-    .map((g) => ({ group: g, row: groupsByLetter[g]!.standings[2] }))
-    .sort(
-      (a, b) =>
-        b.row.points - a.row.points ||
-        b.row.goalDifference - a.row.goalDifference ||
-        b.row.goalsFor - a.row.goalsFor ||
-        a.row.teamName.localeCompare(b.row.teamName)
-    );
-
-  const picked = thirdPlaces[ref.rank - 1].row;
+  const picked = rankThirdPlaces(groups(groupsByLetter))[ref.rank - 1];
   return { resolved: true, teamId: picked.teamId, teamName: picked.teamName, logoUrl: picked.logoUrl };
+}
+
+function groups(groupsByLetter: Record<"A" | "B" | "C", PublicGroup | undefined>): PublicGroup[] {
+  return (["A", "B", "C"] as const).map((g) => groupsByLetter[g]).filter((g): g is PublicGroup => Boolean(g));
+}
+
+/**
+ * Every group's 3rd-place finisher, best-to-worst by the same tiebreakers
+ * lib/standings.ts's computeStandings itself sorts by. Shared by
+ * resolveSlot's best_third branch (final, only once every group is
+ * complete) and qualificationStatus below (provisional/live, updates as
+ * the table evolves) — one ranking function instead of the sort criteria
+ * drifting between two copies.
+ */
+export function rankThirdPlaces(groups: PublicGroup[]): StandingRow[] {
+  return groups
+    .map((g) => g.standings[2])
+    .filter((row): row is StandingRow => Boolean(row))
+    .sort((a, b) => b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor || a.teamName.localeCompare(b.teamName));
+}
+
+export type QualificationStatus = "qualified" | "contention" | "out";
+
+/**
+ * A standings table's per-row qualification indicator — 1st/2nd in any
+ * group always advance (QUARTERFINAL_TEMPLATE's group_position slots);
+ * 3rd place advances only if it's currently one of the two best 3rd-place
+ * teams across all groups (QUARTERFINAL_TEMPLATE's best_third slots).
+ * Deliberately *not* gated by isGroupComplete the way resolveSlot's
+ * best_third branch is — resolveSlot only finalizes a slot once nothing
+ * can change (so a real knockout fixture can be created), but a
+ * standings-table indicator is meant to update live as results come in,
+ * same as any real live-score product's "provisional qualification" mark.
+ */
+export function qualificationStatus(position: number, teamId: string, allGroups: PublicGroup[]): QualificationStatus {
+  if (position <= 2) return "qualified";
+  if (position === 3) {
+    const rank = rankThirdPlaces(allGroups).findIndex((r) => r.teamId === teamId);
+    return rank !== -1 && rank < 2 ? "contention" : "out";
+  }
+  return "out";
 }
 
 export function resolveQuarterfinals(groups: PublicGroup[]) {

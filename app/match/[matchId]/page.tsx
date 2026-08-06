@@ -149,7 +149,7 @@ export default async function PublicMatchPage({ params }: { params: { matchId: s
 
         <PublicLineups homeTeamName={view.homeTeam.name} awayTeamName={view.awayTeam.name} homeLineup={view.homeLineup} awayLineup={view.awayLineup} />
 
-        {group && <PublicStandingsCard group={group} homeName={view.homeTeam.name} awayName={view.awayTeam.name} />}
+        {group && <PublicStandingsCard group={group} allGroups={groups} homeName={view.homeTeam.name} awayName={view.awayTeam.name} />}
 
         {relatedMatches.length > 0 && (
           <div className="flex flex-col gap-2">
@@ -281,14 +281,14 @@ function PublicStatistics({
   );
 }
 
-function PublicStandingsCard({ group, homeName, awayName }: { group: PublicGroup; homeName: string; awayName: string }) {
+function PublicStandingsCard({ group, allGroups, homeName, awayName }: { group: PublicGroup; allGroups: PublicGroup[]; homeName: string; awayName: string }) {
   return (
     <div className="surface-panel overflow-hidden">
       <div className="flex items-center gap-2 border-b border-white/[0.08] px-4 py-3">
         <Trophy size={14} className="text-brand-400" />
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-brand-400">{group.name}</h2>
       </div>
-      <StandingsTable group={group} highlightTeamNames={[homeName, awayName]} />
+      <StandingsTable group={group} allGroups={allGroups} highlightTeamNames={[homeName, awayName]} />
     </div>
   );
 }
