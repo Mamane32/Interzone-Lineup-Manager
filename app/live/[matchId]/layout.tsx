@@ -1,5 +1,5 @@
 import { getLiveMatch } from "@/lib/live-match";
-import { getBaseBranding, withCompetition } from "@/lib/branding";
+import { getBaseBranding, getPlatformBranding, withCompetition } from "@/lib/branding";
 import { getVMixStatus } from "@/lib/vmix/client";
 import { WebsiteSync } from "@/lib/broadcast/WebsiteSync";
 import { getTacticalFormation } from "@/lib/tactical-formation";
@@ -18,15 +18,16 @@ export default async function BroadcastControlCenterLayout({
   params: { matchId: string };
 }) {
   const { role } = await requireRole(["broadcast_operator", "admin", "super_admin"]);
-  const homeHref = role === "admin" || role === "super_admin" ? "/admin/dashboard" : "/live";
+  const showAdminLink = role === "admin" || role === "super_admin";
   const { match, homeLineup, awayLineup } = await getLiveMatch(params.matchId);
   const branding = withCompetition(getBaseBranding(), match.competition);
 
-  const [vmixStatus, websiteSyncStatuses, homeFormation, awayFormation] = await Promise.all([
+  const [vmixStatus, websiteSyncStatuses, homeFormation, awayFormation, platformBranding] = await Promise.all([
     getVMixStatus(),
     WebsiteSync.getProvidersStatus(),
     getTacticalFormation(params.matchId, match.home_team_id),
     getTacticalFormation(params.matchId, match.away_team_id),
+    getPlatformBranding(),
   ]);
 
   const readiness = buildReadinessReport({
@@ -53,7 +54,8 @@ export default async function BroadcastControlCenterLayout({
     <div className="min-h-screen bg-surface-950 text-white">
       <BroadcastHeader
         branding={branding}
-        homeHref={homeHref}
+        platform={{ orgName: platformBranding.organizationName, subtitle: platformBranding.organizationSubtitle, logoUrl: platformBranding.organizationLogoUrl }}
+        showAdminLink={showAdminLink}
         matchToken={params.matchId}
         homeTeamName={match.home_team.name}
         awayTeamName={match.away_team.name}
