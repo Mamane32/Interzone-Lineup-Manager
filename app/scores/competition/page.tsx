@@ -1,21 +1,20 @@
 import Link from "next/link";
+import { ChevronDown, Trophy } from "lucide-react";
 import { getPublicGroups, type PublicGroup } from "@/lib/public-groups";
-import { resolveQuarterfinals, type ResolvedSlot } from "@/lib/bracket";
+import { getPublicBracket } from "@/lib/public-bracket";
 import { getPublicScoresFeed } from "@/lib/public-scores";
-import BracketSlot from "@/components/scores/BracketSlot";
+import BracketMatchCard from "@/components/scores/BracketMatchCard";
 import StandingsTable from "@/components/scores/StandingsTable";
 import PublicNav from "@/components/scores/PublicNav";
 import EmptyState from "@/components/ui/EmptyState";
-import { Trophy } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 type View = "groups" | "bracket";
 
 export default async function CompetitionPage({ searchParams }: { searchParams: { view?: string } }) {
-  const [groups, feed] = await Promise.all([getPublicGroups(), getPublicScoresFeed()]);
+  const [groups, feed, bracket] = await Promise.all([getPublicGroups(), getPublicScoresFeed(), getPublicBracket()]);
   const view: View = searchParams.view === "bracket" ? "bracket" : "groups";
-  const quarterfinals = resolveQuarterfinals(groups);
 
   return (
     <div className="min-h-screen bg-surface-950 pb-28 text-white">
@@ -54,20 +53,25 @@ export default async function CompetitionPage({ searchParams }: { searchParams: 
           ))}
 
         {view === "bracket" && (
-          <div className="flex flex-col gap-5">
-            <BracketRound label="1/4 De Finale" dateHint="27 – 30 Out 2026">
-              {quarterfinals.map((qf) => (
-                <BracketMatchCard key={qf.id} homeSlot={qf.home} awaySlot={qf.away} />
+          <div className="flex flex-col items-center gap-2">
+            <BracketRound label="1/4 De Finale">
+              {bracket.quarterfinals.map((qf) => (
+                <BracketMatchCard key={qf.id} match={qf} />
               ))}
             </BracketRound>
 
-            <BracketRound label="1/2 Finale" dateHint="1 – 2 Sept 2026">
-              <BracketMatchCard homeSlot={{ resolved: false, label: "Vènkè QF1" }} awaySlot={{ resolved: false, label: "Vènkè QF2" }} />
-              <BracketMatchCard homeSlot={{ resolved: false, label: "Vènkè QF3" }} awaySlot={{ resolved: false, label: "Vènkè QF4" }} />
+            <BracketConnector />
+
+            <BracketRound label="1/2 Finale">
+              {bracket.semifinals.map((sf) => (
+                <BracketMatchCard key={sf.id} match={sf} />
+              ))}
             </BracketRound>
 
-            <BracketRound label="Grande Finale" dateHint="6 Sept 2026">
-              <BracketMatchCard homeSlot={{ resolved: false, label: "Vènkè 1/2 Final 1" }} awaySlot={{ resolved: false, label: "Vènkè 1/2 Final 2" }} />
+            <BracketConnector />
+
+            <BracketRound label="Grande Finale">
+              <BracketMatchCard match={bracket.final} />
             </BracketRound>
           </div>
         )}
@@ -89,24 +93,16 @@ function GroupTable({ group, allGroups }: { group: PublicGroup; allGroups: Publi
   );
 }
 
-function BracketRound({ label, dateHint, children }: { label: string; dateHint: string; children: React.ReactNode }) {
+function BracketRound({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-2.5">
-      <div className="flex items-baseline justify-between px-1">
-        <h2 className="font-display text-sm font-bold uppercase tracking-wide">{label}</h2>
-        <span className="text-[11px] text-white/35">{dateHint}</span>
-      </div>
+    <section className="flex w-full flex-col gap-2.5">
+      <h2 className="px-1 text-center font-display text-sm font-bold uppercase tracking-wide">{label}</h2>
       <div className="flex flex-col gap-2">{children}</div>
     </section>
   );
 }
 
-function BracketMatchCard({ homeSlot, awaySlot }: { homeSlot: ResolvedSlot; awaySlot: ResolvedSlot }) {
-  return (
-    <div className="surface-panel flex flex-col gap-2 px-4 py-3">
-      <BracketSlot slot={homeSlot} />
-      <div className="h-px bg-white/[0.06]" />
-      <BracketSlot slot={awaySlot} />
-    </div>
-  );
+/** The bracket's only concession to "animated progression" beyond each card's own entrance (BracketMatchCard's animate-fade-up) — a bouncing chevron between rounds, decorative only, not gated by Brand Studio's Motion tokens since it's a static flourish rather than a state transition. */
+function BracketConnector() {
+  return <ChevronDown size={18} className="animate-bounce text-white/15" aria-hidden="true" />;
 }
