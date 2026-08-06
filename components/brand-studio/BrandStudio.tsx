@@ -53,6 +53,17 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
     [pushHistory]
   );
 
+  /** Like handleChange, but for controls that need to set several tokens at once as a single undo step — e.g. an Animation Speed preset button that also flips Reduced Motion off, or a future "reset to inherited" action. Without this, a multi-field control would either need N separate onChange calls (N separate, confusing undo steps for what the admin experienced as one click) or duplicate pushHistory/setDraft wiring per caller. */
+  const handleBatchChange = useCallback(
+    (patch: Record<string, string | number | boolean | null>) => {
+      setDraft((current) => {
+        pushHistory(current);
+        return { ...current, ...patch };
+      });
+    },
+    [pushHistory]
+  );
+
   const handleAssetApplied = useCallback(
     (tokenId: string, url: string | null) => {
       setDraft((current) => {
@@ -216,6 +227,7 @@ export default function BrandStudio({ initial }: { initial: PlatformBranding }) 
             activeSection={activeSection}
             onSectionChange={setActiveSection}
             onChange={handleChange}
+            onBatchChange={handleBatchChange}
             onManageAsset={setManagingToken}
             onResetSection={handleResetSection}
           />

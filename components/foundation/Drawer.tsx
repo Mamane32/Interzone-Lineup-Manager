@@ -19,7 +19,7 @@ export default function Drawer({
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm" onClick={onClose} role="presentation">
       <div
-        className="animate-slide-in h-full w-full max-w-md overflow-y-auto border-l border-white/[0.08] bg-surface-950 p-5 shadow-panel"
+        className="ggsp-drawer-panel animate-slide-in h-full w-full max-w-md overflow-y-auto border-l border-white/[0.08] bg-surface-950 p-5 shadow-panel"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

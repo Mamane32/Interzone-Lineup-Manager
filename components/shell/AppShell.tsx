@@ -160,7 +160,7 @@ export default function AppShell({
                       </>
                     )}
                     {collapsed && (
-                      <span className="pointer-events-none absolute left-full ml-2 hidden whitespace-nowrap rounded-lg bg-surface-700 px-2.5 py-1.5 text-xs font-medium text-white shadow-panel group-hover:block">
+                      <span className="ggsp-tooltip pointer-events-none absolute left-full ml-2 whitespace-nowrap rounded-lg bg-surface-700 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-panel transition-opacity duration-150 group-hover:opacity-100">
                         {label}
                       </span>
                     )}
@@ -198,7 +198,7 @@ export default function AppShell({
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setMobileOpen(false)} aria-label="Close navigation overlay" />
-          <div className="relative h-full w-[min(88vw,300px)] border-r border-white/[0.08] shadow-2xl">
+          <div className="ggsp-drawer-panel animate-slide-in relative h-full w-[min(88vw,300px)] border-r border-white/[0.08] shadow-2xl">
             <div className="flex h-full flex-col bg-sidebar w-[min(88vw,300px)]">
               <div className="flex h-16 items-center justify-between border-b border-white/[0.06] px-5">
                 <BrandMark
@@ -279,7 +279,7 @@ export default function AppShell({
             <div
               role="menu"
               aria-hidden={!notificationsOpen}
-              className={`surface-panel-solid absolute right-0 top-12 w-[min(88vw,360px)] origin-top-right overflow-hidden p-0 transition-all duration-150 ease-out ${
+              className={`ggsp-dropdown-panel surface-panel-solid absolute right-0 top-12 w-[min(88vw,360px)] origin-top-right overflow-hidden p-0 transition-all duration-150 ease-out ${
                 notificationsOpen ? "pointer-events-auto scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"
               }`}
             >
@@ -309,7 +309,7 @@ export default function AppShell({
             <div
               role="menu"
               aria-hidden={!profileOpen}
-              className={`surface-panel-solid absolute right-0 top-12 w-64 origin-top-right overflow-hidden p-2 transition-all duration-150 ease-out ${
+              className={`ggsp-dropdown-panel surface-panel-solid absolute right-0 top-12 w-64 origin-top-right overflow-hidden p-2 transition-all duration-150 ease-out ${
                 profileOpen ? "pointer-events-auto scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"
               }`}
             >

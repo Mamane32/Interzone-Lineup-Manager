@@ -228,12 +228,14 @@ export const LEVEL_1_LAYOUT_TOKENS: ThemeToken[] = [
   { id: "badgeShape", label: "Badge Shape", category: "layout", studioSection: "components", level: 1, column: "badge_shape", cssVar: null, inputType: "select", default: "pill", options: ["pill", "rounded", "square"], helperText: "Live in preview and sitewide — role and status chips" },
 ];
 
-/** `ggsp-<prefix>-<value>` class prefix for each class-based (non-cssVar) Components token — see the tokens' own comment above for why they're classes instead of vars. */
+/** `ggsp-<prefix>-<value>` class prefix for each class-based (non-cssVar) Components/Motion token — see the tokens' own comment above for why they're classes instead of vars. */
 const COMPONENT_STYLE_CLASS_PREFIX: Record<string, string> = {
   cardStyle: "ggsp-card",
   shadowStyle: "ggsp-shadow",
   inputStyle: "ggsp-input",
   badgeShape: "ggsp-badge",
+  hoverIntensity: "ggsp-hover-intensity",
+  cardHoverBehavior: "ggsp-card-hover",
 };
 
 /**
@@ -249,31 +251,83 @@ export function componentStyleClassNames(values: Record<string, unknown>): strin
   const classes: string[] = [];
   for (const [tokenId, prefix] of Object.entries(COMPONENT_STYLE_CLASS_PREFIX)) {
     const value = values[tokenId];
-    const def = LEVEL_1_LAYOUT_TOKENS.find((t) => t.id === tokenId)?.default;
+    // LEVEL_1_TOKENS is declared further down this module — safe to
+    // reference here since this function only ever runs after the whole
+    // module (and its top-level consts) has finished evaluating.
+    const def = LEVEL_1_TOKENS.find((t) => t.id === tokenId)?.default;
     if (typeof value === "string" && value !== def) classes.push(`${prefix}-${value}`);
   }
   return classes.join(" ");
 }
 
-export const LEVEL_1_BEHAVIOR_TOKENS: ThemeToken[] = [
-  { id: "lightModeEnabled", label: "Light Mode", category: "behavior", studioSection: "motion", level: 1, column: "light_mode_enabled", cssVar: null, inputType: "toggle", default: false },
-  { id: "darkModeEnabled", label: "Dark Mode", category: "behavior", studioSection: "motion", level: 1, column: "dark_mode_enabled", cssVar: null, inputType: "toggle", default: true },
-  { id: "defaultTheme", label: "Default Theme", category: "behavior", studioSection: "motion", level: 1, column: "default_theme", cssVar: null, inputType: "select", default: "dark", options: ["dark", "light", "system"] },
-  { id: "animationLevel", label: "Animation Level", category: "behavior", studioSection: "motion", level: 1, column: "animation_level", cssVar: "--ggsp-animation-level", inputType: "select", default: "normal", options: ["none", "reduced", "normal", "playful"] },
+/**
+ * Boolean Motion toggles that have no cssVar — a plain on/off switch, not a
+ * duration multiplier, so (like Card/Shadow/Input/Badge Style above) each
+ * is expressed as a `ggsp-<name>` class in app/globals.css rather than a
+ * --ggsp- variable. Named for the non-default state either way, so the
+ * class itself always reads as "what's different from stock": most default
+ * to on (class appears when turned off), Focus Ring Animation defaults to
+ * off (class appears when turned on).
+ */
+const MOTION_TOGGLE_CLASS: Record<string, { classWhenFalse: string } | { classWhenTrue: string }> = {
+  hoverEffectsEnabled: { classWhenFalse: "ggsp-hover-effects-off" },
+  buttonPressFeedbackEnabled: { classWhenFalse: "ggsp-press-feedback-off" },
+  drawerAnimationEnabled: { classWhenFalse: "ggsp-drawer-animation-off" },
+  dropdownAnimationEnabled: { classWhenFalse: "ggsp-dropdown-animation-off" },
+  tooltipAnimationEnabled: { classWhenFalse: "ggsp-tooltip-animation-off" },
+  focusRingAnimationEnabled: { classWhenTrue: "ggsp-focus-ring-animated" },
+};
 
-  // --- Granular motion controls (each with a real, verified target — see
-  // app/globals.css's .ggsp-motion-scope rules and components/ui/Modal.tsx /
-  // LoadingState.tsx). "Page Transitions" and "Toast Animation" aren't
-  // included: this app has no route-transition system and no toast
-  // component to attach either to yet — adding the field without the
-  // target it's supposed to control would be the exact "wire it for the
-  // sake of the checklist" mistake Border Color already warned against. ---
-  { id: "animationSpeed", label: "Animation Speed", category: "behavior", studioSection: "motion", level: 1, column: "animation_speed", cssVar: "--ggsp-animation-speed", inputType: "number", unit: "", default: 1, min: 0.25, max: 2, step: 0.05, helperText: "× · live in preview — scales every fade/slide/pulse animation's duration" },
-  { id: "hoverEffectsEnabled", label: "Hover Effects", category: "behavior", studioSection: "motion", level: 1, column: "hover_effects_enabled", cssVar: "--ggsp-hover-effects", inputType: "toggle", default: true, helperText: "Live in preview — button/card lift-on-hover micro-interactions" },
-  { id: "modalAnimationEnabled", label: "Modal Animation", category: "behavior", studioSection: "motion", level: 1, column: "modal_animation_enabled", cssVar: "--ggsp-modal-animation", inputType: "toggle", default: true, helperText: "Live in preview — the scale-in every Modal opens with" },
-  { id: "loadingAnimationEnabled", label: "Loading Animation", category: "behavior", studioSection: "motion", level: 1, column: "loading_animation_enabled", cssVar: "--ggsp-loading-animation", inputType: "toggle", default: true, helperText: "Live in preview — the pulse LoadingState shows while content loads" },
-  { id: "smoothScrollEnabled", label: "Smooth Scroll", category: "behavior", studioSection: "motion", level: 1, column: "smooth_scroll_enabled", cssVar: null, inputType: "toggle", default: true, helperText: "Live in preview — anchor/programmatic scrolling" },
-  { id: "reducedMotion", label: "Reduced Motion", category: "behavior", studioSection: "motion", level: 1, column: "reduced_motion", cssVar: null, inputType: "toggle", default: false, helperText: "Live in preview — forces the same near-instant motion prefers-reduced-motion gives, regardless of the visitor's OS setting" },
+/** Same shared-lookup role as componentStyleClassNames, for the boolean Motion toggles in MOTION_TOGGLE_CLASS above. Used alongside it (not merged into it) since the "only override when non-default" rule works differently for a boolean than for an enum. */
+export function motionToggleClassNames(values: Record<string, unknown>): string {
+  const classes: string[] = [];
+  for (const [tokenId, rule] of Object.entries(MOTION_TOGGLE_CLASS)) {
+    const value = values[tokenId];
+    if (typeof value !== "boolean") continue;
+    if ("classWhenFalse" in rule && value === false) classes.push(rule.classWhenFalse);
+    if ("classWhenTrue" in rule && value === true) classes.push(rule.classWhenTrue);
+  }
+  return classes.join(" ");
+}
+
+export const LEVEL_1_BEHAVIOR_TOKENS: ThemeToken[] = [
+  // Pre-date this registry and predate a real target: the app has no
+  // light-theme/theme-switching system at all (every surface is
+  // hardcoded dark — app/globals.css's body background, bg-surface-950,
+  // etc.), so there's nothing for Light/Dark Mode or Default Theme to
+  // switch. Animation Level is superseded by the granular controls below
+  // (Animation Speed + the per-surface toggles give strictly more control
+  // than one coarse "none/reduced/normal/playful" dial ever would).
+  // Reserved rather than removed (still saved, still visible) or silently
+  // kept looking functional.
+  { id: "lightModeEnabled", label: "Light Mode", category: "behavior", studioSection: "motion", level: 1, column: "light_mode_enabled", cssVar: null, inputType: "toggle", default: false, helperText: "Reserved — the platform has no light theme to switch to yet." },
+  { id: "darkModeEnabled", label: "Dark Mode", category: "behavior", studioSection: "motion", level: 1, column: "dark_mode_enabled", cssVar: null, inputType: "toggle", default: true, helperText: "Reserved — every surface is hardcoded dark today; this can't yet be turned off." },
+  { id: "defaultTheme", label: "Default Theme", category: "behavior", studioSection: "motion", level: 1, column: "default_theme", cssVar: null, inputType: "select", default: "dark", options: ["dark", "light", "system"], helperText: "Reserved — no theme-switching system exists yet." },
+  { id: "animationLevel", label: "Animation Level", category: "behavior", studioSection: "motion", level: 1, column: "animation_level", cssVar: "--ggsp-animation-level", inputType: "select", default: "normal", options: ["none", "reduced", "normal", "playful"], helperText: "Reserved — superseded by Animation Speed and the per-surface toggles below, which give finer control." },
+
+  // --- Granular motion controls — every one below has a real, verified
+  // target in a real component (see app/globals.css's Motion section and
+  // the component each field's helperText names). Page Transitions and
+  // Toast Animation are the two exceptions: this app has no
+  // route-transition system and no toast component, so those two fields
+  // are Reserved — saved and previewable in the Studio, honestly labeled,
+  // same as Border Color and the eight unwired logo variants, instead of
+  // silently pretending they do something. ---
+  { id: "animationSpeed", label: "Animation Speed", category: "behavior", studioSection: "motion", level: 1, column: "animation_speed", cssVar: "--ggsp-animation-speed", inputType: "number", unit: "", default: 1, min: 0.25, max: 2, step: 0.05, helperText: "× · live in preview and sitewide — scales every fade/slide/pulse animation's duration. The None/Reduced/Normal/Fast presets above just set this to a fixed value." },
+  { id: "hoverEffectsEnabled", label: "Hover Effects", category: "behavior", studioSection: "motion", level: 1, column: "hover_effects_enabled", cssVar: null, inputType: "toggle", default: true, helperText: "Live in preview and sitewide — button/card lift-on-hover micro-interactions" },
+  { id: "hoverIntensity", label: "Hover Intensity", category: "behavior", studioSection: "motion", level: 1, column: "hover_intensity", cssVar: null, inputType: "select", default: "normal", options: ["subtle", "normal", "strong"], helperText: "Live in preview and sitewide — how far buttons/cards lift on hover, when Hover Effects is on" },
+  { id: "buttonPressFeedbackEnabled", label: "Button Press Feedback", category: "behavior", studioSection: "motion", level: 1, column: "button_press_feedback_enabled", cssVar: null, inputType: "toggle", default: true, helperText: "Live in preview and sitewide — the active:scale press-down every Button gives on click" },
+  { id: "cardHoverBehavior", label: "Card Hover Behavior", category: "behavior", studioSection: "motion", level: 1, column: "card_hover_behavior", cssVar: null, inputType: "select", default: "none", options: ["none", "lift", "glow", "border"], helperText: "Live in preview and sitewide — what every surface-panel card does on hover" },
+  { id: "modalAnimationEnabled", label: "Modal Animation", category: "behavior", studioSection: "motion", level: 1, column: "modal_animation_enabled", cssVar: "--ggsp-modal-animation", inputType: "toggle", default: true, helperText: "Live in preview and sitewide — the scale-in every Modal opens with" },
+  { id: "drawerAnimationEnabled", label: "Drawer Animation", category: "behavior", studioSection: "motion", level: 1, column: "drawer_animation_enabled", cssVar: null, inputType: "toggle", default: true, helperText: "Live in preview and sitewide — the slide-in the mobile navigation drawer and Drawer.tsx panels open with" },
+  { id: "dropdownAnimationEnabled", label: "Dropdown Animation", category: "behavior", studioSection: "motion", level: 1, column: "dropdown_animation_enabled", cssVar: null, inputType: "toggle", default: true, helperText: "Live in preview and sitewide — the fade/scale the notification and profile menus open with" },
+  { id: "tooltipAnimationEnabled", label: "Tooltip Animation", category: "behavior", studioSection: "motion", level: 1, column: "tooltip_animation_enabled", cssVar: null, inputType: "toggle", default: true, helperText: "Live in preview and sitewide — the fade-in on the collapsed sidebar's hover tooltip" },
+  { id: "toastAnimationStyle", label: "Toast Animation", category: "behavior", studioSection: "motion", level: 1, column: "toast_animation_style", cssVar: null, inputType: "select", default: "fade", options: ["none", "fade", "slide"], helperText: "Reserved — this app has no toast/notification component yet." },
+  { id: "loadingAnimationEnabled", label: "Loading Animation", category: "behavior", studioSection: "motion", level: 1, column: "loading_animation_enabled", cssVar: "--ggsp-loading-animation", inputType: "toggle", default: true, helperText: "Live in preview and sitewide — the pulse LoadingState's skeleton placeholders show while content loads" },
+  { id: "focusRingAnimationEnabled", label: "Focus Ring Animation", category: "behavior", studioSection: "motion", level: 1, column: "focus_ring_animation_enabled", cssVar: null, inputType: "toggle", default: false, helperText: "Live in preview and sitewide — an outward pop on the keyboard-focus ring instead of appearing instantly" },
+  { id: "pageTransitionStyle", label: "Page Transition", category: "behavior", studioSection: "motion", level: 1, column: "page_transition_style", cssVar: null, inputType: "select", default: "none", options: ["none", "fade", "slide"], helperText: "Reserved — this app has no route-transition system yet." },
+  { id: "smoothScrollEnabled", label: "Smooth Scroll", category: "behavior", studioSection: "motion", level: 1, column: "smooth_scroll_enabled", cssVar: null, inputType: "toggle", default: true, helperText: "Live in preview and sitewide — anchor/programmatic scrolling" },
+  { id: "reducedMotion", label: "Reduced Motion", category: "behavior", studioSection: "motion", level: 1, column: "reduced_motion", cssVar: null, inputType: "toggle", default: false, helperText: "Live in preview and sitewide — forces the same near-instant motion prefers-reduced-motion gives, regardless of the visitor's OS setting" },
 ];
 
 export const LEVEL_1_TOKENS: ThemeToken[] = [

@@ -21,6 +21,7 @@ import { LEVEL_1_TOKENS, STUDIO_SECTIONS, tokensByStudioSection, type StudioSect
 import type { BrandDraft } from "./draft-utils";
 import ColorStudio from "./ColorStudio";
 import AssetGrid from "./AssetGrid";
+import MotionStudio from "./MotionStudio";
 
 const SECTION_DESCRIPTIONS: Partial<Record<StudioSection, string>> = {
   identity: "Platform name, tagline, and the text shown in the browser tab and footer.",
@@ -30,7 +31,7 @@ const SECTION_DESCRIPTIONS: Partial<Record<StudioSection, string>> = {
   layout: "Logo sizing and spacing.",
   components: "Corner radius, shadow depth, card treatment, input style, and badge shape — live in preview and sitewide for every card, button, input, and chip.",
   navigation: "Header height and sidebar width.",
-  motion: "Light/dark mode defaults and animation intensity.",
+  motion: "Every interaction and transition in the app — speed, hover, press feedback, overlays, and accessibility — live in preview and sitewide.",
 };
 
 const SECTION_ICONS: Partial<Record<StudioSection, LucideIcon>> = {
@@ -52,7 +53,7 @@ const SECTION_GROUPS: { label: string; sections: StudioSection[] }[] = [
   { label: "Behavior", sections: ["motion"] },
 ];
 
-function FieldLabel({ token }: { token: ThemeToken }) {
+export function FieldLabel({ token }: { token: ThemeToken }) {
   return (
     <div className="flex items-baseline justify-between gap-2">
       <label htmlFor={`token-${token.id}`} className="text-sm font-medium text-white/70">
@@ -63,7 +64,7 @@ function FieldLabel({ token }: { token: ThemeToken }) {
   );
 }
 
-function TokenField({
+export function TokenField({
   token,
   value,
   onChange,
@@ -229,6 +230,7 @@ export default function ControlPanel({
   activeSection,
   onSectionChange,
   onChange,
+  onBatchChange,
   onManageAsset,
   onResetSection,
 }: {
@@ -236,6 +238,7 @@ export default function ControlPanel({
   activeSection: StudioSection;
   onSectionChange: (section: StudioSection) => void;
   onChange: (tokenId: string, value: string | number | boolean | null) => void;
+  onBatchChange: (patch: Record<string, string | number | boolean | null>) => void;
   onManageAsset: (token: ThemeToken) => void;
   onResetSection: (section: StudioSection) => void;
 }) {
@@ -355,6 +358,8 @@ export default function ControlPanel({
                 <ColorStudio draft={draft} onChange={onChange} />
               ) : activeSection === "logos-assets" ? (
                 <AssetGrid draft={draft} onManageAsset={onManageAsset} />
+              ) : activeSection === "motion" ? (
+                <MotionStudio draft={draft} onChange={onChange} onBatchChange={onBatchChange} />
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {tokens.map((token) => (

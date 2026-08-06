@@ -48,6 +48,7 @@ describe("migration integrity", () => {
       "028_typography_expansion.sql",
       "029_motion_expansion.sql",
       "030_components_expansion.sql",
+      "031_motion_expansion_v2.sql",
     ]);
   });
 

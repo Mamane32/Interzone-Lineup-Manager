@@ -15,7 +15,7 @@ import type { BrandingConfiguration, PlatformBranding } from "@/lib/branding";
 import type { LineupStatus, MatchLiveStatus } from "@/lib/types";
 import type { ReadinessReport } from "@/lib/readiness";
 import type { SystemState } from "@/components/live/ProductionStatusPanel";
-import { componentStyleClassNames } from "@/lib/theme-tokens";
+import { componentStyleClassNames, motionToggleClassNames } from "@/lib/theme-tokens";
 import { draftToCssVars, draftToPlatformBranding, type BrandDraft } from "./draft-utils";
 import type { PreviewTab } from "./preview-types";
 import TypographySpecimen from "./TypographySpecimen";
@@ -65,15 +65,15 @@ export default function PreviewSurface({ draft, saved, tab }: { draft: BrandDraf
   const lineHeightValue = typeof draft.lineHeight === "number" ? draft.lineHeight : 1.6;
   const paragraphSpacingPx = typeof draft.paragraphSpacing === "number" ? draft.paragraphSpacing : 16;
   const textTransformValue = typeof draft.textTransform === "string" ? draft.textTransform : "none";
-  const hoverEffectsEnabled = draft.hoverEffectsEnabled !== false;
   const reducedMotionEnabled = draft.reducedMotion === true;
-  // cardStyle/shadowStyle/inputStyle/badgeShape — see globals.css's
-  // Components section for the ggsp-<token>-<value> rules this drives.
-  // Border Radius doesn't need a class: it already reached this scope as
-  // --ggsp-radius through cssVars above, and the same global [class*=
-  // "rounded-xl"/"2xl"] rules that apply sitewide apply here too, by
-  // ordinary CSS var inheritance.
+  // cardStyle/shadowStyle/inputStyle/badgeShape/hoverIntensity/
+  // cardHoverBehavior — see globals.css's Components/Motion sections for
+  // the ggsp-<token>-<value> rules these drive. Border Radius doesn't need
+  // a class: it already reached this scope as --ggsp-radius through
+  // cssVars above, and the same global [class*="rounded-xl"/"2xl"] rules
+  // that apply sitewide apply here too, by ordinary CSS var inheritance.
   const componentClasses = componentStyleClassNames(draft);
+  const motionClasses = motionToggleClassNames(draft);
 
   const shellIdentity = { orgName: branding.organizationName, subtitle: branding.organizationSubtitle, logoUrl: branding.organizationLogoUrl };
   const heroIdentity = { organizationName: branding.organizationName, organizationSubtitle: branding.organizationSubtitle, organizationLogoUrl: branding.organizationLogoUrl };
@@ -96,6 +96,7 @@ export default function PreviewSurface({ draft, saved, tab }: { draft: BrandDraf
         "ggsp-preview-scope block min-h-full",
         reducedMotionEnabled ? "ggsp-reduced-motion" : "",
         componentClasses,
+        motionClasses,
       ]
         .filter(Boolean)
         .join(" ")}
@@ -105,27 +106,16 @@ export default function PreviewSurface({ draft, saved, tab }: { draft: BrandDraf
          height, paragraph spacing, text transform) — never touches
          anything outside .ggsp-preview-scope, so the real app's appearance
          is unaffected when no override is configured, exactly as required.
-         Border Radius / Shadow Style / Card Style / Input Style / Badge
-         Shape don't need scoping here: they're driven by the same
-         cssVar/class mechanism app/globals.css applies sitewide (see its
-         Components section), which the .ggsp-preview-scope classes above
-         key into identically.
-
-         Hover Effects has no cssVar (unlike the other Motion toggles,
-         which multiply into app/globals.css's calc() durations via
-         draftToCssVars) — it's an on/off for Button/AppShell's
-         hover:-translate-y lift, not a duration, so it's expressed here
-         as a plain conditional rule instead of a --ggsp- variable. */}
+         Every Components/Motion enum or toggle doesn't need scoping here:
+         they're driven by the same cssVar/class mechanism app/globals.css
+         applies sitewide, which the .ggsp-preview-scope classes above key
+         into identically. */}
       <style>{`
         .ggsp-preview-scope { font-family: ${fontFamily}; letter-spacing: ${letterSpacingEm}em; line-height: ${lineHeightValue}; }
         .ggsp-preview-scope .font-display,
         .ggsp-preview-scope .font-body { font-family: ${fontFamily} !important; }
         .ggsp-preview-scope p { margin-bottom: ${paragraphSpacingPx}px; }
         .ggsp-preview-scope .font-display { text-transform: ${textTransformValue}; }
-        ${hoverEffectsEnabled ? "" : `
-        .ggsp-preview-scope [class*="hover:-translate-y"]:hover { transform: none !important; }
-        .ggsp-preview-scope [class*="hover:scale"]:hover { transform: none !important; }
-        `}
       `}</style>
 
       {tab === "login" && (

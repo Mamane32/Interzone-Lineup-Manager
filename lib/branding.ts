@@ -152,8 +152,17 @@ export interface PlatformBranding {
   animationLevel: string;
   animationSpeed: number;
   hoverEffectsEnabled: boolean;
+  hoverIntensity: string;
+  buttonPressFeedbackEnabled: boolean;
+  cardHoverBehavior: string;
   modalAnimationEnabled: boolean;
+  drawerAnimationEnabled: boolean;
+  dropdownAnimationEnabled: boolean;
+  tooltipAnimationEnabled: boolean;
+  toastAnimationStyle: string;
   loadingAnimationEnabled: boolean;
+  focusRingAnimationEnabled: boolean;
+  pageTransitionStyle: string;
   smoothScrollEnabled: boolean;
   reducedMotion: boolean;
 }
@@ -220,8 +229,17 @@ export const DEFAULT_PLATFORM_BRANDING: PlatformBranding = {
   animationLevel: "normal",
   animationSpeed: 1,
   hoverEffectsEnabled: true,
+  hoverIntensity: "normal",
+  buttonPressFeedbackEnabled: true,
+  cardHoverBehavior: "none",
   modalAnimationEnabled: true,
+  drawerAnimationEnabled: true,
+  dropdownAnimationEnabled: true,
+  tooltipAnimationEnabled: true,
+  toastAnimationStyle: "fade",
   loadingAnimationEnabled: true,
+  focusRingAnimationEnabled: false,
+  pageTransitionStyle: "none",
   smoothScrollEnabled: true,
   reducedMotion: false,
 };
@@ -296,8 +314,17 @@ function rowToPlatformBranding(data: Record<string, unknown>): PlatformBranding 
     animationLevel: str(data.animation_level, d.animationLevel),
     animationSpeed: num(data.animation_speed as number, d.animationSpeed),
     hoverEffectsEnabled: bool(data.hover_effects_enabled as boolean, d.hoverEffectsEnabled),
+    hoverIntensity: str(data.hover_intensity, d.hoverIntensity),
+    buttonPressFeedbackEnabled: bool(data.button_press_feedback_enabled as boolean, d.buttonPressFeedbackEnabled),
+    cardHoverBehavior: str(data.card_hover_behavior, d.cardHoverBehavior),
     modalAnimationEnabled: bool(data.modal_animation_enabled as boolean, d.modalAnimationEnabled),
+    drawerAnimationEnabled: bool(data.drawer_animation_enabled as boolean, d.drawerAnimationEnabled),
+    dropdownAnimationEnabled: bool(data.dropdown_animation_enabled as boolean, d.dropdownAnimationEnabled),
+    tooltipAnimationEnabled: bool(data.tooltip_animation_enabled as boolean, d.tooltipAnimationEnabled),
+    toastAnimationStyle: str(data.toast_animation_style, d.toastAnimationStyle),
     loadingAnimationEnabled: bool(data.loading_animation_enabled as boolean, d.loadingAnimationEnabled),
+    focusRingAnimationEnabled: bool(data.focus_ring_animation_enabled as boolean, d.focusRingAnimationEnabled),
+    pageTransitionStyle: str(data.page_transition_style, d.pageTransitionStyle),
     smoothScrollEnabled: bool(data.smooth_scroll_enabled as boolean, d.smoothScrollEnabled),
     reducedMotion: bool(data.reduced_motion as boolean, d.reducedMotion),
   };

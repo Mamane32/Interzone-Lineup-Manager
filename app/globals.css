@@ -303,3 +303,91 @@
 .ggsp-badge-square .ggsp-badge {
   border-radius: 0 !important;
 }
+
+/* ============================================================================
+   Brand Studio — Motion (expanded system)
+   ============================================================================
+   Animation Speed / Modal / Loading / Reduced Motion already have rules
+   earlier in this file (they multiply into a calc() duration or gate the
+   near-instant .ggsp-reduced-motion override). Everything below is the
+   rest of the granular motion system — same class-driven mechanism as the
+   Components section above, each keyed off lib/theme-tokens.ts's
+   motionToggleClassNames()/componentStyleClassNames(). */
+
+/* Hover Effects / Hover Intensity — Button.tsx's hover:-translate-y-0.5
+   lift is the real target on every variant. "normal" is that existing
+   0.5 (2px) lift, so it needs no override; "off" wins over intensity
+   since a disabled effect has no distance to scale. */
+.ggsp-hover-effects-off [class*="hover:-translate-y"]:hover,
+.ggsp-hover-effects-off [class*="hover:scale"]:hover {
+  transform: none !important;
+}
+.ggsp-hover-intensity-subtle [class*="hover:-translate-y-0.5"]:hover {
+  transform: translateY(-1px) !important;
+}
+.ggsp-hover-intensity-strong [class*="hover:-translate-y-0.5"]:hover {
+  transform: translateY(-4px) !important;
+}
+
+/* Button Press Feedback — Button.tsx's active:scale-[0.97] press-down,
+   present on every variant. On is the existing baseline. */
+.ggsp-press-feedback-off [class*="active:scale"]:active {
+  transform: none !important;
+}
+
+/* Card Hover Behavior — every surface-panel card (Card.tsx and every
+   direct .surface-panel usage) already carries `transition-all
+   duration-200`, so these hover rules animate smoothly with no extra
+   transition declaration needed. "none" is the existing baseline (cards
+   don't react to hover today), so it needs no override block. */
+.ggsp-card-hover-lift .surface-panel:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 24px 60px -22px rgba(0, 0, 0, 0.65);
+}
+.ggsp-card-hover-glow .surface-panel:hover {
+  box-shadow: 0 0 0 1px rgba(var(--ggsp-color-primary-rgb, 245 166 35) / 0.35), 0 20px 50px -20px rgba(0, 0, 0, 0.6);
+}
+.ggsp-card-hover-border .surface-panel:hover {
+  border-color: rgba(var(--ggsp-color-primary-rgb, 245 166 35) / 0.45);
+}
+
+/* Drawer Animation — AppShell.tsx's mobile navigation drawer and every
+   foundation/Drawer.tsx panel carry the .ggsp-drawer-panel marker class
+   alongside their existing .animate-slide-in (see this file's Animation
+   Speed section above for what multiplies its duration). On is the
+   existing baseline. */
+.ggsp-drawer-animation-off .ggsp-drawer-panel {
+  animation: none !important;
+}
+
+/* Dropdown Animation — AppShell.tsx's notification and profile popover
+   menus carry the .ggsp-dropdown-panel marker class alongside their
+   existing scale/opacity transition. On is the existing baseline. */
+.ggsp-dropdown-animation-off .ggsp-dropdown-panel {
+  transition: none !important;
+}
+
+/* Tooltip Animation — AppShell.tsx's collapsed-sidebar hover tooltip
+   carries the .ggsp-tooltip marker class alongside its existing
+   opacity transition. On is the existing baseline. */
+.ggsp-tooltip-animation-off .ggsp-tooltip {
+  transition: none !important;
+}
+
+/* Focus Ring Animation — an outward pop on the app's one shared
+   :focus-visible ring (top of this file), opt-in since the instant ring
+   is the existing accessibility baseline and shouldn't change without
+   an explicit choice. */
+@keyframes ggsp-focus-pop {
+  from {
+    outline-width: 0px;
+    outline-offset: 0px;
+  }
+  to {
+    outline-width: 2px;
+    outline-offset: 2px;
+  }
+}
+.ggsp-focus-ring-animated :focus-visible {
+  animation: ggsp-focus-pop 0.15s ease-out;
+}
