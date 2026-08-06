@@ -8,8 +8,9 @@ export type PublicNavPage = "home" | "competition" | "news" | "account";
  * (which previously built this inline, with no way to reach it from
  * /scores/competition or /match/[matchId]) so every public page shares one
  * nav instead of each page needing its own copy or, worse, having no way
- * back to the hub at all. News/Account stay disabled "Byento" (Soon)
- * placeholders until Phase 4 (News Center) gives News a real destination.
+ * back to the hub at all. News now links to the real News Center (Sprint 4
+ * Phase 4) — Account stays a disabled "Byento" (Soon) placeholder, since
+ * GGScoreLive still has no visitor account system.
  */
 export default function PublicNav({ active, hasLive }: { active: PublicNavPage; hasLive: boolean }) {
   return (
@@ -34,11 +35,10 @@ export default function PublicNav({ active, hasLive }: { active: PublicNavPage; 
           Live
         </Link>
 
-        <div className="flex flex-col items-center gap-1 px-2 py-1 opacity-40">
-          <Newspaper size={20} className="text-white/50" />
-          <span className="text-[10px] font-semibold text-white/50">News</span>
-          <span className="text-[7px] font-bold uppercase tracking-wide text-white/25">Byento</span>
-        </div>
+        <Link href="/scores/news" className="flex flex-col items-center gap-1 px-2 py-1">
+          <Newspaper size={20} className={active === "news" ? "text-brand-400" : "text-white/50"} />
+          <span className={`text-[10px] font-semibold ${active === "news" ? "text-brand-400" : "text-white/50"}`}>News</span>
+        </Link>
         <div className="flex flex-col items-center gap-1 px-2 py-1 opacity-40">
           <User size={20} className="text-white/50" />
           <span className="text-[10px] font-semibold text-white/50">Account</span>

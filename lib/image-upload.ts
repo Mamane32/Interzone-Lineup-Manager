@@ -33,6 +33,7 @@ export const ASSET_CATEGORIES = {
   UserAvatar: "user-avatar",
   PlayerPhoto: "player-photo",
   PlatformBrandAsset: "platform-brand-asset",
+  NewsArticle: "news-article",
 } as const;
 
 export type AssetCategory = (typeof ASSET_CATEGORIES)[keyof typeof ASSET_CATEGORIES];
@@ -58,6 +59,7 @@ const BUCKET_BY_CATEGORY: Record<AssetCategory, string> = {
   [ASSET_CATEGORIES.UserAvatar]: "user-avatars",
   [ASSET_CATEGORIES.PlayerPhoto]: "player-photos",
   [ASSET_CATEGORIES.PlatformBrandAsset]: "platform-brand-assets",
+  [ASSET_CATEGORIES.NewsArticle]: "news-articles",
 };
 
 export type ImageUploadResult = { ok: true; url: string } | { ok: false; error: string };
