@@ -35,6 +35,23 @@ export type TokenCategory =
 
 export type TokenInputType = "text" | "textarea" | "color" | "image" | "select" | "number" | "toggle";
 
+/**
+ * Color Studio (Sprint 3, Phase 1) grouping for `inputType: "color"`
+ * tokens — purely presentational, like `studioSection`, but one level
+ * more specific: it's how ColorStudio.tsx clusters swatches into
+ * "Primary" / "Secondary" / "Accent" / "Semantic" / "Surface" / "Text"
+ * cards (each with its own live 50–900 scale where applicable) instead
+ * of one flat list. "legacy" covers the pre-Color-Studio tokens
+ * (navigation/header/sidebar/button/link) that are still saved and
+ * exposed as CSS vars but not yet wired into any real component — they
+ * render in their own "Additional Surfaces" card so the primary redesign
+ * doesn't bury them, without pretending they're equally load-bearing.
+ */
+export type ColorGroup = "primary" | "secondary" | "accent" | "semantic" | "surface" | "text" | "legacy";
+
+/** For a token that's part of a gradient pair (currently Primary and Accent), which piece of the gradient control it is. Absent on every plain solid-color token. */
+export type ColorRole = "base" | "gradientEnabled" | "gradientEnd" | "gradientAngle";
+
 /** The Brand Studio's left-panel section IDs, in display order. "preview" has no tokens — it's the right-panel live preview itself, listed here only so the Studio's section list and its section-order are both driven by this one array. */
 export type StudioSection =
   | "identity"
@@ -75,6 +92,10 @@ export interface ThemeToken {
   default: string | number | boolean | null;
   options?: string[];
   helperText?: string;
+  /** Color Studio grouping — see ColorGroup's doc comment. Only set on `inputType: "color"` tokens. */
+  colorGroup?: ColorGroup;
+  /** Which piece of a gradient pair this token is — see ColorRole's doc comment. Only set on the small number of gradient-related tokens. */
+  colorRole?: ColorRole;
 }
 
 export const LEVEL_1_IDENTITY_TOKENS: ThemeToken[] = [
@@ -101,20 +122,53 @@ export const LEVEL_1_BRAND_ASSET_TOKENS: ThemeToken[] = [
 ];
 
 export const LEVEL_1_VISUAL_THEME_TOKENS: ThemeToken[] = [
-  { id: "primaryColor", label: "Primary Color", category: "visual-theme", studioSection: "colors", level: 1, column: "primary_color", cssVar: "--ggsp-color-primary", inputType: "color", default: "#f5a623", helperText: "Live in preview — drives buttons, accents, active nav." },
-  { id: "secondaryColor", label: "Secondary Color", category: "visual-theme", studioSection: "colors", level: 1, column: "secondary_color", cssVar: "--ggsp-color-secondary", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up." },
-  { id: "accentColor", label: "Accent Color", category: "visual-theme", studioSection: "colors", level: 1, column: "accent_color", cssVar: "--ggsp-color-accent", inputType: "color", default: "#22c55e", helperText: "Saved now, applied platform-wide by the palette migration follow-up." },
-  { id: "successColor", label: "Success Color", category: "visual-theme", studioSection: "colors", level: 1, column: "success_color", cssVar: "--ggsp-color-success", inputType: "color", default: "#22c55e", helperText: "Live in preview — drives submitted/positive status." },
-  { id: "warningColor", label: "Warning Color", category: "visual-theme", studioSection: "colors", level: 1, column: "warning_color", cssVar: "--ggsp-color-warning", inputType: "color", default: "#eab308", helperText: "Live in preview — drives waiting/attention status." },
-  { id: "errorColor", label: "Error Color", category: "visual-theme", studioSection: "colors", level: 1, column: "error_color", cssVar: "--ggsp-color-error", inputType: "color", default: "#ef4444", helperText: "Live in preview — drives correction/negative status." },
-  { id: "backgroundColor", label: "Background Color", category: "visual-theme", studioSection: "colors", level: 1, column: "background_color", cssVar: "--ggsp-color-background", inputType: "color", default: "#07090d", helperText: "Live in preview — page background." },
-  { id: "surfaceColor", label: "Surface/Card Color", category: "visual-theme", studioSection: "colors", level: 1, column: "surface_color", cssVar: "--ggsp-color-surface", inputType: "color", default: "#111720", helperText: "Live in preview — card and panel background." },
-  { id: "navigationColor", label: "Navigation Color", category: "visual-theme", studioSection: "colors", level: 1, column: "navigation_color", cssVar: "--ggsp-color-navigation", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up." },
-  { id: "headerColor", label: "Header Color", category: "visual-theme", studioSection: "colors", level: 1, column: "header_color", cssVar: "--ggsp-color-header", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up." },
-  { id: "sidebarColor", label: "Sidebar Color", category: "visual-theme", studioSection: "colors", level: 1, column: "sidebar_color", cssVar: "--ggsp-color-sidebar", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up." },
-  { id: "buttonColor", label: "Button Color", category: "visual-theme", studioSection: "colors", level: 1, column: "button_color", cssVar: "--ggsp-color-button", inputType: "color", default: "#f5a623", helperText: "Saved now, applied platform-wide by the palette migration follow-up." },
-  { id: "linkColor", label: "Link Color", category: "visual-theme", studioSection: "colors", level: 1, column: "link_color", cssVar: "--ggsp-color-link", inputType: "color", default: "#f5a623", helperText: "Saved now, applied platform-wide by the palette migration follow-up." },
+  // --- Primary — base color + live 50–900 scale + optional gradient ---
+  { id: "primaryColor", label: "Primary", category: "visual-theme", studioSection: "colors", level: 1, column: "primary_color", cssVar: "--ggsp-color-primary", inputType: "color", default: "#f5a623", helperText: "Live in preview — drives buttons, accents, active nav.", colorGroup: "primary", colorRole: "base" },
+  { id: "primaryGradientEnabled", label: "Primary Gradient", category: "visual-theme", studioSection: "colors", level: 1, column: "primary_gradient_enabled", cssVar: null, inputType: "toggle", default: false, helperText: "Blend Primary into a second color for hero/button surfaces.", colorGroup: "primary", colorRole: "gradientEnabled" },
+  { id: "primaryGradientEnd", label: "Primary Gradient End", category: "visual-theme", studioSection: "colors", level: 1, column: "primary_gradient_end", cssVar: "--ggsp-gradient-primary-end", inputType: "color", default: "#f59e0b", colorGroup: "primary", colorRole: "gradientEnd" },
+  { id: "primaryGradientAngle", label: "Primary Gradient Angle", category: "visual-theme", studioSection: "colors", level: 1, column: "primary_gradient_angle", cssVar: "--ggsp-gradient-primary-angle", inputType: "number", default: 135, helperText: "degrees", colorGroup: "primary", colorRole: "gradientAngle" },
+
+  // --- Secondary — base color + live 50–900 scale ---
+  { id: "secondaryColor", label: "Secondary", category: "visual-theme", studioSection: "colors", level: 1, column: "secondary_color", cssVar: "--ggsp-color-secondary", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "secondary", colorRole: "base" },
+
+  // --- Accent — base color + optional gradient ---
+  { id: "accentColor", label: "Accent", category: "visual-theme", studioSection: "colors", level: 1, column: "accent_color", cssVar: "--ggsp-color-accent", inputType: "color", default: "#22c55e", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "accent", colorRole: "base" },
+  { id: "accentGradientEnabled", label: "Accent Gradient", category: "visual-theme", studioSection: "colors", level: 1, column: "accent_gradient_enabled", cssVar: null, inputType: "toggle", default: false, helperText: "Blend Accent into a second color for hero/button surfaces.", colorGroup: "accent", colorRole: "gradientEnabled" },
+  { id: "accentGradientEnd", label: "Accent Gradient End", category: "visual-theme", studioSection: "colors", level: 1, column: "accent_gradient_end", cssVar: "--ggsp-gradient-accent-end", inputType: "color", default: "#16a34a", colorGroup: "accent", colorRole: "gradientEnd" },
+  { id: "accentGradientAngle", label: "Accent Gradient Angle", category: "visual-theme", studioSection: "colors", level: 1, column: "accent_gradient_angle", cssVar: "--ggsp-gradient-accent-angle", inputType: "number", default: 135, helperText: "degrees", colorGroup: "accent", colorRole: "gradientAngle" },
+
+  // --- Semantic status colors ---
+  { id: "successColor", label: "Success", category: "visual-theme", studioSection: "colors", level: 1, column: "success_color", cssVar: "--ggsp-color-success", inputType: "color", default: "#22c55e", helperText: "Live in preview — drives submitted/positive status.", colorGroup: "semantic" },
+  { id: "warningColor", label: "Warning", category: "visual-theme", studioSection: "colors", level: 1, column: "warning_color", cssVar: "--ggsp-color-warning", inputType: "color", default: "#eab308", helperText: "Live in preview — drives waiting/attention status.", colorGroup: "semantic" },
+  { id: "errorColor", label: "Danger", category: "visual-theme", studioSection: "colors", level: 1, column: "error_color", cssVar: "--ggsp-color-error", inputType: "color", default: "#ef4444", helperText: "Live in preview — drives correction/negative status.", colorGroup: "semantic" },
+  { id: "infoColor", label: "Info", category: "visual-theme", studioSection: "colors", level: 1, column: "info_color", cssVar: "--ggsp-color-info", inputType: "color", default: "#38bdf8", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "semantic" },
+
+  // --- Surface / background / border ---
+  { id: "backgroundColor", label: "Background", category: "visual-theme", studioSection: "colors", level: 1, column: "background_color", cssVar: "--ggsp-color-background", inputType: "color", default: "#07090d", helperText: "Live in preview — page background.", colorGroup: "surface" },
+  { id: "surfaceColor", label: "Surface / Card", category: "visual-theme", studioSection: "colors", level: 1, column: "surface_color", cssVar: "--ggsp-color-surface", inputType: "color", default: "#111720", helperText: "Live in preview — card and panel background.", colorGroup: "surface" },
+  { id: "borderColor", label: "Border", category: "visual-theme", studioSection: "colors", level: 1, column: "border_color", cssVar: "--ggsp-color-border", inputType: "color", default: "#232b35", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "surface" },
+
+  // --- Text ---
+  { id: "textPrimaryColor", label: "Text Primary", category: "visual-theme", studioSection: "colors", level: 1, column: "text_primary_color", cssVar: "--ggsp-color-text-primary", inputType: "color", default: "#f5f7fa", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "text" },
+  { id: "textSecondaryColor", label: "Text Secondary", category: "visual-theme", studioSection: "colors", level: 1, column: "text_secondary_color", cssVar: "--ggsp-color-text-secondary", inputType: "color", default: "#8b98a5", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "text" },
+
+  // --- Additional surfaces (legacy — saved, not yet wired to a live component) ---
+  { id: "navigationColor", label: "Navigation", category: "visual-theme", studioSection: "colors", level: 1, column: "navigation_color", cssVar: "--ggsp-color-navigation", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "legacy" },
+  { id: "headerColor", label: "Header", category: "visual-theme", studioSection: "colors", level: 1, column: "header_color", cssVar: "--ggsp-color-header", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "legacy" },
+  { id: "sidebarColor", label: "Sidebar", category: "visual-theme", studioSection: "colors", level: 1, column: "sidebar_color", cssVar: "--ggsp-color-sidebar", inputType: "color", default: "#0d1117", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "legacy" },
+  { id: "buttonColor", label: "Button", category: "visual-theme", studioSection: "colors", level: 1, column: "button_color", cssVar: "--ggsp-color-button", inputType: "color", default: "#f5a623", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "legacy" },
+  { id: "linkColor", label: "Link", category: "visual-theme", studioSection: "colors", level: 1, column: "link_color", cssVar: "--ggsp-color-link", inputType: "color", default: "#f5a623", helperText: "Saved now, applied platform-wide by the palette migration follow-up.", colorGroup: "legacy" },
 ];
+
+/** Every Level 1 "color" token that has a `colorGroup` — what ColorStudio.tsx renders instead of ControlPanel's generic token grid when the "Colors" section is active. */
+export function level1ColorTokens(): ThemeToken[] {
+  return LEVEL_1_VISUAL_THEME_TOKENS.filter((t) => t.colorGroup);
+}
+
+/** All tokens sharing one ColorGroup, in registry order — e.g. `colorTokensByGroup("primary")` returns the base color plus its three gradient sub-tokens. */
+export function colorTokensByGroup(group: ColorGroup): ThemeToken[] {
+  return LEVEL_1_VISUAL_THEME_TOKENS.filter((t) => t.colorGroup === group);
+}
 
 export const LEVEL_1_TYPOGRAPHY_TOKENS: ThemeToken[] = [
   { id: "fontFamily", label: "Font Family", category: "typography", studioSection: "typography", level: 1, column: "font_family", cssVar: "--ggsp-font-family", inputType: "select", default: "Inter", options: ["Inter", "Oswald", "Roboto", "Poppins", "System UI"], helperText: "Preview uses each family's system/best-effort fallback; loading additional web fonts on demand is a follow-up." },
