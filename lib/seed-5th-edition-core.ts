@@ -26,6 +26,27 @@ export const GROUPS: Record<GroupLetter, string[]> = {
   C: ["FC Real Cassave", "Beauchamp FC", "Billio FC", "Gladiators FC", "Resolution FC"],
 };
 
+// Real crests, provided by the league — cropped/resized into
+// public/team-logos/<slug>.jpg (see that folder for originals' source).
+// La Pointe FC has no crest yet; its team just gets the initials fallback
+// (TeamCrest already handles a null logo_url) until one is provided.
+const LOGO_SLUGS = new Set([
+  "kriminal-fc",
+  "fc-desmelus",
+  "la-tortue-fc",
+  "fc-desroulins",
+  "legends-fc",
+  "jean-rabel-fc",
+  "fc-dimanche-matin",
+  "inazuma-sc",
+  "mikado-fc",
+  "fc-real-cassave",
+  "beauchamp-fc",
+  "billio-fc",
+  "gladiators-fc",
+  "resolution-fc",
+]);
+
 type FixtureEvent = {
   minute: string;
   type: "goal" | "yellow_card" | "second_yellow" | "red_card";
@@ -196,19 +217,37 @@ export async function runFifthEditionSeed(supabase: SupabaseClient, generateToke
   for (const letter of ["A", "B", "C"] as GroupLetter[]) {
     for (const name of GROUPS[letter]) {
       const slugPart = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      const team = await upsert(
-        "teams",
-        { competition_id: competition.id, name },
-        {
-          competition_id: competition.id,
-          name,
-          coach_name: "Kòch a konfime",
-          coach_phone: "000-0000",
-          coach_email: `coach-tbd+${slugPart}@interzone.local`,
-          token: generateToken(),
+      const logoUrl = LOGO_SLUGS.has(slugPart) ? `/team-logos/${slugPart}.jpg` : null;
+
+      const { data: existingTeam } = await supabase.from("teams").select("id, logo_url").match({ competition_id: competition.id, name }).maybeSingle();
+
+      let teamId: string;
+      if (existingTeam) {
+        teamId = existingTeam.id;
+        // Only backfill a logo the team doesn't already have — never
+        // overwrite coach info an admin may have already corrected.
+        if (logoUrl && !existingTeam.logo_url) {
+          const { error } = await supabase.from("teams").update({ logo_url: logoUrl }).eq("id", teamId);
+          if (error) throw new Error(`updating logo for ${name} failed: ${error.message}`);
         }
-      );
-      teamIdByName.set(name, team.id);
+      } else {
+        const { data: inserted, error } = await supabase
+          .from("teams")
+          .insert({
+            competition_id: competition.id,
+            name,
+            logo_url: logoUrl,
+            coach_name: "Kòch a konfime",
+            coach_phone: "000-0000",
+            coach_email: `coach-tbd+${slugPart}@interzone.local`,
+            token: generateToken(),
+          })
+          .select("id")
+          .single();
+        if (error) throw new Error(`insert into teams failed: ${error.message}`);
+        teamId = (inserted as { id: string }).id;
+      }
+      teamIdByName.set(name, teamId);
     }
   }
 

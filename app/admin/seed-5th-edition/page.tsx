@@ -46,6 +46,7 @@ export default async function SeedFifthEditionPage({
               <li>• Competition: Championnat Interzone Du Nord&apos;Ouest — Coupe Rock Clavaroche (5è Edisyon 2026)</li>
               <li>• Groupe A, B, C — 5 teams each, 15 total</li>
               <li>• 30 group-stage fixtures (24 Jiyè – 24 Out 2026), 10 with real results already recorded (4 with goal scorers and cards)</li>
+              <li>• Real crests for 14 of the 15 teams (La Pointe FC still needs one — falls back to initials until then)</li>
             </ul>
             <p className="mt-4 text-sm text-white/40">
               Safe to run more than once — every insert is checked against what already exists, so re-running this updates scores in place
