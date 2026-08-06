@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Globe2, ShieldCheck, Sparkles } from "lucide-react";
 import BrandMark from "@/components/brand/BrandMark";
+import { getPlatformBranding } from "@/lib/branding";
 
-export default function AuthFrame({
+export default async function AuthFrame({
   eyebrow,
   title,
   description,
@@ -15,6 +16,9 @@ export default function AuthFrame({
   children: React.ReactNode;
   backHref?: string;
 }) {
+  // Platform tier only (Settings → Platform branding) — the unified login
+  // has no competition context, so there's nothing to layer on top of it.
+  const platform = await getPlatformBranding();
   return (
     <main className="relative min-h-screen overflow-hidden bg-surface-950">
       <div className="pointer-events-none absolute inset-0">
@@ -26,7 +30,7 @@ export default function AuthFrame({
 
       <div className="relative mx-auto grid min-h-screen max-w-[1440px] lg:grid-cols-[1.05fr_.95fr]">
         <section className="pitch-texture hidden flex-col justify-between border-r border-white/[0.06] p-12 lg:flex xl:p-16">
-          <BrandMark size="lg" />
+          <BrandMark size="lg" orgName={platform.organizationName} subtitle={platform.organizationSubtitle} logoUrl={platform.organizationLogoUrl} />
           <div className="max-w-xl animate-fade-up">
             <p className="eyebrow">The operating system for football competitions</p>
             <h2 className="mt-5 text-balance font-display text-5xl font-semibold leading-[1.04] tracking-tight">
@@ -57,7 +61,7 @@ export default function AuthFrame({
         <section className="flex min-h-screen items-center justify-center px-5 py-10 sm:px-10 lg:px-14">
           <div className="w-full max-w-[440px]">
             <div className="mb-9 flex items-center justify-between lg:hidden">
-              <BrandMark />
+              <BrandMark orgName={platform.organizationName} subtitle={platform.organizationSubtitle} logoUrl={platform.organizationLogoUrl} />
               <Link href={backHref} className="rounded-lg p-2 text-white/45 transition hover:bg-white/5 hover:text-white" aria-label="Go back">
                 <ArrowLeft size={18} />
               </Link>

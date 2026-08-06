@@ -5,7 +5,7 @@ import { getUserWithAssignments } from "@/lib/iam";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { countActiveUsersWithRole } from "@/lib/privilege";
 import { updateUserStatus } from "../actions";
-import { updateProfile, addAssignment, setAssignmentStatus, forcePasswordReset, deleteUser } from "./actions";
+import { updateProfile, addAssignment, setAssignmentStatus, forcePasswordReset, deleteUser, resendInvitationForUser, changeRole } from "./actions";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
@@ -124,6 +124,22 @@ export default async function UserDetailPage({
           </Button>
         </form>
 
+        {user.status === "invited" && (
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.08] pt-4">
+            <div>
+              <p className="text-sm font-medium text-white">Resend invitation</p>
+              <p className="text-xs text-white/40">Sends a fresh access link to {user.email} — use this if the original invite was missed or has expired.</p>
+            </div>
+            <ConfirmActionDialog
+              triggerLabel="Resend Invitation"
+              title="Resend this invitation?"
+              body={`A fresh access link will be sent to ${user.email}.`}
+              confirmLabel="Resend"
+              action={resendInvitationForUser.bind(null, user.id)}
+            />
+          </div>
+        )}
+
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.08] pt-4">
           <div>
             <p className="text-sm font-medium text-white">Force password reset</p>
@@ -166,6 +182,26 @@ export default async function UserDetailPage({
                   </span>
                 ) : a.status === "active" ? (
                   <>
+                    <details className="relative">
+                      <summary className="cursor-pointer list-none rounded-lg bg-white/[0.06] px-2.5 py-1.5 text-xs font-semibold text-white/70 transition hover:bg-white/[0.1] hover:text-white">
+                        Change role
+                      </summary>
+                      <form
+                        action={changeRole.bind(null, user.id, a.id)}
+                        className="absolute right-0 top-full z-10 mt-2 flex w-56 flex-col gap-2 rounded-xl border border-white/10 bg-surface-900 p-3 shadow-xl"
+                      >
+                        <Select id={`role_key-${a.id}`} name="role_key" label="New role" tone="dark" defaultValue={a.role_key} required>
+                          {PLATFORM_ROLES.map((r) => (
+                            <option key={r} value={r}>
+                              {r.replace("_", " ")}
+                            </option>
+                          ))}
+                        </Select>
+                        <Button type="submit" className="h-9 w-full px-3 text-xs">
+                          Save role
+                        </Button>
+                      </form>
+                    </details>
                     <ConfirmActionDialog
                       triggerLabel="Suspend"
                       title="Suspend this assignment?"

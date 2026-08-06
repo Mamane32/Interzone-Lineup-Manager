@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, Gauge, Radio, Shirt, LayoutGrid, ExternalLink } from "lucide-react";
+import { FileText, Gauge, Radio, Shirt, LayoutGrid, ExternalLink, LayoutDashboard } from "lucide-react";
 import BrandMark from "@/components/brand/BrandMark";
 import BrandBar from "./BrandBar";
 import DateTimeClock from "./DateTimeClock";
@@ -46,15 +46,13 @@ const STRIP_SYSTEM_KEYS = ["stream", "graphics", "vmix", "recording"];
  * permanent brand shortcut back to the Overview, and Formation/Readiness/
  * Report read as three unrelated buttons rather than one nav cluster with
  * a "you are here" state. Both fixed here: `BrandMark` (the same GG crest
- * used everywhere else in the product, not a new one) links straight back
- * to Admin -> Dashboard for admin/super_admin, or /live for a
- * broadcast_operator without dashboard access (see `homeHref`, set by the
- * layout from the signed-in user's role) — and all four modules now render
- * as one active-state-aware nav group.
+ * used everywhere else in the product, not a new one) links to /live, and
+ * all four modules now render as one active-state-aware nav group.
  */
 export default function BroadcastHeader({
   branding,
-  homeHref = "/live",
+  platform,
+  showAdminLink = false,
   matchToken,
   homeTeamName,
   awayTeamName,
@@ -66,7 +64,16 @@ export default function BroadcastHeader({
   readiness,
 }: {
   branding: BrandingConfiguration;
-  homeHref?: string;
+  /** The platform's own identity (Settings → Platform branding) — distinct
+   * from `branding` above, which is the competition/league tier. This is
+   * what the GG crest itself shows: logo + "GoodGrafik" + "Sports Platform"
+   * (or whatever an admin has renamed the platform to), never hardcoded. */
+  platform?: { orgName: string; subtitle: string; logoUrl: string | null };
+  /** Admins/super_admins can jump straight back to the Admin Overview
+   * without the browser Back button (GGSP brief, Section 10 — mobile nav
+   * shouldn't depend on Back) — broadcast_operators don't get this link,
+   * since they have no admin workspace to return to. */
+  showAdminLink?: boolean;
   matchToken: string;
   homeTeamName: string;
   awayTeamName: string;
@@ -101,7 +108,32 @@ export default function BroadcastHeader({
     <header className={`sticky top-0 z-30 border-b bg-black/90 backdrop-blur-xl transition-colors ${isLive ? "border-red-500/25" : "border-white/10"}`}>
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-2.5">
         <div className="flex items-center gap-3">
-          <BrandMark compact size="sm" href={homeHref} className="flex-none" />
+          {/* Full GG mark (crest + "GoodGrafik" / "Sports Platform", both
+              admin-editable via platform, never hardcoded) once there's room;
+              crest-only below sm keeps the header dense on phones (Section
+              12 — mobile vertical space is scarce). */}
+          <span className="hidden sm:block">
+            <BrandMark
+              size="sm"
+              href="/live"
+              className="flex-none"
+              orgName={platform?.orgName}
+              subtitle={platform?.subtitle}
+              logoUrl={platform?.logoUrl}
+            />
+          </span>
+          <span className="sm:hidden">
+            <BrandMark compact size="sm" href="/live" className="flex-none" logoUrl={platform?.logoUrl} />
+          </span>
+          {showAdminLink && (
+            <Link
+              href="/admin/dashboard"
+              className="flex flex-none items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-semibold text-white/45 transition hover:bg-white/10 hover:text-white"
+              title="Back to Admin Overview"
+            >
+              <LayoutDashboard size={11} /> <span className="hidden md:inline">Admin</span>
+            </Link>
+          )}
           <span className="hidden h-4 w-px bg-white/10 sm:block" />
           <div className="hidden sm:block">
             <BrandBar branding={branding} compact />

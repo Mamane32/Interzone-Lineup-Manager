@@ -11,7 +11,8 @@ import { assertCanManageRole, assertNotLastSuperAdmin, assertNotSelfLockout, ass
 import { classifyResetError } from "@/lib/auth-rate-limit";
 import { lockOutUser, restoreUserAccess } from "@/lib/auth-admin";
 import { deleteUserIdentity } from "@/lib/user-deletion";
-import type { AccessStatus, UserAccessAssignment } from "@/lib/types";
+import { resendInvitationCore } from "@/lib/invitation-service";
+import type { AccessStatus, Invitation, PlatformRole, UserAccessAssignment } from "@/lib/types";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -281,4 +282,131 @@ export async function deleteUser(userId: string): Promise<ActionResult> {
   revalidatePath("/admin/invitations");
   revalidatePath("/admin/access");
   redirect("/admin/users?deleted=1");
+}
+
+/**
+ * Resend Invitation, reachable directly from a still-'invited' user's own
+ * detail page — previously only possible from the separate Invitations
+ * list, which meant an admin already looking at one invited user's page had
+ * to go find the matching invitation row elsewhere. Finds that user's
+ * pending/expired invitation and re-sends through the same
+ * resendInvitationCore (lib/invitation-service.ts) the Invitations page
+ * uses, so behavior is identical either way; only where you land after
+ * differs (back on this user's page, not the Invitations list).
+ */
+export async function resendInvitationForUser(userId: string): Promise<ActionResult> {
+  const { role: actorRole } = await requireAdmin();
+  const actor = await getSessionUser();
+
+  const admin = supabaseAdmin();
+  const { data: invite } = await admin
+    .from("invitations")
+    .select("*")
+    .eq("invited_user_id", userId)
+    .in("status", ["pending", "expired"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle<Invitation>();
+
+  if (!invite) return { ok: false, error: "No pending invitation found for this user." };
+
+  const roleCheck = assertCanManageRole(actorRole, invite.role_key);
+  if (!roleCheck.ok) return { ok: false, error: roleCheck.error };
+
+  const result = await resendInvitationCore(invite);
+  if (!result.ok) {
+    console.error("resendInvitationForUser failed", userId, invite.id, result.errorMessage);
+    return { ok: false, error: "Could not send the invitation email. Please try again." };
+  }
+
+  if (actor) {
+    await recordAuditEvent({
+      actorUserId: actor.id,
+      action: "invitation.resent",
+      targetType: "invitation",
+      targetId: invite.id,
+      metadata: { email: invite.email, userId },
+    });
+  }
+
+  revalidatePath(`/admin/users/${userId}`);
+  revalidatePath("/admin/invitations");
+  return { ok: true };
+}
+
+/**
+ * Change Role — a single-step swap of an existing assignment's role_key, in
+ * place. Distinct from "Add assignment" + "Revoke" (still there for
+ * genuinely adding a *second* concurrent assignment): this replaces the one
+ * assignment the admin is looking at, so it can't leave a stray revoked
+ * assignment behind or briefly hold zero assignments mid-change. A plain
+ * form action (like addAssignment above), not a ConfirmActionDialog,
+ * because the new role has to be picked at submit time.
+ */
+export async function changeRole(userId: string, assignmentId: string, formData: FormData) {
+  const { role: actorRole } = await requireAdmin();
+  const actor = await getSessionUser();
+
+  const newRoleInput = String(formData.get("role_key") ?? "");
+  if (!isPlatformRole(newRoleInput)) {
+    redirect(`/admin/users/${userId}?error=invalid-role`);
+  }
+  const newRole: PlatformRole = newRoleInput;
+
+  const admin = supabaseAdmin();
+  const { data: assignment } = await admin
+    .from("user_access_assignments")
+    .select("*")
+    .eq("id", assignmentId)
+    .maybeSingle<UserAccessAssignment>();
+
+  if (!assignment) redirect(`/admin/users/${userId}?error=not-found`);
+  if (assignment!.user_id !== userId) redirect(`/admin/users/${userId}?error=not-found`);
+
+  // The actor must be allowed to manage both the role being replaced and
+  // the role being granted — otherwise this would let an admin route
+  // around assertCanManageRole by "changing" into a role they couldn't
+  // grant directly (e.g. escalating someone to super_admin).
+  const fromCheck = assertCanManageRole(actorRole, assignment!.role_key);
+  if (!fromCheck.ok) redirect(`/admin/users/${userId}?error=forbidden`);
+  const toCheck = assertCanManageRole(actorRole, newRole);
+  if (!toCheck.ok) redirect(`/admin/users/${userId}?error=forbidden`);
+
+  if (assignment!.role_key === newRole) redirect(`/admin/users/${userId}?saved=1`);
+
+  if (assignment!.status === "active") {
+    const lastSuperAdminCheck = await assertNotLastSuperAdmin(assignment!);
+    if (!lastSuperAdminCheck.ok) redirect(`/admin/users/${userId}?error=forbidden`);
+
+    if (actor) {
+      const selfCheck = await assertNotSelfLockout(actor.id, userId, "assignment", assignment!.role_key);
+      if (!selfCheck.ok) redirect(`/admin/users/${userId}?error=forbidden`);
+    }
+  }
+
+  const { error } = await admin
+    .from("user_access_assignments")
+    .update({ role_key: newRole })
+    .eq("id", assignmentId)
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error("changeRole failed", assignmentId, error);
+    redirect(`/admin/users/${userId}?error=save-failed`);
+  }
+
+  if (actor) {
+    await recordAuditEvent({
+      actorUserId: actor.id,
+      action: "access.assignment_role_changed",
+      targetType: "user_access_assignment",
+      targetId: assignmentId,
+      metadata: { userId, from_role: assignment!.role_key, to_role: newRole },
+    });
+  }
+
+  revalidatePath(`/admin/users/${userId}`);
+  revalidatePath("/admin/access");
+  revalidatePath("/admin/users");
+  redirect(`/admin/users/${userId}?saved=1`);
 }
