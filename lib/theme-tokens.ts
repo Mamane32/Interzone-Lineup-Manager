@@ -206,10 +206,47 @@ export const LEVEL_1_LAYOUT_TOKENS: ThemeToken[] = [
   { id: "logoPadding", label: "Logo Padding", category: "layout", studioSection: "layout", level: 1, column: "logo_padding", cssVar: "--ggsp-logo-padding", inputType: "number", default: 8, helperText: "px" },
   { id: "headerHeight", label: "Header Height", category: "layout", studioSection: "navigation", level: 1, column: "header_height", cssVar: "--ggsp-header-height", inputType: "number", default: 64, helperText: "px" },
   { id: "sidebarWidth", label: "Sidebar Width", category: "layout", studioSection: "navigation", level: 1, column: "sidebar_width", cssVar: "--ggsp-sidebar-width", inputType: "number", default: 260, helperText: "px" },
-  { id: "borderRadius", label: "Border Radius", category: "layout", studioSection: "components", level: 1, column: "border_radius", cssVar: "--ggsp-radius", inputType: "number", default: 16, helperText: "px · live in preview" },
-  { id: "shadowStyle", label: "Shadow Style", category: "layout", studioSection: "components", level: 1, column: "shadow_style", cssVar: "--ggsp-shadow-style", inputType: "select", default: "soft", options: ["none", "soft", "elevated", "sharp"], helperText: "Live in preview" },
-  { id: "cardStyle", label: "Card Style", category: "layout", studioSection: "components", level: 1, column: "card_style", cssVar: "--ggsp-card-style", inputType: "select", default: "glass", options: ["glass", "solid", "flat", "outlined"] },
+  { id: "borderRadius", label: "Border Radius", category: "layout", studioSection: "components", level: 1, column: "border_radius", cssVar: "--ggsp-radius", inputType: "number", default: 16, min: 0, max: 32, step: 1, helperText: "px · live in preview and sitewide — buttons, inputs, and cards scale together (cards stay 1.5× the base radius, matching the design's existing xl/2xl relationship)" },
+  // shadowStyle/cardStyle/inputStyle/badgeShape below have no cssVar: none
+  // of the four is a single CSS value (each switches between a small set of
+  // unrelated properties — background + backdrop-filter + box-shadow for
+  // Card Style, for instance), so there's no `var(--ggsp-x)` a real
+  // stylesheet rule could consume directly. Instead each is applied as a
+  // `ggsp-<token>-<value>` class (see componentStyleClassNames below) that
+  // app/globals.css keys a small set of override rules off of — the same
+  // mechanism Motion's Reduced Motion toggle already uses.
+  { id: "shadowStyle", label: "Shadow Style", category: "layout", studioSection: "components", level: 1, column: "shadow_style", cssVar: null, inputType: "select", default: "soft", options: ["none", "soft", "elevated", "sharp"], helperText: "Live in preview and sitewide — card and primary-button elevation" },
+  { id: "cardStyle", label: "Card Style", category: "layout", studioSection: "components", level: 1, column: "card_style", cssVar: null, inputType: "select", default: "glass", options: ["glass", "solid", "flat", "outlined"], helperText: "Live in preview and sitewide — the surface-panel treatment every card, modal, and panel shares" },
+  { id: "inputStyle", label: "Input Style", category: "layout", studioSection: "components", level: 1, column: "input_style", cssVar: null, inputType: "select", default: "filled", options: ["filled", "outlined", "underlined"], helperText: "Live in preview and sitewide — Input and Select fields" },
+  { id: "badgeShape", label: "Badge Shape", category: "layout", studioSection: "components", level: 1, column: "badge_shape", cssVar: null, inputType: "select", default: "pill", options: ["pill", "rounded", "square"], helperText: "Live in preview and sitewide — role and status chips" },
 ];
+
+/** `ggsp-<prefix>-<value>` class prefix for each class-based (non-cssVar) Components token — see the tokens' own comment above for why they're classes instead of vars. */
+const COMPONENT_STYLE_CLASS_PREFIX: Record<string, string> = {
+  cardStyle: "ggsp-card",
+  shadowStyle: "ggsp-shadow",
+  inputStyle: "ggsp-input",
+  badgeShape: "ggsp-badge",
+};
+
+/**
+ * Body/ThemeScope class names for the class-based Components tokens —
+ * shared by app/layout.tsx (from the saved PlatformBranding) and
+ * PreviewSurface.tsx (from the live draft) so both stay driven by the same
+ * lookup instead of two independent copies of "which value means default."
+ * Only emits a class when a value differs from the token's own default,
+ * since the default always matches the app's un-themed baseline (defined
+ * directly in app/globals.css) and needs no override rule.
+ */
+export function componentStyleClassNames(values: Record<string, unknown>): string {
+  const classes: string[] = [];
+  for (const [tokenId, prefix] of Object.entries(COMPONENT_STYLE_CLASS_PREFIX)) {
+    const value = values[tokenId];
+    const def = LEVEL_1_LAYOUT_TOKENS.find((t) => t.id === tokenId)?.default;
+    if (typeof value === "string" && value !== def) classes.push(`${prefix}-${value}`);
+  }
+  return classes.join(" ");
+}
 
 export const LEVEL_1_BEHAVIOR_TOKENS: ThemeToken[] = [
   { id: "lightModeEnabled", label: "Light Mode", category: "behavior", studioSection: "motion", level: 1, column: "light_mode_enabled", cssVar: null, inputType: "toggle", default: false },

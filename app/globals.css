@@ -208,3 +208,98 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================================================
+   Brand Studio — Components (Phase 5)
+   ============================================================================
+   Border Radius has a real cssVar (--ggsp-radius, set on <body> by
+   app/layout.tsx / on .ggsp-preview-scope by PreviewSurface.tsx) since it's
+   one numeric value. Shadow Style / Card Style / Input Style / Badge Shape
+   don't: each switches between a handful of unrelated CSS properties at
+   once, so there's no single var a rule could consume. Those four are
+   instead driven by a `ggsp-<token>-<value>` class
+   (lib/theme-tokens.ts's componentStyleClassNames) that the rules below key
+   off of — only for non-default values, since the default option always
+   matches the plain rules elsewhere in this file. */
+
+/* Border Radius — rounded-xl (16px) and rounded-2xl (24px, this project's
+   customized 1.5x-of-xl scale — see tailwind.config.ts) both track the one
+   token so buttons/inputs and cards/modals resize together. rounded-full
+   (avatars, dot indicators, pill badges below) is a shape, not a radius
+   scale, and is deliberately left alone. */
+[class*="rounded-xl"] {
+  border-radius: var(--ggsp-radius, 16px) !important;
+}
+[class*="rounded-2xl"] {
+  border-radius: calc(var(--ggsp-radius, 16px) * 1.5) !important;
+}
+
+/* Shadow Style — card elevation (.surface-panel's shadow-panel utility) and
+   the Primary button's glow (shadow-glow). "soft" is the existing default
+   in both utilities (tailwind.config.ts), so it needs no override block. */
+.ggsp-shadow-none [class*="shadow-panel"],
+.ggsp-shadow-none [class*="shadow-glow"] {
+  box-shadow: none !important;
+}
+.ggsp-shadow-elevated [class*="shadow-panel"] {
+  box-shadow: 0 28px 90px -24px rgba(0, 0, 0, 0.75) !important;
+}
+.ggsp-shadow-elevated [class*="shadow-glow"] {
+  box-shadow: 0 0 0 1px rgba(255, 182, 46, 0.4), 0 30px 80px -20px rgba(245, 158, 11, 0.65) !important;
+}
+.ggsp-shadow-sharp [class*="shadow-panel"],
+.ggsp-shadow-sharp [class*="shadow-glow"] {
+  box-shadow: 0 8px 0 0 rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Card Style — .surface-panel (and its top-highlight ::before) is the
+   shared shape for cards, modals, and drawers across the app. "glass" is
+   the default look defined earlier in this file, so it needs no override. */
+.ggsp-card-solid .surface-panel {
+  background: rgb(17 23 32 / 0.97) !important;
+  backdrop-filter: none !important;
+}
+.ggsp-card-flat .surface-panel {
+  background: rgba(255, 255, 255, 0.025) !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+.ggsp-card-outlined .surface-panel {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-width: 1px !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+.ggsp-card-flat .surface-panel::before,
+.ggsp-card-outlined .surface-panel::before {
+  display: none;
+}
+
+/* Input Style — Input.tsx / Select.tsx both carry the .ggsp-field marker
+   class so this can target them precisely instead of guessing at their
+   tone-dependent utility classes. "filled" is the existing translucent
+   background + border look, so it needs no override. */
+.ggsp-input-outlined .ggsp-field {
+  background: transparent !important;
+  border-width: 1.5px !important;
+}
+.ggsp-input-underlined .ggsp-field {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Badge Shape — every role/status/invitation chip carries the .ggsp-badge
+   marker class. "pill" (rounded-full) is the existing shape, so it needs
+   no override. */
+.ggsp-badge-rounded .ggsp-badge {
+  border-radius: 6px !important;
+}
+.ggsp-badge-square .ggsp-badge {
+  border-radius: 0 !important;
+}

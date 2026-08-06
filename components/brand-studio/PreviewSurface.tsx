@@ -8,10 +8,14 @@ import AdminShell from "@/components/shell/AdminShell";
 import BroadcastHeader from "@/components/live/BroadcastHeader";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import Select from "@/components/ui/Select";
+import RoleBadge from "@/components/iam/RoleBadge";
+import UserStatusBadge from "@/components/iam/StatusBadge";
 import type { BrandingConfiguration, PlatformBranding } from "@/lib/branding";
 import type { LineupStatus, MatchLiveStatus } from "@/lib/types";
 import type { ReadinessReport } from "@/lib/readiness";
 import type { SystemState } from "@/components/live/ProductionStatusPanel";
+import { componentStyleClassNames } from "@/lib/theme-tokens";
 import { draftToCssVars, draftToPlatformBranding, type BrandDraft } from "./draft-utils";
 import type { PreviewTab } from "./preview-types";
 import TypographySpecimen from "./TypographySpecimen";
@@ -22,13 +26,6 @@ const FONT_STACKS: Record<string, string> = {
   Roboto: "'Roboto', system-ui, sans-serif",
   Poppins: "'Poppins', system-ui, sans-serif",
   "System UI": "system-ui, -apple-system, sans-serif",
-};
-
-const SHADOW_VALUES: Record<string, string> = {
-  none: "none",
-  soft: "0 12px 40px -18px rgba(0,0,0,0.55)",
-  elevated: "0 24px 70px -20px rgba(0,0,0,0.7)",
-  sharp: "0 8px 0 0 rgba(0,0,0,0.9)",
 };
 
 const SAMPLE_READINESS: ReadinessReport = {
@@ -64,14 +61,19 @@ export default function PreviewSurface({ draft, saved, tab }: { draft: BrandDraf
   const cssVars = useMemo(() => draftToCssVars(draft), [draft]);
 
   const fontFamily = typeof draft.fontFamily === "string" ? FONT_STACKS[draft.fontFamily] ?? FONT_STACKS.Inter : FONT_STACKS.Inter;
-  const shadowValue = typeof draft.shadowStyle === "string" ? SHADOW_VALUES[draft.shadowStyle] ?? SHADOW_VALUES.soft : SHADOW_VALUES.soft;
-  const radiusPx = typeof draft.borderRadius === "number" ? draft.borderRadius : 16;
   const letterSpacingEm = typeof draft.letterSpacing === "number" ? draft.letterSpacing : 0;
   const lineHeightValue = typeof draft.lineHeight === "number" ? draft.lineHeight : 1.6;
   const paragraphSpacingPx = typeof draft.paragraphSpacing === "number" ? draft.paragraphSpacing : 16;
   const textTransformValue = typeof draft.textTransform === "string" ? draft.textTransform : "none";
   const hoverEffectsEnabled = draft.hoverEffectsEnabled !== false;
   const reducedMotionEnabled = draft.reducedMotion === true;
+  // cardStyle/shadowStyle/inputStyle/badgeShape — see globals.css's
+  // Components section for the ggsp-<token>-<value> rules this drives.
+  // Border Radius doesn't need a class: it already reached this scope as
+  // --ggsp-radius through cssVars above, and the same global [class*=
+  // "rounded-xl"/"2xl"] rules that apply sitewide apply here too, by
+  // ordinary CSS var inheritance.
+  const componentClasses = componentStyleClassNames(draft);
 
   const shellIdentity = { orgName: branding.organizationName, subtitle: branding.organizationSubtitle, logoUrl: branding.organizationLogoUrl };
   const heroIdentity = { organizationName: branding.organizationName, organizationSubtitle: branding.organizationSubtitle, organizationLogoUrl: branding.organizationLogoUrl };
@@ -90,15 +92,24 @@ export default function PreviewSurface({ draft, saved, tab }: { draft: BrandDraf
   return (
     <ThemeScope
       vars={cssVars}
-      className={`ggsp-preview-scope block min-h-full${reducedMotionEnabled ? " ggsp-reduced-motion" : ""}`}
+      className={[
+        "ggsp-preview-scope block min-h-full",
+        reducedMotionEnabled ? "ggsp-reduced-motion" : "",
+        componentClasses,
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       {/* Scoped, preview-pane-only overrides for tokens that don't yet
-         have a wired Tailwind class (font family, corner radius, shadow
-         depth) — never touches anything outside .ggsp-preview-scope, so
-         the real app's appearance is unaffected when no override is
-         configured, exactly as required. The color tokens above don't
-         need this: the six wired swatches (tailwind.config.ts) already
-         read their CSS vars directly.
+         have a wired Tailwind class (font family, letter spacing, line
+         height, paragraph spacing, text transform) — never touches
+         anything outside .ggsp-preview-scope, so the real app's appearance
+         is unaffected when no override is configured, exactly as required.
+         Border Radius / Shadow Style / Card Style / Input Style / Badge
+         Shape don't need scoping here: they're driven by the same
+         cssVar/class mechanism app/globals.css applies sitewide (see its
+         Components section), which the .ggsp-preview-scope classes above
+         key into identically.
 
          Hover Effects has no cssVar (unlike the other Motion toggles,
          which multiply into app/globals.css's calc() durations via
@@ -109,9 +120,6 @@ export default function PreviewSurface({ draft, saved, tab }: { draft: BrandDraf
         .ggsp-preview-scope { font-family: ${fontFamily}; letter-spacing: ${letterSpacingEm}em; line-height: ${lineHeightValue}; }
         .ggsp-preview-scope .font-display,
         .ggsp-preview-scope .font-body { font-family: ${fontFamily} !important; }
-        .ggsp-preview-scope [class*="rounded-xl"] { border-radius: ${radiusPx}px !important; }
-        .ggsp-preview-scope [class*="shadow-glow"],
-        .ggsp-preview-scope [class*="shadow-panel"] { box-shadow: ${shadowValue} !important; }
         .ggsp-preview-scope p { margin-bottom: ${paragraphSpacingPx}px; }
         .ggsp-preview-scope .font-display { text-transform: ${textTransformValue}; }
         ${hoverEffectsEnabled ? "" : `
@@ -195,6 +203,23 @@ function SampleDashboardContent() {
           <Button variant="primary">Create Match</Button>
           <Button variant="secondary">Invite User</Button>
           <Button variant="ghost">View Reports</Button>
+        </div>
+      </div>
+      <div className="surface-panel p-5">
+        <p className="text-sm font-semibold text-white/80">Invite a user</p>
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Input label="Email" type="email" placeholder="coach@example.com" defaultValue="" />
+          <Select label="Role" defaultValue="coach">
+            <option value="coach">Coach</option>
+            <option value="referee">Referee</option>
+            <option value="media">Media</option>
+          </Select>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <RoleBadge role="coach" />
+          <RoleBadge role="referee" />
+          <UserStatusBadge status="active" />
+          <UserStatusBadge status="invited" />
         </div>
       </div>
     </div>

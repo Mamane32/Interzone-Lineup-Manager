@@ -142,6 +142,8 @@ export interface PlatformBranding {
   borderRadius: number;
   shadowStyle: string;
   cardStyle: string;
+  inputStyle: string;
+  badgeShape: string;
 
   // Behavior
   lightModeEnabled: boolean;
@@ -209,6 +211,8 @@ export const DEFAULT_PLATFORM_BRANDING: PlatformBranding = {
   borderRadius: 16,
   shadowStyle: "soft",
   cardStyle: "glass",
+  inputStyle: "filled",
+  badgeShape: "pill",
 
   lightModeEnabled: false,
   darkModeEnabled: true,
@@ -283,6 +287,8 @@ function rowToPlatformBranding(data: Record<string, unknown>): PlatformBranding 
     borderRadius: num(data.border_radius as number, d.borderRadius),
     shadowStyle: str(data.shadow_style, d.shadowStyle),
     cardStyle: str(data.card_style, d.cardStyle),
+    inputStyle: str(data.input_style, d.inputStyle),
+    badgeShape: str(data.badge_shape, d.badgeShape),
 
     lightModeEnabled: bool(data.light_mode_enabled as boolean, d.lightModeEnabled),
     darkModeEnabled: bool(data.dark_mode_enabled as boolean, d.darkModeEnabled),

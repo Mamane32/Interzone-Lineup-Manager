@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Oswald, Inter } from "next/font/google";
 import ThemeScope from "@/components/branding/ThemeScope";
 import { getPlatformBranding, platformBrandingToCssVars } from "@/lib/branding";
+import { componentStyleClassNames } from "@/lib/theme-tokens";
 import "./globals.css";
 
 const oswald = Oswald({
@@ -42,7 +43,14 @@ export default async function RootLayout({
   // on any read error — a bad branding row can never blank the app.
   const platform = await getPlatformBranding();
   const cssVars = platformBrandingToCssVars(platform);
-  const bodyClassName = `min-h-screen bg-surface-950 text-white${platform.reducedMotion ? " ggsp-reduced-motion" : ""}`;
+  const componentClasses = componentStyleClassNames(platform as unknown as Record<string, unknown>);
+  const bodyClassName = [
+    "min-h-screen bg-surface-950 text-white",
+    platform.reducedMotion ? "ggsp-reduced-motion" : "",
+    componentClasses,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <html

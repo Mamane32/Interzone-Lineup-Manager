@@ -27,7 +27,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
         <input
           ref={ref}
           id={id}
-          className={`h-11 rounded-xl border px-3 transition-all focus:outline-none ${toneClasses} ${className}`}
+          className={`ggsp-field h-11 rounded-xl border px-3 transition-all focus:outline-none ${toneClasses} ${className}`}
           {...props}
         />
       </div>

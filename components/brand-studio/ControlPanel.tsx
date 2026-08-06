@@ -14,7 +14,7 @@ const SECTION_DESCRIPTIONS: Partial<Record<StudioSection, string>> = {
   colors: "Primary, background, surface, status, navigation, and button colors. 14 of 17 are live platform-wide today — Border and the two Text colors are reserved until they have a safe, scoped target (see each field's note).",
   typography: "Font family, weight, and heading/text style.",
   layout: "Logo sizing and spacing.",
-  components: "Corner radius and shadow depth for cards and buttons.",
+  components: "Corner radius, shadow depth, card treatment, input style, and badge shape — live in preview and sitewide for every card, button, input, and chip.",
   navigation: "Header height and sidebar width.",
   motion: "Light/dark mode defaults and animation intensity.",
 };

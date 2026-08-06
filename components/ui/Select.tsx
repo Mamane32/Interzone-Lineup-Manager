@@ -31,7 +31,7 @@ const Select = forwardRef<HTMLSelectElement, Props>(
         <select
           ref={ref}
           id={id}
-          className={`h-14 rounded-xl border px-3 text-base font-medium transition-all focus:outline-none ${toneClasses} ${className}`}
+          className={`ggsp-field h-14 rounded-xl border px-3 text-base font-medium transition-all focus:outline-none ${toneClasses} ${className}`}
           {...props}
         >
           {children}
