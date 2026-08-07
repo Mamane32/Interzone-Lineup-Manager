@@ -13,10 +13,10 @@ import MasterSplash from "@/components/goodgrafik/MasterSplash";
  */
 export default function GoodGrafikLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-surface-950 text-white">
+    <div className="min-h-screen overflow-x-hidden bg-surface-950 text-white">
       <MasterSplash />
       <MasterHeader />
-      <div className="pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[calc(4rem+env(safe-area-inset-top))] md:pb-0">{children}</div>
+      <div className="goodgrafik-content pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[calc(4rem+env(safe-area-inset-top))] md:pb-0">{children}</div>
       <MasterBottomNav />
     </div>
   );

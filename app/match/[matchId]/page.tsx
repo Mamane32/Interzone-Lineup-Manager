@@ -10,6 +10,7 @@ import { formatMatchDate } from "@/lib/utils";
 import { EVENT_META } from "@/lib/event-meta";
 import BrandBar from "@/components/live/BrandBar";
 import PublicNav from "@/components/scores/PublicNav";
+import GoodGrafikBreadcrumb from "@/components/scores/GoodGrafikBreadcrumb";
 import MatchRow from "@/components/scores/MatchRow";
 import TeamCrest from "@/components/scores/TeamCrest";
 import StandingsTable from "@/components/scores/StandingsTable";
@@ -72,8 +73,11 @@ export default async function PublicMatchPage({ params }: { params: { matchId: s
 
   return (
     <div className="min-h-screen bg-surface-950 pb-28 text-white">
-      <header className="border-b border-white/10 px-4 py-3">
+      <header className="border-b border-white/10 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
         <div className="mx-auto max-w-3xl">
+          <div className="mb-2">
+            <GoodGrafikBreadcrumb />
+          </div>
           <BrandBar branding={branding} compact />
         </div>
       </header>

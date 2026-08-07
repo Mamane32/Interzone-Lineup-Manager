@@ -7,6 +7,7 @@ import { getPublicScoresFeed } from "@/lib/public-scores";
 import { newsCategoryLabel } from "@/lib/news-categories";
 import NewsCard from "@/components/scores/NewsCard";
 import PublicNav from "@/components/scores/PublicNav";
+import GoodGrafikBreadcrumb from "@/components/scores/GoodGrafikBreadcrumb";
 
 export const dynamic = "force-dynamic";
 
@@ -26,11 +27,12 @@ export default async function NewsArticlePage({ params }: { params: { slug: stri
 
   return (
     <div className="min-h-screen bg-surface-950 pb-28 text-white">
-      <header className="border-b border-white/[0.06] bg-surface-950/90 px-4 py-3 backdrop-blur-xl">
-        <div className="mx-auto max-w-2xl">
+      <header className="border-b border-white/[0.06] bg-surface-950/90 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur-xl">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
           <Link href="/scores/news" className="flex items-center gap-1.5 text-xs font-semibold text-white/50 hover:text-white">
             <ChevronLeft size={14} /> Nouvèl
           </Link>
+          <GoodGrafikBreadcrumb />
         </div>
       </header>
 

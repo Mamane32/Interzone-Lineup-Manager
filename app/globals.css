@@ -256,7 +256,58 @@
 }
 
 .animate-splash-fade-out {
-  animation: splash-overlay-out 0.4s ease-in both;
+  animation: splash-overlay-out 0.78s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* The mark (logo + underline) dissolves and lifts slightly as the overlay
+   clears, instead of just riding the overlay's own flat opacity fade — it
+   reads as the mark handing off to the page behind it, not one layer
+   cutting to another. Applied to the inner wrapper only, so the glow
+   (which has its own bloom animation already) isn't double-animated. */
+@keyframes splash-mark-out {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.05) translateY(-6px);
+    filter: blur(6px);
+  }
+}
+
+.animate-splash-mark-out {
+  animation: splash-mark-out 0.55s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+/* GoodGrafik home content sits, visible-but-veiled, behind the splash
+   overlay from first paint (the overlay itself is translucent + blurred,
+   not opaque — see MasterSplash.tsx) and pulls into focus as the splash
+   clears, so the page reads as alive underneath the mark instead of
+   appearing only after it's gone. Driven by a body class MasterSplash
+   toggles in lockstep with its own phase — the transition is declared
+   unconditionally so it animates on both the way in (class added) and the
+   way out (class removed), the same "toggle a class, let CSS transition
+   do the work" approach the rest of this design system already uses for
+   collapsible sections. Only engages when the splash is actually about to
+   play: a repeat visit within the same session, or prefers-reduced-motion,
+   never adds the class in the first place, so the page simply renders at
+   rest with no transition at all. */
+.goodgrafik-content {
+  filter: blur(0) saturate(1);
+  transform: scale(1);
+  opacity: 1;
+  transition:
+    filter 1.05s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.05s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.9s ease-out;
+}
+
+.ggsp-splash-active .goodgrafik-content {
+  filter: blur(22px) saturate(0.7);
+  transform: scale(1.035);
+  opacity: 0.5;
 }
 
 /* Overrides Tailwind's own .animate-pulse utility (LoadingState.tsx) —

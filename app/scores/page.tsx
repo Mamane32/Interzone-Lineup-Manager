@@ -8,6 +8,7 @@ import CompetitionSelector from "@/components/scores/CompetitionSelector";
 import DateStrip from "@/components/scores/DateStrip";
 import ScoresSearch from "@/components/scores/ScoresSearch";
 import PublicNav from "@/components/scores/PublicNav";
+import GoodGrafikBreadcrumb from "@/components/scores/GoodGrafikBreadcrumb";
 import EmptyState from "@/components/ui/EmptyState";
 import Link from "next/link";
 
@@ -53,10 +54,15 @@ export default async function GGScoreLivePage({
 
   return (
     <div className="min-h-screen bg-surface-950 pb-28 text-white">
-      <header className="border-b border-white/[0.06] bg-surface-950/90 px-4 pb-4 pt-6 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
-          <h1 className="font-display text-lg font-black tracking-tight text-brand-400">GGScoreLive</h1>
-          <ScoresSearch competitionId={competitionId} />
+      <header className="border-b border-white/[0.06] bg-surface-950/90 px-4 pb-4 pt-[calc(1.5rem+env(safe-area-inset-top))] backdrop-blur-xl">
+        <div className="mx-auto max-w-2xl">
+          <div className="mb-2">
+            <GoodGrafikBreadcrumb />
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="font-display text-lg font-black tracking-tight text-brand-400">GGScoreLive</h1>
+            <ScoresSearch competitionId={competitionId} />
+          </div>
         </div>
       </header>
 

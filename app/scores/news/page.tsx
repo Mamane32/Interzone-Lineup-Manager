@@ -5,6 +5,7 @@ import { getPublicScoresFeed } from "@/lib/public-scores";
 import { NEWS_CATEGORIES } from "@/lib/news-categories";
 import NewsCard from "@/components/scores/NewsCard";
 import PublicNav from "@/components/scores/PublicNav";
+import GoodGrafikBreadcrumb from "@/components/scores/GoodGrafikBreadcrumb";
 import EmptyState from "@/components/ui/EmptyState";
 
 export const dynamic = "force-dynamic";
@@ -19,8 +20,11 @@ export default async function NewsCenterPage({ searchParams }: { searchParams: {
 
   return (
     <div className="min-h-screen bg-surface-950 pb-28 text-white">
-      <header className="border-b border-white/[0.06] bg-surface-950/90 px-5 pb-5 pt-7 backdrop-blur-xl">
+      <header className="border-b border-white/[0.06] bg-surface-950/90 px-5 pb-5 pt-[calc(1.75rem+env(safe-area-inset-top))] backdrop-blur-xl">
         <div className="mx-auto max-w-2xl text-center">
+          <div className="mb-2 flex justify-center">
+            <GoodGrafikBreadcrumb />
+          </div>
           <p className="eyebrow">GGScoreLive</p>
           <h1 className="mt-1.5 font-display text-2xl font-black tracking-tight">Nouvèl</h1>
         </div>

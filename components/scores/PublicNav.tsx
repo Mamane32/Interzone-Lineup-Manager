@@ -14,7 +14,7 @@ export type PublicNavPage = "home" | "competition" | "news" | "account";
  */
 export default function PublicNav({ active, hasLive }: { active: PublicNavPage; hasLive: boolean }) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-surface-950/95 backdrop-blur-xl">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-surface-950/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
       <div className="relative mx-auto flex max-w-2xl items-center justify-between px-6 py-2.5">
         <Link href="/scores" className="flex flex-col items-center gap-1 px-2 py-1">
           <Home size={20} className={active === "home" ? "text-brand-400" : "text-white/50"} />
