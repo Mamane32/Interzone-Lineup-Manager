@@ -1,5 +1,5 @@
 import "server-only";
-import { getVMixStatus } from "@/lib/vmix/client";
+import { BroadcastEngine } from "./BroadcastEngine";
 import { WebsiteSync } from "./WebsiteSync";
 
 /**
@@ -48,7 +48,7 @@ export type BroadcastSession = {
 
 /** Builds the BroadcastSession for one match — real status for the subsystems that exist, honest "planned" for the ones that don't. */
 export async function getBroadcastSession(matchId: string): Promise<BroadcastSession> {
-  const [vmixStatus, websiteSyncStatuses] = await Promise.all([getVMixStatus(), WebsiteSync.getProvidersStatus()]);
+  const [vmixStatus, websiteSyncStatuses] = await Promise.all([BroadcastEngine.getSystemStatus("vmix"), WebsiteSync.getProvidersStatus()]);
 
   const subsystems: BroadcastSubsystem[] = [
     { key: "tactical_formation", label: "Tactical Formation", state: "active", detail: "Formation editor, presets, animation preview" },
@@ -57,7 +57,7 @@ export async function getBroadcastSession(matchId: string): Promise<BroadcastSes
       key: "vmix",
       label: "vMix",
       state: vmixStatus.state === "connected" ? "active" : "not_configured",
-      detail: vmixStatus.state === "connected" ? `vMix ${vmixStatus.version ?? ""}`.trim() : "VMIX_HOST not set",
+      detail: vmixStatus.state === "connected" ? vmixStatus.detail : "VMIX_HOST not set",
     },
     {
       key: "website_sync",

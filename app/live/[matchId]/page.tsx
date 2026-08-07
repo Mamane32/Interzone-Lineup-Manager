@@ -1,6 +1,6 @@
 import { getLiveMatch } from "@/lib/live-match";
 import { getBaseBrandingAsync, withCompetition } from "@/lib/branding";
-import { getVMixStatus } from "@/lib/vmix/client";
+import { BroadcastEngine } from "@/lib/broadcast/BroadcastEngine";
 import { WebsiteSync } from "@/lib/broadcast/WebsiteSync";
 import { listProductionQueue } from "@/lib/broadcast/ProductionQueueEngine";
 import { listMatchStatistics } from "@/lib/match-statistics";
@@ -50,7 +50,7 @@ export default async function LiveControlRoomPage({ params }: { params: { matchI
   const { match, events, homePlayers, awayPlayers } = bundle;
   const status = match.live_status ?? "pre_match";
   const branding = withCompetition(await getBaseBrandingAsync(), match.competition);
-  const vmixStatus = await getVMixStatus();
+  const vmixStatus = await BroadcastEngine.getSystemStatus("vmix");
   const vmixState = connectionStateToSystemState(vmixStatus.state);
   const [websiteSyncStatus] = await WebsiteSync.getProvidersStatus();
   const websiteSyncState = connectionStateToSystemState(websiteSyncStatus.state);

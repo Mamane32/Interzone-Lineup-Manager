@@ -23,8 +23,32 @@ async function getSystemsStatus(): Promise<BroadcastSystemStatus[]> {
   return Promise.all(REGISTERED_SYSTEMS.map((system) => system.getStatus()));
 }
 
+/**
+ * One system's status by id — for a caller that only cares about "is vMix
+ * up," not the whole registry. Never throws and never returns undefined:
+ * a system id nothing has registered (a typo, or a system removed from
+ * REGISTERED_SYSTEMS) reports the same honest "not_configured" a real,
+ * unconfigured provider would — the caller doesn't need a separate
+ * not-found branch. This is the one path UI code should use to ask about
+ * vMix specifically, instead of importing lib/vmix/client directly: the
+ * whole point of REGISTERED_SYSTEMS is that callers above this file never
+ * need to know which concrete systems exist.
+ */
+async function getSystemStatus(systemId: string): Promise<BroadcastSystemStatus> {
+  const statuses = await getSystemsStatus();
+  return (
+    statuses.find((s) => s.systemId === systemId) ?? {
+      systemId,
+      label: systemId,
+      state: "not_configured",
+      checkedAt: new Date().toISOString(),
+    }
+  );
+}
+
 export const BroadcastEngine = {
   dispatch,
   getSystemsStatus,
+  getSystemStatus,
   systems: REGISTERED_SYSTEMS,
 };

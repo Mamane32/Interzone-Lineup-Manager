@@ -1,6 +1,6 @@
 import { getLiveMatch } from "@/lib/live-match";
 import { getBaseBranding, getPlatformBranding, withCompetition } from "@/lib/branding";
-import { getVMixStatus } from "@/lib/vmix/client";
+import { BroadcastEngine } from "@/lib/broadcast/BroadcastEngine";
 import { WebsiteSync } from "@/lib/broadcast/WebsiteSync";
 import { getTacticalFormation } from "@/lib/tactical-formation";
 import { buildReadinessReport, teamReadinessFromData } from "@/lib/readiness";
@@ -23,7 +23,7 @@ export default async function BroadcastControlCenterLayout({
   const branding = withCompetition(getBaseBranding(), match.competition);
 
   const [vmixStatus, websiteSyncStatuses, homeFormation, awayFormation, platformBranding] = await Promise.all([
-    getVMixStatus(),
+    BroadcastEngine.getSystemStatus("vmix"),
     WebsiteSync.getProvidersStatus(),
     getTacticalFormation(params.matchId, match.home_team_id),
     getTacticalFormation(params.matchId, match.away_team_id),
