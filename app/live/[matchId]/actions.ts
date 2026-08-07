@@ -6,6 +6,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
 import { broadcastScoreUpdate } from "@/lib/broadcast/ScoreEngine";
 import { broadcastGoal, broadcastCard, broadcastSubstitution, broadcastStatusChange } from "@/lib/broadcast/EventEngine";
+import { broadcastClockUpdate } from "@/lib/broadcast/ClockEngine";
 import { autoTriggerGraphicForEvent } from "@/lib/broadcast/graphics-automation";
 import type { BroadcastOperator } from "@/lib/broadcast/types";
 import type { MatchLiveStatus, MatchEventType } from "@/lib/types";
@@ -121,6 +122,7 @@ export async function addGoalEvent(
       // the goal graphic are separate vMix inputs in the command map.
       await broadcastScoreUpdate({ matchId, homeScore, awayScore });
       await broadcastGoal({ matchId, team, playerName, minute });
+      await broadcastClockUpdate({ matchId, minute });
       // Sprint 3 Graphics Integration — the Production Queue, not this
       // direct vMix data-sync call above, is what actually puts a "Goal"
       // graphic on air; the two are complementary (scoreboard text vs.
@@ -171,6 +173,10 @@ export async function addMatchEvent(
   await afterBroadcastEvent(async () => {
     const playerName = await resolvePlayerName(supabase, playerId);
     const team: "home" | "away" | null = teamId ? (teamId === match.home_team_id ? "home" : "away") : null;
+
+    // Every minute-stamped event moves the clock forward, regardless of
+    // which branch below it takes — not only cards/substitutions.
+    await broadcastClockUpdate({ matchId, minute });
 
     if (type === "yellow_card" || type === "second_yellow" || type === "red_card") {
       if (!team) return;

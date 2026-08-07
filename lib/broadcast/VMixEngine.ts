@@ -26,6 +26,8 @@ function translateToVMix(command: BroadcastCommand): VMixCommand | null {
       return { function: "OverlayInput1In" };
     case "graphic.hide":
       return { function: "OverlayInput1Out" };
+    case "clock.update":
+      return { function: "SetText", selectedName: "Clock.Text", value: command.minute };
     default:
       return null;
   }

@@ -33,7 +33,8 @@ export type BroadcastCommand =
     }
   | { kind: "match.statusChange"; matchId: string; statusLabel: string }
   | { kind: "graphic.take"; matchId: string; graphicId: string; category: string }
-  | { kind: "graphic.hide"; matchId: string; graphicId: string };
+  | { kind: "graphic.hide"; matchId: string; graphicId: string }
+  | { kind: "clock.update"; matchId: string; minute: string };
 
 export type BroadcastCommandResult = { ok: true; systemId: string } | { ok: false; systemId: string; error: string };
 
