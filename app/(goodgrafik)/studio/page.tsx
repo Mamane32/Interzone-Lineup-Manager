@@ -2,6 +2,7 @@ import { Radio } from "lucide-react";
 import { WORLDS, ACCENT_CLASSES } from "@/components/goodgrafik/worlds";
 import { STUDIO_SECTIONS } from "@/components/goodgrafik/reserved-sections";
 import WorldHero from "@/components/goodgrafik/WorldHero";
+import ReservedSectionNav from "@/components/goodgrafik/ReservedSectionNav";
 import ReservedSectionGrid from "@/components/goodgrafik/ReservedSectionGrid";
 import InProductionPanel from "@/components/goodgrafik/InProductionPanel";
 
@@ -14,6 +15,10 @@ export default function StudioHomePage() {
   return (
     <main className="mx-auto max-w-4xl px-5 py-10 sm:px-8">
       <WorldHero world={world} />
+
+      <div className="mt-6">
+        <ReservedSectionNav world={world} sections={STUDIO_SECTIONS} />
+      </div>
 
       <div className={`surface-panel mx-auto mt-8 flex max-w-md items-center justify-center gap-2.5 px-4 py-3 ${accent.border}`}>
         <Radio size={15} className={accent.text} />

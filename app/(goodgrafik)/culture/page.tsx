@@ -1,6 +1,7 @@
 import { WORLDS } from "@/components/goodgrafik/worlds";
 import { CULTURE_SECTIONS } from "@/components/goodgrafik/reserved-sections";
 import WorldHero from "@/components/goodgrafik/WorldHero";
+import ReservedSectionNav from "@/components/goodgrafik/ReservedSectionNav";
 import ReservedSectionGrid from "@/components/goodgrafik/ReservedSectionGrid";
 import InProductionPanel from "@/components/goodgrafik/InProductionPanel";
 
@@ -13,7 +14,11 @@ export default function CultureHomePage() {
     <main className="mx-auto max-w-4xl px-5 py-10 sm:px-8">
       <WorldHero world={world} />
 
-      <div className="mt-10">
+      <div className="mt-6">
+        <ReservedSectionNav world={world} sections={CULTURE_SECTIONS} />
+      </div>
+
+      <div className="mt-8">
         <ReservedSectionGrid world={world} sections={CULTURE_SECTIONS} />
       </div>
 

@@ -32,6 +32,6 @@ export default function MasterBottomNav() {
 const ACCENT_TEXT: Record<string, string> = {
   brand: "text-brand-400",
   violet: "text-violet-400",
-  sky: "text-sky-400",
-  orange: "text-orange-400",
+  blue: "text-blue-400",
+  rose: "text-rose-400",
 };

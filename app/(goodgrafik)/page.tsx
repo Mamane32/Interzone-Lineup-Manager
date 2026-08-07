@@ -1,4 +1,4 @@
-import { CircleDot, Flame } from "lucide-react";
+import { ArrowDown, Flame } from "lucide-react";
 import { WORLDS } from "@/components/goodgrafik/worlds";
 import WorldCard from "@/components/goodgrafik/WorldCard";
 import CrossPlatformCard from "@/components/goodgrafik/CrossPlatformCard";
@@ -17,20 +17,25 @@ export default async function GoodGrafikHomePage() {
           <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,.65)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.65)_1px,transparent_1px)] [background-size:64px_64px]" />
         </div>
         <div className="relative mx-auto max-w-5xl text-center">
-          <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-brand-400/20 bg-brand-400/[0.07] px-3 py-1.5 text-xs font-medium text-brand-100">
-            <CircleDot size={12} className="text-brand-400" /> One platform, four worlds
-          </div>
-          <h1 className="mx-auto mt-7 max-w-4xl text-balance font-display text-5xl font-black leading-[.98] tracking-tight sm:text-6xl lg:text-7xl">
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/40">Welcome to</p>
+          <h1 className="mx-auto mt-3 max-w-4xl text-balance font-display text-5xl font-black leading-[.98] tracking-tight sm:text-6xl lg:text-7xl">
             <span className="text-white">Good</span>
             <span className="text-brand-400">Grafik</span>
           </h1>
+          <p className="mt-4 text-xs font-bold uppercase tracking-[0.3em] text-brand-400">Creative · Media · Live</p>
           <p className="mx-auto mt-6 max-w-xl text-balance text-base leading-7 text-white/50 sm:text-lg">
-            Sports, Culture, News and Studio — one platform for everything happening now.
+            Yon platfòm nimerik ki konekte espò, kilti, mizik, pwodiksyon ak enfòmasyon an dirèk.
           </p>
+          <a
+            href="#worlds"
+            className="group mx-auto mt-9 inline-flex h-12 items-center gap-2 rounded-xl bg-brand-400 px-7 font-semibold text-surface-950 shadow-glow transition hover:bg-brand-100"
+          >
+            Dekouvri <ArrowDown size={16} className="transition-transform group-hover:translate-y-0.5" />
+          </a>
         </div>
       </section>
 
-      <section className="px-5 sm:px-8">
+      <section id="worlds" className="scroll-mt-20 px-5 sm:px-8">
         <div className="mx-auto grid max-w-6xl gap-4 sm:grid-cols-2">
           {WORLDS.map((world, i) => (
             <WorldCard key={world.id} world={world} index={i} />

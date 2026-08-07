@@ -25,11 +25,12 @@ export type World = {
   live: boolean;
 };
 
+/** Display order and accent colors match the approved reference mockups (Sports/Culture/Studio/News, orange-gold/violet/blue/rose) — not the original brief's plain listing order, which the mockups supersede for UI purposes. */
 export const WORLDS: World[] = [
   {
     id: "sports",
     name: "Sports",
-    tagline: "Live football, every matchday.",
+    tagline: "Live matches, standings, broadcasts and competitions.",
     description: "Live matches, competitions, scores, standings and broadcasts.",
     href: "/sports",
     icon: Trophy,
@@ -39,7 +40,7 @@ export const WORLDS: World[] = [
   {
     id: "culture",
     name: "Culture",
-    tagline: "Music, artists, and the stages behind them.",
+    tagline: "Music, concerts, artists and festivals.",
     description: "Artists, bands, concerts, festivals, interviews and entertainment.",
     href: "/culture",
     icon: Music4,
@@ -47,23 +48,23 @@ export const WORLDS: World[] = [
     live: false,
   },
   {
-    id: "news",
-    name: "News",
-    tagline: "What's happening, as it happens.",
-    description: "Breaking news, sports, culture, politics, economy and world affairs.",
-    href: "/news",
-    icon: Newspaper,
-    accent: "sky",
-    live: false,
-  },
-  {
     id: "studio",
     name: "Studio",
-    tagline: "Shows, podcasts, and original productions.",
+    tagline: "Productions, podcasts, radio, livestreams.",
     description: "Productions, shows, podcasts, radio, livestreams and video content.",
     href: "/studio",
     icon: Clapperboard,
-    accent: "orange",
+    accent: "blue",
+    live: false,
+  },
+  {
+    id: "news",
+    name: "News",
+    tagline: "Breaking news, sports, culture and more.",
+    description: "Breaking news, sports, culture, politics, economy and world affairs.",
+    href: "/news",
+    icon: Newspaper,
+    accent: "rose",
     live: false,
   },
 ];
@@ -77,9 +78,9 @@ export const HOME_NAV: { label: string; href: string }[] = [{ label: "Home", hre
  * produce no CSS at all. This lookup is what makes `world.accent` (a
  * plain string) safe to use for styling.
  */
-export const ACCENT_CLASSES: Record<string, { text: string; bg: string; border: string; bgSoft: string; glow: string }> = {
-  brand: { text: "text-brand-400", bg: "bg-brand-400", border: "border-brand-400/25", bgSoft: "bg-brand-400/10", glow: "bg-brand-400/20" },
-  violet: { text: "text-violet-400", bg: "bg-violet-400", border: "border-violet-400/25", bgSoft: "bg-violet-400/10", glow: "bg-violet-400/20" },
-  sky: { text: "text-sky-400", bg: "bg-sky-400", border: "border-sky-400/25", bgSoft: "bg-sky-400/10", glow: "bg-sky-400/20" },
-  orange: { text: "text-orange-400", bg: "bg-orange-400", border: "border-orange-400/25", bgSoft: "bg-orange-400/10", glow: "bg-orange-400/20" },
+export const ACCENT_CLASSES: Record<string, { text: string; bg: string; border: string; bgSoft: string; glow: string; hoverBg: string }> = {
+  brand: { text: "text-brand-400", bg: "bg-brand-400", border: "border-brand-400/40", bgSoft: "bg-brand-400/10", glow: "bg-brand-400/25", hoverBg: "hover:bg-brand-400" },
+  violet: { text: "text-violet-400", bg: "bg-violet-400", border: "border-violet-400/40", bgSoft: "bg-violet-400/10", glow: "bg-violet-400/25", hoverBg: "hover:bg-violet-400" },
+  blue: { text: "text-blue-400", bg: "bg-blue-400", border: "border-blue-400/40", bgSoft: "bg-blue-400/10", glow: "bg-blue-400/25", hoverBg: "hover:bg-blue-400" },
+  rose: { text: "text-rose-400", bg: "bg-rose-400", border: "border-rose-400/40", bgSoft: "bg-rose-400/10", glow: "bg-rose-400/25", hoverBg: "hover:bg-rose-400" },
 };
