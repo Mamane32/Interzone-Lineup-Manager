@@ -103,7 +103,7 @@ describe("server action authorization coverage", () => {
     // Unlike the Coach Portal (see below), these surfaces have no
     // legitimate reason to touch formation code at all — not even the
     // shared engine.
-    const publicSurfaces = ["app/api", "app/page.tsx", "app/(marketing)"].filter((p) => fs.existsSync(path.join(ROOT, p)));
+    const publicSurfaces = ["app/api", "app/page.tsx", "app/(marketing)", "app/(goodgrafik)"].filter((p) => fs.existsSync(path.join(ROOT, p)));
     for (const surface of publicSurfaces) {
       const files = fs.statSync(path.join(ROOT, surface)).isDirectory()
         ? fs.readdirSync(path.join(ROOT, surface), { recursive: true }).filter((f): f is string => typeof f === "string" && /\.(ts|tsx)$/.test(f))

@@ -20,10 +20,10 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "GoodGrafik Sports Platform",
+    default: "GoodGrafik — Sports, Culture, News, Studio",
     template: "%s · GoodGrafik",
   },
-  description: "The operating system for modern sports organizations.",
+  description: "GoodGrafik is the platform for Sports, Culture, News and Studio — live football, music and culture, breaking stories, and original productions, in one place.",
 };
 
 export default async function RootLayout({
