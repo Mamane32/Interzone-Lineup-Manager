@@ -1,16 +1,58 @@
-# Broadcast Runtime Architecture
+# Production Runtime Architecture
 
 **Status:** Sections 1–8 (the original eight responsibilities — Session
 lifecycle, Active Operator, Active Provider, Provider Capabilities,
-Health & Synchronization, Event Bus, Graphics Renderer, Outputs) are
-**approved**. Sections 9–13 below extend that model with Profiles,
-capability-based Source of Truth, the Match/Broadcast Event split,
-Diagnostics, and a Platform Scope recommendation — **proposal, pending
-approval**.
+Health & Synchronization, Event Bus, Graphics Renderer, Outputs) and
+sections 9–13 (Profiles, capability-based Source of Truth, the
+Match/Broadcast Event split, Diagnostics, Platform Scope) are
+**approved**. This revision adds section 0 (naming) and two refinements —
+**proposal, pending approval** — before Phase 2 begins:
 
-This document, in both this revision and the prior one, ships **zero
-source-file changes**. No migration, no new `lib/` file, no UI. It exists
-to be reviewed before Phase 2 (the first real provider, vMix) is built.
+1. Section 9 (Profiles) is revised to be **provider-independent** —
+   a profile declares what a production *needs*, not which software
+   supplies it.
+2. Section 0 (new) names this architecture the **Production Runtime**,
+   with Sports/GGSP as its first business-domain instantiation.
+
+This document, across every revision so far, ships **zero source-file
+changes**. No migration, no new `lib/` file, no UI, no folder move, no
+rename of any existing identifier. It exists to be reviewed before Phase 2
+(the first real provider, vMix) is built.
+
+## 0. Naming: this is a Production Runtime
+
+Everything in this document — Sessions, Providers, Capabilities, Profiles,
+the Event Bus, Diagnostics, Outputs — is written in terms that already
+don't assume football, or even live sport: a "session" is any production
+being produced, a "provider" is any system capable of owning production
+capabilities, a "capability" like `graphics`/`audio`/`recording`/`streaming`
+means the same thing whether the thing being produced is a match, a
+concert, a podcast, or a conference. Calling the whole thing the
+**"Broadcast Runtime"** undersells that — "broadcast" implies television/
+sport-style production specifically, when the actual design already covers
+any live or recorded production.
+
+**This architecture is the Production Runtime.** Sports — via GGSP, using
+today's concrete names (`BroadcastEngine`, `BroadcastProvider`,
+`BroadcastEvent`, `BroadcastProfile`, `lib/broadcast/`,
+`BROADCAST_RUNTIME_ARCHITECTURE.md` itself) — is its **first business-domain
+instantiation**, not the whole of it. The long-term list, per the intended
+direction: sports productions, concerts, cultural events, podcasts, radio,
+television programs, studio productions, conferences. Section 13 covers why
+none of the other domains are real yet and what the seam between "Runtime
+core" and "business module" looks like concretely.
+
+**Nothing renames or moves in this pass.** Every current identifier
+(`BroadcastEngine`, `BroadcastProvider`, `BroadcastEvent`, `BroadcastProfile`,
+`BroadcastRuntime`, the `lib/broadcast/` path, this file's own name) keeps
+its current "Broadcast"-prefixed name, and the rest of this document
+continues to use those names throughout, exactly as before — this section
+only establishes the *conceptual* umbrella term. A future rename to
+`Production*`/`lib/production/` is a plausible later step, but per explicit
+instruction it happens (if it happens) at the same moment as section 13's
+relocation trigger — when a second real business-domain module needs the
+Runtime — not speculatively now, and not as a mechanical find-and-replace
+with nothing yet depending on the new names.
 
 ## Why a Runtime layer, given `lib/broadcast/` already exists
 
@@ -149,43 +191,111 @@ interface BroadcastRuntime {
 
 ## 9. Broadcast Profiles
 
-**New concept.** A profile is a named, reusable production configuration —
-so an operator picks "Television Production" once instead of manually
-assigning ownership for eight capabilities before every event.
+**New concept, revised in this pass to be provider-independent.** A profile
+describes what a production *requires*, not which software supplies it —
+"Television Production needs graphics, replay, recording, streaming, audio,
+and camera control" is a true statement regardless of whether vMix, OBS, or
+some future provider is what actually satisfies it this year. The Runtime
+resolves *which registered provider* fulfills each requirement at the
+moment a profile is applied — the profile itself never names a provider.
 
 ```ts
 interface BroadcastProfile {
   id: string;                 // "interzone_production" | "friendly_match" | "television_production" | "studio_production"
   label: string;
   description?: string;
-  defaultOperator: BroadcastOperator;
-  capabilityOwnership: Partial<Record<BroadcastCapabilityKey, BroadcastOperator>>;
-  enabledOutputs: string[];         // subset of REGISTERED_OUTPUTS ids
-  requiredProviders: BroadcastOperator[]; // providers this profile expects connected; informational, not enforced
+  requiredCapabilities: BroadcastCapabilityKey[];  // what the production needs — never which provider supplies it
+  enabledOutputs: string[];                        // subset of REGISTERED_OUTPUTS ids
 }
 ```
 
-`capabilityOwnership` can only override capabilities that aren't
-Engine-fixed (section 10) — `website` and `statistics` are never
-assignable, in any profile, by construction, not convention. A profile
-that tried to override one would be invalid, the same way a match can't
-have two `live` production_queue items for one consumer today.
+No `defaultOperator`, no `capabilityOwnership` map, no `requiredProviders`
+list authored by hand — those were this section's first-draft shape, and
+named `vmix`/`obs` directly, which is exactly what this revision removes.
+`website` and `statistics` never appear in `requiredCapabilities` for any
+profile — they're Engine-fixed (section 10) regardless of what a profile
+asks for, so listing them would be redundant, not merely useless.
 
-The four requested profiles, concretely:
+The four requested profiles, concretely — now expressed purely as
+requirements:
 
-| Profile | `defaultOperator` | `capabilityOwnership` overrides |
-|---|---|---|
-| **Interzone Production** | `ggsp` | none — today's only real behavior, given a name |
-| **Friendly Match** | `ggsp` | none; differs from Interzone Production only in `enabledOutputs` (no program/preview needed for an informal match) |
-| **Television Production** | `vmix` | `clock`, `graphics`, `replay`, `recording`, `audio`, `camera`, `streaming` → `vmix` (exactly the user's example) |
-| **Studio Production** | `obs` (reserved — see note below) | `audio`, `graphics`, `recording` → `obs` |
+| Profile | `requiredCapabilities` |
+|---|---|
+| **Interzone Production** | `graphics`, `replay`, `recording`, `streaming`, `audio`, `camera` — exactly the user's example |
+| **Friendly Match** | *(none)* — GGSP standalone already covers everything an informal match needs; differs from Interzone Production only in `enabledOutputs` (no program/preview needed) |
+| **Television Production** | `graphics`, `replay`, `recording`, `streaming`, `audio`, `camera`, `clock`, `commentary` — the same production-grade set as Interzone Production, plus master-clock sync and commentary mixing a full broadcast adds |
+| **Studio Production** | `graphics`, `audio`, `recording` — a studio taping needs neither replay nor camera switching nor a public stream |
 
-`Studio Production` referencing `obs` is legal to *define* today the same
-way `matches.broadcast_operator` already allows the value `obs` — reserved
-in the schema, not selectable in the UI (`BroadcastOperatorControl.tsx`'s
-existing "Soon" badge) until a real OBS provider is registered. Defining
-the profile now costs nothing and means no later migration is needed to
-add it.
+### Resolution: how the Runtime picks a provider per requirement
+
+```ts
+function resolveProfile(
+  profile: BroadcastProfile,
+  providers: BroadcastProvider[]   // REGISTERED_PROVIDERS, in registration order
+): Partial<Record<BroadcastCapabilityKey, BroadcastOperator>> {
+  const resolved: Partial<Record<BroadcastCapabilityKey, BroadcastOperator>> = {};
+
+  for (const capability of profile.requiredCapabilities) {
+    if (ENGINE_FIXED_CAPABILITIES.includes(capability)) continue; // never resolved to anything but ggsp — section 10 handles it directly
+
+    const eligible = providers.filter((p) => p.capabilities.canOwn.includes(capability));
+    resolved[capability] = selectBest(capability, profile, eligible)?.id ?? "ggsp"; // honest fallback, never throws — see below
+  }
+
+  return resolved;
+}
+```
+
+`selectBest()` is the "most appropriate provider" the user asked for.
+Three deterministic rules, in order, so the same inputs always produce the
+same answer — no hidden state, nothing that depends on request timing:
+
+1. **Prefer a provider that's currently `connected`** (its
+   `getHealth().state`) over one that's merely capable-on-paper but
+   `not_configured`/`error`. A provider nobody can currently reach is never
+   "most appropriate," no matter what it declares.
+2. **Among connected candidates, prefer whichever single provider covers
+   the most of the profile's other required capabilities**, not just this
+   one — i.e. resolve the whole profile against one provider bundle first
+   before splitting capabilities across several. This is where the
+   resolution honestly reflects what's real today rather than what's
+   wished for: `vmix.capabilities.canOwn` today is only `["graphics",
+   "clock"]` (section 10) — `VMixEngine.ts` has no real translation for
+   recording/replay/audio/camera control yet, matching
+   `BROADCAST_BRIDGE_ARCHITECTURE.md`'s own non-goals. Applying Interzone
+   Production *today* resolves `graphics` and `clock` to `vmix`, and
+   leaves `replay`/`recording`/`streaming`/`audio`/`camera` as honest gaps
+   (rule 4 below) — not because the profile is wrong, but because no
+   registered provider claims those capabilities yet. As `VMixEngine`
+   (or a later `ObsEngine`) genuinely grows recording/replay/audio/camera
+   support, `canOwn` grows to match, and the exact same
+   `interzone_production` profile — unedited — starts resolving more of
+   its requirements automatically. That's the point of keeping profiles
+   provider-independent: the profile doesn't change as capabilities get
+   built out for real; only what `canOwn` declares does.
+3. **Tie-break by registration order** in `REGISTERED_PROVIDERS` — the same
+   "first one wins, no magic" rule `BroadcastEngine.REGISTERED_SYSTEMS` and
+   `ProductionQueueEngine.REGISTERED_CONSUMERS` already use elsewhere in
+   this layer.
+4. **If nothing eligible is connected at all**, fall back to `ggsp` if
+   `ggsp.capabilities.canOwn` includes the capability, otherwise report it
+   `not_configured` in Diagnostics (section 12) — a profile can declare a
+   requirement no currently-registered provider can meet yet (e.g.
+   `streaming` before any provider really implements stream control); that
+   requirement resolves to an honest gap, never a silent no-op and never a
+   thrown error.
+
+**Resolution runs once, at the moment a profile is applied to a match — not
+continuously.** If the resolved provider's health degrades mid-session
+(vMix disconnects halfway through Television Production), the Runtime does
+**not** silently re-resolve and hand ownership to a different provider —
+that would mean production state moving out from under a live operator
+without anyone choosing it. The degraded state surfaces in Diagnostics
+(section 12) instead, and re-resolving is a deliberate, operator-triggered
+action (re-applying the profile, or a manual override), never automatic
+failover. This is a design decision, not a gap to fill later — automatic
+mid-session failover is explicitly out of scope, called out again in
+Explicit non-goals below.
 
 Profiles are a hardcoded registry (`REGISTERED_PROFILES: BroadcastProfile[]`),
 the same pattern as `REGISTERED_SYSTEMS`/`REGISTERED_OUTPUTS` — not a
@@ -194,12 +304,13 @@ step, but nothing today needs more than these four named presets; adding a
 DB-backed builder ahead of a real request for custom profiles would be
 speculative generality.
 
-Applying a profile to a match means calling `setBroadcastOperator` and
-persisting the profile's `capabilityOwnership` as that match's override
-map — this is Phase 1.5 wiring, including one additive migration
-(`matches.broadcast_profile`, nullable, defaulting to `null` = "no profile
-applied, capability ownership is 1:1 with `broadcast_operator`" — the
-current behavior, unchanged). Not built this pass.
+Applying a profile to a match means calling `resolveProfile()` and
+persisting its *output* as that match's capability-ownership override map
+(section 10's step 2) — this is Phase 1.5 wiring, including one additive
+migration (`matches.broadcast_profile`, nullable, defaulting to `null` =
+"no profile applied, capability ownership is 1:1 with
+`broadcast_operator`" — the current behavior, unchanged). Not built this
+pass.
 
 ## 10. Source of Truth — capability-based ownership
 
@@ -249,8 +360,10 @@ those aren't claimed), `canReceiveCommands: ["graphics", "clock"]`.
 
 1. If the capability is in `ENGINE_FIXED_CAPABILITIES` → always `"ggsp"`,
    full stop — no profile, override, or operator value can change this.
-2. Else if the match's applied profile defines an override for that key →
-   use it.
+2. Else if the match's applied profile resolved an owner for that key
+   (section 9's `resolveProfile()` output — not authored on the profile
+   directly, computed against whichever providers are actually connected
+   at apply time) → use it.
 3. Else → fall back to `matches.broadcast_operator` (today's field,
    reinterpreted as **the default owner for every capability that isn't
    explicitly overridden** — which is exactly what it already does today,
@@ -387,39 +500,50 @@ second, independently-maintained model.
 ## 13. Platform Scope — GGSP-only, or a shared GoodGrafik Platform service?
 
 **Recommendation: design the Runtime as domain-agnostic now (already true
-of sections 1–12 as written), but keep it physically inside `lib/broadcast/`
-until a second real business module actually needs it.** Don't relocate
-code this pass — there's nothing to validate the seam against yet.
+of sections 0–12 as written — see section 0's Production Runtime naming),
+but keep it physically inside `lib/broadcast/`, under its current
+`Broadcast`-prefixed names, until a second real business module actually
+needs it.** Don't relocate or rename code this pass — there's nothing to
+validate the seam against yet.
 
 The seam is already visible in what's been designed:
 
-| Domain-agnostic (the Runtime core) | Domain-specific (a "business module") |
+| Domain-agnostic (the Production Runtime core) | Domain-specific (a "business module") |
 |---|---|
-| `BroadcastProvider`, `ProviderCapabilities`, `BroadcastCapabilityKey`, ownership resolution | `MatchEvent`'s vocabulary (goal/card/substitution) |
+| `BroadcastProvider`, `ProviderCapabilities`, `BroadcastCapabilityKey`, ownership resolution, `BroadcastProfile`'s `requiredCapabilities` model (section 9) | `MatchEvent`'s vocabulary (goal/card/substitution) |
 | `BroadcastEvent` (provider connected, stream started, recording started, audio lost, sync lost…) | GGSP's `ScoreEngine`/`EventEngine`/`addGoalEvent` and their DB tables |
-| `BroadcastProfile`, `BroadcastOutput`, `RuntimeDiagnostics` | Sport-specific UI: `Timeline`, `StatisticsPanel`, `MatchScorePanel` |
+| `BroadcastOutput`, `RuntimeDiagnostics` | Sport-specific UI: `Timeline`, `StatisticsPanel`, `MatchScorePanel` |
 | `GraphicsRenderer`, `ProductionQueueEngine`'s take/hide mechanics | What a "graphic" *means* for a given event (a Goal lower third vs a concert setlist card vs a podcast guest name plate) |
 
 Every `BroadcastEvent` kind listed in section 11 (`provider.connected`,
-`stream.started`, `recording.started`, `audio.lost`, `sync.lost`…) already
-means the same thing for a concert, a podcast recording, or a studio
-production as it does for a football match — none of it is
+`stream.started`, `recording.started`, `audio.lost`, `sync.lost`…), and now
+every `BroadcastProfile` (section 9, provider-independent by construction)
+already means the same thing whether the production being run is a
+football match, a concert, a podcast recording, a radio broadcast, a
+television program, a studio session, or a conference — none of it is
 football-specific. Only `MatchEvent` is. That's exactly the seam the user's
 long-term vision describes: "only the business modules change — the
-broadcast engine should remain the same." A future Culture module recording
-a concert would define its own `ConcertEvent` (`setStart`, `encore`,
-`intermission`) the same way GGSP defines `MatchEvent` today, publish it to
-the same Event Bus, and reuse `BroadcastProvider`/`Profiles`/`Diagnostics`
-unchanged.
+production engine remains the same." A future Culture module recording a
+concert would define its own `ConcertEvent` (`setStart`, `encore`,
+`intermission`) the same way GGSP defines `MatchEvent` today, register its
+own "Concert Production" profile against the same `requiredCapabilities`
+model, publish to the same Event Bus, and reuse
+`BroadcastProvider`/Diagnostics unchanged. A Studio/Podcast module would do
+the same with an `EpisodeEvent` vocabulary and its own profiles (e.g.
+"Podcast Recording" requiring only `audio` and `recording`).
 
-Why not relocate now: Culture, News, and Studio are still route shells with
-honest "In Production" states (per the Master Platform pass) — none of them
-has a backend that could actually call into a shared Runtime yet. Moving
-`lib/broadcast/` to a platform-level path (e.g. `lib/platform/broadcast-runtime/`)
-today would be a mechanical rename with no second caller to prove the
-interface boundary is drawn in the right place — exactly the kind of
-premature abstraction this codebase's own discipline avoids elsewhere. The
-right trigger for the move is "a second business module needs to register
+Why not relocate — or rename — now: Culture, News, and Studio are still
+route shells with honest "In Production" states (per the Master Platform
+pass); none of them has a backend that could actually call into a shared
+Runtime yet, and none of the other domains in the long-term list (concerts,
+cultural events, podcasts, radio, television programs, conferences) exist
+in this codebase at all. Moving `lib/broadcast/` to a platform-level path
+(e.g. `lib/production/`) or renaming `Broadcast*` identifiers to
+`Production*` today would be a mechanical change with no second caller to
+prove the interface boundary — and the naming — is drawn in the right
+place. That's exactly the kind of premature abstraction this codebase's
+own discipline avoids elsewhere. The right trigger for both the move and
+the rename is the same moment: "a second business module needs to register
 its own event vocabulary against this Runtime," not "the vocabulary could
 theoretically support it."
 
@@ -441,19 +565,30 @@ revision already listed:
    persists which profile, if any, is applied; `null` means today's
    behavior (capability ownership is 1:1 with `broadcast_operator`).
 8. `lib/broadcast/runtime/profiles.ts` — `REGISTERED_PROFILES`, the four
-   named profiles from section 9.
-9. `lib/broadcast/runtime/ownership.ts` — `resolveOwner()`, section 10's
-   three-step resolution, `ENGINE_FIXED_CAPABILITIES` as a hard-coded
-   invariant list (not overridable by any profile).
-10. `BroadcastSession.ts` rewritten as a thin projection over
+   named profiles from section 9, each as `requiredCapabilities` only —
+   no provider names authored anywhere in this file.
+9. `lib/broadcast/runtime/resolveProfile.ts` — section 9's `resolveProfile()`
+   + `selectBest()`, run once when a profile is applied to a match; its
+   output is what gets persisted as that match's capability-ownership
+   override map (feeding section 10's `resolveOwner()` step 2).
+10. `lib/broadcast/runtime/ownership.ts` — `resolveOwner()`, section 10's
+    three-step resolution, `ENGINE_FIXED_CAPABILITIES` as a hard-coded
+    invariant list (not overridable by any profile or resolution).
+11. `BroadcastSession.ts` rewritten as a thin projection over
     `RuntimeDiagnostics.capabilityStatus` (section 12) instead of its own
     hand-maintained array.
-11. Phase 2 (real vMix inbound transport) begins — the first thing that
+12. Phase 2 (real vMix inbound transport) begins — the first thing that
     actually exercises capability ownership (does vMix or GGSP currently
     own `clock`/`graphics`/`match_events` for this match?) and the
     Diagnostics model (is the connection degraded, is there drift) rather
     than the one-directional dispatch alone that Phase 1 could ship
     without either.
+
+A `Broadcast*` → `Production*` rename and a `lib/broadcast/` →
+`lib/production/` move (section 0, section 13) are **not** part of this
+numbered sequence — they happen later still, only once a second
+business-domain module (Culture's concerts, Studio's podcasts, or another)
+is real enough to need the Runtime, per section 13's trigger condition.
 
 ## What ships in this pass
 
@@ -469,8 +604,14 @@ migration, no UI. `tsc`/`lint`/`test`/`build` are unaffected.
   these, not control logic.
 - No new database tables in this pass — `broadcast_profile` (section 9) is
   specified for Phase 1.5, not created now.
-- No relocation of `lib/broadcast/` to a platform-level path (section 13)
-  — recommended for later, not done now.
+- No relocation of `lib/broadcast/` to a platform-level path, and no
+  rename of any `Broadcast*` identifier to `Production*` (sections 0, 13)
+  — both recommended for later, together, not done now.
+- No automatic mid-session failover — if a resolved provider's health
+  degrades after a profile has been applied, the Runtime surfaces that in
+  Diagnostics (section 12) but does not silently re-resolve ownership to a
+  different provider; re-resolution is always a deliberate, operator-
+  triggered action (section 9).
 - No change to the Engine/Operator model itself
   (`BROADCAST_BRIDGE_ARCHITECTURE.md`) or to how `match_events` gets
   written to the database (still exclusively
