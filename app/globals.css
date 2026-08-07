@@ -178,15 +178,25 @@
 }
 
 /* GoodGrafik master shell's one-time entry splash (components/goodgrafik/
-   MasterSplash.tsx) — logo reveal (soft scale + gold glow bloom) then the
-   whole overlay fades out. MasterSplash itself decides whether to render
-   at all under reduced motion (skips outright, see that component's doc
-   comment) rather than relying on .ggsp-reduced-motion here, since its
-   dismiss timing is a JS setTimeout, not a CSS animation duration alone. */
+   MasterSplash.tsx). Three staged beats instead of one flat fade-in, so the
+   reveal actually reads as an event: the glow blooms first, the logo does
+   a real spring-scale entrance (starts small, overshoots past 1, settles —
+   not just a 0.92-to-1 nudge), then a gold underline sweeps in beneath it.
+   MasterSplash itself decides whether to render at all under reduced
+   motion (skips outright, see that component's doc comment) rather than
+   relying on .ggsp-reduced-motion here, since its dismiss timing is a JS
+   setTimeout, not a CSS animation duration alone. */
 @keyframes splash-logo-in {
   0% {
     opacity: 0;
-    transform: scale(0.92);
+    transform: scale(0.62);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  78% {
+    transform: scale(0.97);
   }
   100% {
     opacity: 1;
@@ -197,20 +207,43 @@
 @keyframes splash-glow-bloom {
   0% {
     opacity: 0;
-    transform: scale(0.7);
+    transform: scale(0.55);
+  }
+  65% {
+    opacity: 1;
   }
   100% {
+    opacity: 0.9;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes splash-underline-draw {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  30% {
     opacity: 1;
-    transform: scale(1);
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
   }
 }
 
 .animate-splash-logo {
-  animation: splash-logo-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: splash-logo-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-splash-glow {
-  animation: splash-glow-bloom 1s ease-out both;
+  animation: splash-glow-bloom 1.4s ease-out both;
+}
+
+.animate-splash-underline {
+  animation: splash-underline-draw 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.5s;
+  transform-origin: center;
 }
 
 @keyframes splash-overlay-out {
