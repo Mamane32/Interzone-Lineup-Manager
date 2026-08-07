@@ -20,6 +20,7 @@ import BroadcastPanel from "@/components/live/BroadcastPanel";
 import HighlightsIndex from "@/components/live/HighlightsIndex";
 import AdvertisingPanel from "@/components/live/AdvertisingPanel";
 import ProductionStatusPanel from "@/components/live/ProductionStatusPanel";
+import BroadcastOperatorControl from "@/components/live/BroadcastOperatorControl";
 import QuickControlsBar from "@/components/live/QuickControlsBar";
 import CenterTabs from "@/components/live/CenterTabs";
 import CollapsibleSection from "@/components/live/CollapsibleSection";
@@ -155,7 +156,16 @@ export default async function LiveControlRoomPage({ params }: { params: { matchI
             tabs={[
               { key: "broadcast", label: "Graphics", content: <BroadcastPanel matchId={match.id} items={graphicsQueue} /> },
               { key: "ads", label: "Advertising", content: <AdvertisingPanel /> },
-              { key: "status", label: "Production Status", content: <ProductionStatusPanel vmixState={vmixState} websiteSyncState={websiteSyncState} /> },
+              {
+                key: "status",
+                label: "Production Status",
+                content: (
+                  <div className="flex flex-col gap-4">
+                    <BroadcastOperatorControl matchId={match.id} current={match.broadcast_operator ?? "ggsp"} />
+                    <ProductionStatusPanel vmixState={vmixState} websiteSyncState={websiteSyncState} />
+                  </div>
+                ),
+              },
             ]}
           />
         </CollapsibleSection>

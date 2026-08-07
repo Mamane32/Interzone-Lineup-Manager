@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/access";
 import { getLiveMatch } from "@/lib/live-match";
 import { listProductionQueue } from "@/lib/broadcast/ProductionQueueEngine";
 import ProductionOutputFrame from "@/components/broadcast-output/ProductionOutputFrame";
+import OperatorHandoffNotice from "@/components/broadcast-output/OperatorHandoffNotice";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,8 @@ export const dynamic = "force-dynamic";
 export default async function PreviewOutputPage({ params }: { params: { matchId: string } }) {
   await requireRole(["broadcast_operator", "admin", "super_admin"]);
   const { match } = await getLiveMatch(params.matchId);
+  const operator = match.broadcast_operator ?? "ggsp";
+  if (operator !== "ggsp") return <OperatorHandoffNotice operator={operator} />;
   const items = await listProductionQueue(params.matchId);
 
   return (

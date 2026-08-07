@@ -59,3 +59,24 @@ export interface BroadcastSystemEngine {
   getStatus(): Promise<BroadcastSystemStatus>;
   send(command: BroadcastCommand): Promise<BroadcastCommandResult>;
 }
+
+/**
+ * The Active Operator — per-match, persisted in matches.broadcast_operator
+ * (migration 035). GGSP is always the Engine (source of truth for match
+ * state, the thing that updates the public site/statistics/standings);
+ * the Operator is whichever system a human is actually entering events
+ * into for this match. "ggsp" means GGSP's own Broadcast Control Center
+ * is the operator and app/broadcast-output renders GGSP's own graphics.
+ * "vmix"/"obs" means a human operates inside that external system
+ * directly, and (once a real BroadcastBridgeProvider exists — see
+ * BroadcastBridge.ts) events flow FROM that system INTO GGSP, the
+ * reverse of BroadcastSystemEngine's direction. "obs" is reserved: there
+ * is no OBS integration on either side yet, outbound or inbound.
+ */
+export type BroadcastOperator = "ggsp" | "vmix" | "obs";
+
+export const BROADCAST_OPERATOR_LABEL: Record<BroadcastOperator, string> = {
+  ggsp: "GGSP",
+  vmix: "vMix",
+  obs: "OBS",
+};

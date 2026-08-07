@@ -325,6 +325,12 @@ export interface Match {
   // independent of kickoff time or live_status.
   stream_url?: string | null;
   is_featured_broadcast?: boolean;
+  // Broadcast Integration Layer — active operator (supabase/migrations/
+  // 035_broadcast_operator.sql). "ggsp" (default) means GGSP's own
+  // Broadcast Control Center is the operator and renders its own
+  // graphics; "vmix"/"obs" means a human operates inside that external
+  // system directly. See lib/broadcast/BroadcastBridge.ts.
+  broadcast_operator?: "ggsp" | "vmix" | "obs";
 }
 
 export interface MatchEvent {

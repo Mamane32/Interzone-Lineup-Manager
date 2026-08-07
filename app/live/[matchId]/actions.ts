@@ -7,6 +7,7 @@ import { recordAuditEvent } from "@/lib/audit";
 import { broadcastScoreUpdate } from "@/lib/broadcast/ScoreEngine";
 import { broadcastGoal, broadcastCard, broadcastSubstitution, broadcastStatusChange } from "@/lib/broadcast/EventEngine";
 import { autoTriggerGraphicForEvent } from "@/lib/broadcast/graphics-automation";
+import type { BroadcastOperator } from "@/lib/broadcast/types";
 import type { MatchLiveStatus, MatchEventType } from "@/lib/types";
 
 const GOAL_TYPES: MatchEventType[] = ["goal", "penalty_goal", "own_goal"];
@@ -375,6 +376,38 @@ export async function updateMatchHeaderInfo(matchId: string, formData: FormData)
         targetType: "match",
         targetId: matchId,
         metadata: { referee_name: refereeName, venue },
+      });
+    });
+  }
+}
+
+/**
+ * Sets this match's Active Operator (migration 035) — "ggsp" (GGSP's own
+ * Broadcast Control Center is the operator, GGSP renders its own
+ * graphics via app/broadcast-output) or "vmix"/"obs" (a human operates
+ * inside that external system directly; GGSP's own graphics output
+ * stands down — see app/broadcast-output/[matchId]/{program,preview}).
+ * Purely a mode switch: it does not itself move any data, dispatch any
+ * command, or require the chosen system to actually be connected —
+ * choosing "vmix" with VMIX_HOST unset is a valid (if not yet useful)
+ * state, same honesty as every other status in this file.
+ */
+export async function setBroadcastOperator(matchId: string, operator: BroadcastOperator) {
+  const { userId } = await requireRole(["broadcast_operator", "admin", "super_admin"]);
+  const supabase = supabaseAdmin();
+  const { error } = await supabase.from("matches").update({ broadcast_operator: operator }).eq("id", matchId);
+  revalidateMatch(matchId);
+  revalidatePath(`/broadcast-output/${matchId}/program`);
+  revalidatePath(`/broadcast-output/${matchId}/preview`);
+
+  if (!error) {
+    await afterBroadcastEvent(async () => {
+      await recordAuditEvent({
+        actorUserId: userId,
+        action: "match.broadcast_operator_changed",
+        targetType: "match",
+        targetId: matchId,
+        metadata: { operator },
       });
     });
   }
