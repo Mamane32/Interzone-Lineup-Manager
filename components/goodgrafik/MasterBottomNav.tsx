@@ -11,8 +11,8 @@ export default function MasterBottomNav() {
   const items = [{ id: "home", name: "Home", href: "/", icon: Home, accentText: "text-brand-400" }, ...WORLDS.map((w) => ({ id: w.id, name: w.name, href: w.href, icon: w.icon, accentText: ACCENT_TEXT[w.accent] }))];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/[0.08] bg-surface-950/95 backdrop-blur-xl md:hidden">
-      <div className="mx-auto flex max-w-2xl items-center justify-between px-2 py-2">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/[0.08] bg-surface-950/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
+      <div className="mx-auto flex max-w-2xl items-center justify-between px-[max(0.5rem,env(safe-area-inset-left))] py-2">
         {items.map((item) => {
           const active = item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;

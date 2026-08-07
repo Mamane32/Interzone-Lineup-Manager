@@ -35,7 +35,7 @@ export default function WorldCard({ world, index }: { world: World; index: numbe
             <Radio size={10} className="animate-pulse" /> Live
           </span>
         ) : (
-          <span className="rounded-full bg-white/[0.06] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/35">Coming soon</span>
+          <span className="rounded-full bg-white/[0.06] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/35">Byento</span>
         )}
       </div>
 

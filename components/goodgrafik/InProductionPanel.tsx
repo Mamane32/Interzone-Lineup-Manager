@@ -16,7 +16,7 @@ export default function InProductionPanel({ world, title, description }: { world
       <span className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${accent.border} ${accent.bgSoft} ${accent.text}`}>
         <Hammer size={20} />
       </span>
-      <span className={`rounded-full ${accent.bgSoft} px-3 py-1 text-[10px] font-bold uppercase tracking-wide ${accent.text}`}>In Production</span>
+      <span className={`rounded-full ${accent.bgSoft} px-3 py-1 text-[10px] font-bold uppercase tracking-wide ${accent.text}`}>An Pwodiksyon</span>
       <h2 className="font-display text-xl font-bold text-white">{title}</h2>
       <p className="text-sm leading-6 text-white/45">{description}</p>
     </div>

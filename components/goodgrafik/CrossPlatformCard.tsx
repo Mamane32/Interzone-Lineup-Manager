@@ -24,7 +24,7 @@ export default function CrossPlatformCard({ item, index }: { item: CrossPlatform
             <Radio size={9} className="animate-pulse" /> Live
           </span>
         ) : item.isDemo ? (
-          <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/35">Demo preview</span>
+          <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/35">Apèsi Demo</span>
         ) : null}
       </div>
 

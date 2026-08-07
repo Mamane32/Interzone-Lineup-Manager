@@ -22,7 +22,7 @@ export default function StudioHomePage() {
 
       <div className={`surface-panel mx-auto mt-8 flex max-w-md items-center justify-center gap-2.5 px-4 py-3 ${accent.border}`}>
         <Radio size={15} className={accent.text} />
-        <span className="text-xs font-semibold text-white/60">GoodGrafik Radio — not yet on air</span>
+        <span className="text-xs font-semibold text-white/60">GoodGrafik Radio — poko sou lè a</span>
       </div>
 
       <div className="mt-8">
@@ -32,8 +32,8 @@ export default function StudioHomePage() {
       <div className="mt-10">
         <InProductionPanel
           world={world}
-          title="Studio is coming to GoodGrafik"
-          description="Original shows, podcasts, live productions, radio and video — every section above is reserved and will open progressively as Studio is built out."
+          title="Studio ap vini sou GoodGrafik"
+          description="Emisyon orijinal, podcast, pwodiksyon an dirèk, radyo ak videyo — chak seksyon anwo a rezève e li pral louvri ti kras pa ti kras pandan Studio ap devlope."
         />
       </div>
     </main>

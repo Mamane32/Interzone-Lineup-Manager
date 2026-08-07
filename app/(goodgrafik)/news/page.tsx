@@ -19,7 +19,7 @@ export default function NewsHomePage() {
     <main className="mx-auto max-w-2xl px-5 py-10 sm:px-8">
       <WorldHero world={world} />
 
-      <p className="mt-8 px-1 text-xs font-bold uppercase tracking-wide text-white/30">Desks</p>
+      <p className="mt-8 px-1 text-xs font-bold uppercase tracking-wide text-white/30">Seksyon</p>
       <div className="mt-3">
         <ReservedSectionList world={world} sections={NEWS_SECTIONS} />
       </div>
@@ -27,8 +27,8 @@ export default function NewsHomePage() {
       <div className="mt-8">
         <InProductionPanel
           world={world}
-          title="Top Stories are coming to GoodGrafik"
-          description="Breaking news, sports, culture, politics, economy and world coverage — each desk above is reserved and will open progressively with real editorial content."
+          title="Gwo Tit yo ap vini sou GoodGrafik"
+          description="Nouvèl cho, espò, kilti, politik, ekonomi ak kouvèti mondyal — chak seksyon anwo a rezève e li pral louvri ti kras pa ti kras ak vrè kontni editorial."
         />
       </div>
     </main>

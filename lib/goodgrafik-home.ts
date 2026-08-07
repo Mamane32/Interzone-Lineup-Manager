@@ -29,9 +29,9 @@ function toSportsItem(match: PublicScoreMatch): CrossPlatformItem {
 const DEMO_CULTURE: CrossPlatformItem = {
   id: "culture-demo-1",
   world: "culture",
-  title: "Weekend concert preview",
-  subtitle: "Culture · Live music",
-  meta: "This weekend",
+  title: "Apèsi konsè wikenn",
+  subtitle: "Culture · Mizik an dirèk",
+  meta: "Wikenn sa a",
   href: "/culture/events",
   isDemo: true,
 };
@@ -39,9 +39,9 @@ const DEMO_CULTURE: CrossPlatformItem = {
 const DEMO_NEWS: CrossPlatformItem = {
   id: "news-demo-1",
   world: "news",
-  title: "Top story preview",
-  subtitle: "News · Editorial desk",
-  meta: "Coming soon",
+  title: "Apèsi gwo tit",
+  subtitle: "News · Biwo editorial",
+  meta: "Byento",
   href: "/news",
   isDemo: true,
 };
@@ -49,16 +49,16 @@ const DEMO_NEWS: CrossPlatformItem = {
 const DEMO_STUDIO: CrossPlatformItem = {
   id: "studio-demo-1",
   world: "studio",
-  title: "Podcast episode preview",
-  subtitle: "Studio · Original show",
-  meta: "New episodes soon",
+  title: "Apèsi episòd podcast",
+  subtitle: "Studio · Emisyon orijinal",
+  meta: "Nouvo episòd byento",
   href: "/studio/podcasts",
   isDemo: true,
 };
 
 const DEMO_TRENDING: CrossPlatformItem[] = [
-  { id: "culture-demo-2", world: "culture", title: "Artist spotlight preview", subtitle: "Culture · Interview", meta: "Coming soon", href: "/culture/interviews", isDemo: true },
-  { id: "studio-demo-2", world: "studio", title: "Live show preview", subtitle: "Studio · Livestream", meta: "Coming soon", href: "/studio/live", isDemo: true },
+  { id: "culture-demo-2", world: "culture", title: "Apèsi atis nan limyè", subtitle: "Culture · Entèvyou", meta: "Byento", href: "/culture/interviews", isDemo: true },
+  { id: "studio-demo-2", world: "studio", title: "Apèsi emisyon an dirèk", subtitle: "Studio · Livestream", meta: "Byento", href: "/studio/live", isDemo: true },
 ];
 
 export async function getThisWeek(): Promise<CrossPlatformItem[]> {

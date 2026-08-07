@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Oswald, Inter } from "next/font/google";
 import ThemeScope from "@/components/branding/ThemeScope";
 import { getPlatformBranding, platformBrandingToCssVars } from "@/lib/branding";
@@ -24,6 +24,17 @@ export const metadata: Metadata = {
     template: "%s · GoodGrafik",
   },
   description: "GoodGrafik is the platform for Sports, Culture, News and Studio — live football, music and culture, breaking stories, and original productions, in one place.",
+};
+
+// viewport-fit: "cover" lets fixed-position chrome (the GoodGrafik master
+// header/bottom nav) read env(safe-area-inset-*) to clear the iPhone
+// notch/Dynamic Island and home indicator — inert everywhere else, since
+// nothing outside components/goodgrafik/* uses env(safe-area-inset-*)
+// today, so no existing page's layout changes.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({

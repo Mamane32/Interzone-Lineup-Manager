@@ -25,8 +25,8 @@ export default function CultureHomePage() {
       <div className="mt-10">
         <InProductionPanel
           world={world}
-          title="Culture is coming to GoodGrafik"
-          description="Artist and band profiles, concerts and festivals, music, videos, interviews and articles — every section above is reserved and will open progressively. Real artists and bands (with real data) will replace this state as Culture is built out."
+          title="Culture ap vini sou GoodGrafik"
+          description="Pwofil atis ak gwoup, konsè ak festival, mizik, videyo, entèvyou ak atik — chak seksyon anwo a rezève e li pral louvri ti kras pa ti kras. Vrè atis ak gwoup (ak vrè done) ap ranplase eta sa a pandan Culture ap devlope."
         />
       </div>
     </main>

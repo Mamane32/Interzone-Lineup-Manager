@@ -16,7 +16,7 @@ export default function GoodGrafikLayout({ children }: { children: React.ReactNo
     <div className="min-h-screen bg-surface-950 text-white">
       <MasterSplash />
       <MasterHeader />
-      <div className="pb-24 pt-16 md:pb-0">{children}</div>
+      <div className="pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[calc(4rem+env(safe-area-inset-top))] md:pb-0">{children}</div>
       <MasterBottomNav />
     </div>
   );

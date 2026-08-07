@@ -1,31 +1,40 @@
 import type { ReservedSection } from "./ReservedSectionNav";
 
-/** Reserved information architecture for each not-yet-built world — locks in the route shell (app/(goodgrafik)/{world}/[section]) now, per the brief, so later sprints build content into an existing structure instead of redesigning the master platform's navigation. */
+/**
+ * Reserved information architecture for each not-yet-built world — locks
+ * in the route shell (app/(goodgrafik)/{world}/[section]) now, per the
+ * brief, so later sprints build content into an existing structure
+ * instead of redesigning the master platform's navigation. `key` is a
+ * literal URL path segment (app/(goodgrafik)/{world}/[section]/page.tsx
+ * matches it against this list) — it stays in plain ASCII regardless of
+ * display language; only `label`/`description` (what a visitor reads)
+ * are Kreyòl.
+ */
 
 export const CULTURE_SECTIONS: ReservedSection[] = [
-  { key: "artists", label: "Artists", description: "Solo artist profiles — biography, music, releases, videos, related articles and events." },
-  { key: "bands", label: "Bands / Groups", description: "Band and group profiles — members and musicians with photos, discography, videos and tour history." },
-  { key: "events", label: "Events", description: "Concerts and festivals — upcoming and past live performances across every artist and band." },
-  { key: "music", label: "Music", description: "Tracks, albums and releases from every artist and band on the platform." },
-  { key: "videos", label: "Videos", description: "Music videos, live performance footage and behind-the-scenes content." },
-  { key: "interviews", label: "Interviews", description: "Artist and band interviews and features." },
-  { key: "articles", label: "Articles / News", description: "Culture journalism — releases, tour announcements and industry coverage." },
+  { key: "artists", label: "Atis", description: "Pwofil atis solo — byografi, mizik, sòti, videyo, atik ki gen rapò ak evènman." },
+  { key: "bands", label: "Gwoup / Bann", description: "Pwofil gwoup ak bann — manm ak mizisyen ak foto, disko, videyo ak istwa tounen." },
+  { key: "events", label: "Evènman", description: "Konsè ak festival — pèfòmans an dirèk k ap vini ak sa ki deja pase pou chak atis ak gwoup." },
+  { key: "music", label: "Mizik", description: "Mizik, album ak sòti pou chak atis ak gwoup sou platfòm nan." },
+  { key: "videos", label: "Videyo", description: "Videyo mizik, videyo pèfòmans an dirèk ak kontni dèyè sèn." },
+  { key: "interviews", label: "Entèvyou", description: "Entèvyou ak repòtaj sou atis ak gwoup." },
+  { key: "articles", label: "Atik / Nouvèl", description: "Jounalis kilti — sòti, anons tounen ak kouvèti endistri a." },
 ];
 
 export const NEWS_SECTIONS: ReservedSection[] = [
-  { key: "breaking", label: "Breaking News", description: "Time-sensitive stories as they develop." },
-  { key: "sports", label: "Sports", description: "News coverage from the Sports world — distinct from GGScoreLive's own match-day News Center." },
-  { key: "culture", label: "Culture", description: "News coverage from the Culture world — releases, tours and industry stories." },
-  { key: "politics", label: "Politics", description: "Political coverage and analysis." },
-  { key: "economy", label: "Economy", description: "Business and economic coverage." },
-  { key: "world", label: "World", description: "International and current affairs coverage." },
+  { key: "breaking", label: "Nouvèl Cho", description: "Istwa ijan pandan y ap devlope." },
+  { key: "sports", label: "Sports", description: "Kouvèti nouvèl nan mond Sports la — diferan de pwòp News Center GGScoreLive pou jou match yo." },
+  { key: "culture", label: "Culture", description: "Kouvèti nouvèl nan mond Culture la — sòti, tounen ak istwa endistri." },
+  { key: "politics", label: "Politik", description: "Kouvèti ak analiz politik." },
+  { key: "economy", label: "Ekonomi", description: "Kouvèti biznis ak ekonomi." },
+  { key: "world", label: "Mondyal", description: "Kouvèti zafè entènasyonal ak aktyalite." },
 ];
 
 export const STUDIO_SECTIONS: ReservedSection[] = [
-  { key: "shows", label: "Shows", description: "Original GoodGrafik productions and on-demand programs." },
-  { key: "podcasts", label: "Podcasts", description: "Audio podcast series and episodes." },
-  { key: "live", label: "Live", description: "Live productions and livestreams." },
-  { key: "radio", label: "Radio", description: "The GoodGrafik radio/audio stream." },
-  { key: "videos", label: "Videos", description: "Studio video content and archives." },
-  { key: "schedule", label: "Schedule", description: "Upcoming Studio programming." },
+  { key: "shows", label: "Emisyon", description: "Pwodiksyon orijinal GoodGrafik ak pwogram sou demand." },
+  { key: "podcasts", label: "Podcast", description: "Seri ak episòd podcast odyo." },
+  { key: "live", label: "An Dirèk", description: "Pwodiksyon an dirèk ak livestream." },
+  { key: "radio", label: "Radyo", description: "Estasyon radyo/odyo GoodGrafik la." },
+  { key: "videos", label: "Videyo", description: "Kontni videyo Studio ak achiv." },
+  { key: "schedule", label: "Orè", description: "Pwogramasyon Studio k ap vini." },
 ];

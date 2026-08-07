@@ -23,7 +23,7 @@ export default function NewsSectionPage({ params }: { params: { section: string 
         <ChevronLeft size={14} /> News
       </Link>
       <WorldHero world={world} dense />
-      <p className="mt-8 px-1 text-xs font-bold uppercase tracking-wide text-white/30">Other desks</p>
+      <p className="mt-8 px-1 text-xs font-bold uppercase tracking-wide text-white/30">Lòt seksyon</p>
       <div className="mt-3">
         <ReservedSectionList world={world} sections={NEWS_SECTIONS} />
       </div>

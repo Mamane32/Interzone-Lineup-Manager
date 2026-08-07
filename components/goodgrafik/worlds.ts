@@ -30,8 +30,8 @@ export const WORLDS: World[] = [
   {
     id: "sports",
     name: "Sports",
-    tagline: "Live matches, standings, broadcasts and competitions.",
-    description: "Live matches, competitions, scores, standings and broadcasts.",
+    tagline: "Match an dirèk, klasman, difizyon ak konpetisyon.",
+    description: "Match an dirèk, konpetisyon, eskò, klasman ak difizyon.",
     href: "/sports",
     icon: Trophy,
     accent: "brand",
@@ -40,8 +40,8 @@ export const WORLDS: World[] = [
   {
     id: "culture",
     name: "Culture",
-    tagline: "Music, concerts, artists and festivals.",
-    description: "Artists, bands, concerts, festivals, interviews and entertainment.",
+    tagline: "Mizik, konsè, atis ak festival.",
+    description: "Atis, gwoup mizik, konsè, festival, entèvyou ak amizman.",
     href: "/culture",
     icon: Music4,
     accent: "violet",
@@ -50,8 +50,8 @@ export const WORLDS: World[] = [
   {
     id: "studio",
     name: "Studio",
-    tagline: "Productions, podcasts, radio, livestreams.",
-    description: "Productions, shows, podcasts, radio, livestreams and video content.",
+    tagline: "Pwodiksyon, podcast, radyo, livestream.",
+    description: "Pwodiksyon, emisyon, podcast, radyo, livestream ak videyo.",
     href: "/studio",
     icon: Clapperboard,
     accent: "blue",
@@ -60,8 +60,8 @@ export const WORLDS: World[] = [
   {
     id: "news",
     name: "News",
-    tagline: "Breaking news, sports, culture and more.",
-    description: "Breaking news, sports, culture, politics, economy and world affairs.",
+    tagline: "Nouvèl cho, espò, kilti epi plis ankò.",
+    description: "Nouvèl cho, espò, kilti, politik, ekonomi ak zafè mondyal.",
     href: "/news",
     icon: Newspaper,
     accent: "rose",
