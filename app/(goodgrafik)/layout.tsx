@@ -1,5 +1,6 @@
 import MasterHeader from "@/components/goodgrafik/MasterHeader";
 import MasterBottomNav from "@/components/goodgrafik/MasterBottomNav";
+import MasterSplash from "@/components/goodgrafik/MasterSplash";
 
 /**
  * Shell for the GoodGrafik master platform routes — the home page plus
@@ -13,6 +14,7 @@ import MasterBottomNav from "@/components/goodgrafik/MasterBottomNav";
 export default function GoodGrafikLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-surface-950 text-white">
+      <MasterSplash />
       <MasterHeader />
       <div className="pb-24 pt-16 md:pb-0">{children}</div>
       <MasterBottomNav />

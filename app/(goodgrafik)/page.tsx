@@ -1,6 +1,7 @@
 import { ArrowDown, Flame } from "lucide-react";
 import { WORLDS } from "@/components/goodgrafik/worlds";
 import WorldCard from "@/components/goodgrafik/WorldCard";
+import WorldQuickTile from "@/components/goodgrafik/WorldQuickTile";
 import CrossPlatformCard from "@/components/goodgrafik/CrossPlatformCard";
 import { getThisWeek, getTrendingNow } from "@/lib/goodgrafik-home";
 
@@ -32,6 +33,12 @@ export default async function GoodGrafikHomePage() {
           >
             Dekouvri <ArrowDown size={16} className="transition-transform group-hover:translate-y-0.5" />
           </a>
+
+          <div className="mx-auto mt-12 flex max-w-md items-start justify-between gap-2 sm:max-w-lg">
+            {WORLDS.map((world, i) => (
+              <WorldQuickTile key={world.id} world={world} index={i} />
+            ))}
+          </div>
         </div>
       </section>
 

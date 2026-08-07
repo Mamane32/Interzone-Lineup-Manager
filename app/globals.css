@@ -177,6 +177,55 @@
   animation-delay: calc(var(--stagger, 0) * 60ms);
 }
 
+/* GoodGrafik master shell's one-time entry splash (components/goodgrafik/
+   MasterSplash.tsx) — logo reveal (soft scale + gold glow bloom) then the
+   whole overlay fades out. MasterSplash itself decides whether to render
+   at all under reduced motion (skips outright, see that component's doc
+   comment) rather than relying on .ggsp-reduced-motion here, since its
+   dismiss timing is a JS setTimeout, not a CSS animation duration alone. */
+@keyframes splash-logo-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes splash-glow-bloom {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-splash-logo {
+  animation: splash-logo-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-splash-glow {
+  animation: splash-glow-bloom 1s ease-out both;
+}
+
+@keyframes splash-overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-splash-fade-out {
+  animation: splash-overlay-out 0.4s ease-in both;
+}
+
 /* Overrides Tailwind's own .animate-pulse utility (LoadingState.tsx) —
    comes after @tailwind utilities in source order, so it wins at equal
    (single-class) specificity. Gated by the Loading Animation toggle the
