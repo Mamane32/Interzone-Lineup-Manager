@@ -8,14 +8,14 @@ export default function ReservedSectionNav({ world, sections, activeKey }: { wor
   const accent = ACCENT_CLASSES[world.accent];
 
   return (
-    <nav className="flex flex-wrap justify-center gap-2" aria-label={`${world.name} sections`}>
+    <nav className="flex flex-wrap justify-center gap-2" aria-label={`Seksyon ${world.name}`}>
       <Link
         href={world.href}
         className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
           !activeKey ? `${accent.border} ${accent.bgSoft} ${accent.text}` : "border-white/10 text-white/50 hover:border-white/20 hover:text-white"
         }`}
       >
-        Home
+        Akèy
       </Link>
       {sections.map((section) => {
         const active = section.key === activeKey;

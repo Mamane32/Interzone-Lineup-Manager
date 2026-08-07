@@ -60,7 +60,7 @@ export default function MasterMenu() {
 
             <nav className="mt-8 flex flex-col gap-1.5" aria-label="Platfòm Prensipal">
               <MenuLink href="/" active={pathname === "/"} onNavigate={() => setOpen(false)}>
-                <Home size={18} className="text-brand-400" /> Home
+                <Home size={18} className="text-brand-400" /> Akèy
               </MenuLink>
               {WORLDS.map((world) => {
                 const accent = ACCENT_CLASSES[world.accent];
