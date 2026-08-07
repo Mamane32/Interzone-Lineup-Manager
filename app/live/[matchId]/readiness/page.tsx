@@ -1,7 +1,7 @@
 import { requireRole } from "@/lib/access";
 import { getLiveMatch } from "@/lib/live-match";
 import { getTacticalFormation } from "@/lib/tactical-formation";
-import { getVMixStatus } from "@/lib/vmix/client";
+import { BroadcastEngine } from "@/lib/broadcast/BroadcastEngine";
 import { WebsiteSync } from "@/lib/broadcast/WebsiteSync";
 import { getBroadcastSession } from "@/lib/broadcast/BroadcastSession";
 import { buildReadinessReport, teamReadinessFromData } from "@/lib/readiness";
@@ -25,7 +25,7 @@ export default async function ReadinessPage({ params }: { params: { matchId: str
   const [homeFormation, awayFormation, vmixStatus, websiteSyncStatuses, session, refereeAssignedAt] = await Promise.all([
     getTacticalFormation(params.matchId, match.home_team_id),
     getTacticalFormation(params.matchId, match.away_team_id),
-    getVMixStatus(),
+    BroadcastEngine.getSystemStatus("vmix"),
     WebsiteSync.getProvidersStatus(),
     getBroadcastSession(params.matchId),
     getRefereeAssignedAt(params.matchId),

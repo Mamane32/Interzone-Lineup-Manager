@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { CloudSun, MapPin, Clock3, Trophy, CalendarRange, Ticket, ShieldCheck, Building2 } from "lucide-react";
+import { CloudSun, MapPin, Clock3, Trophy, CalendarRange, Ticket, ShieldCheck, Building2, Radio } from "lucide-react";
 import { updateMatchHeaderInfo } from "@/app/live/[matchId]/actions";
 import type { LiveMatchBundle } from "@/lib/live-match";
 import type { BrandingConfiguration } from "@/lib/branding";
@@ -139,6 +139,13 @@ export default function MatchHeaderPanel({
             <FieldInput name="assistantReferee1Name" placeholder="Assistant referee 1" defaultValue={match.assistant_referee_1_name ?? ""} />
             <FieldInput name="assistantReferee2Name" placeholder="Assistant referee 2" defaultValue={match.assistant_referee_2_name ?? ""} />
             <FieldInput name="fourthOfficialName" placeholder="Fourth official" defaultValue={match.fourth_official_name ?? ""} />
+          </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
+            <FieldInput name="streamUrl" placeholder="Stream watch link (YouTube, Facebook, ...)" defaultValue={match.stream_url ?? ""} />
+            <label className="flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 text-xs text-white/70">
+              <input type="checkbox" name="isFeaturedBroadcast" defaultChecked={match.is_featured_broadcast ?? false} className="accent-brand-400" />
+              <Radio size={12} /> Featured broadcast
+            </label>
           </div>
           <button type="submit" className="h-9 w-fit rounded-lg bg-white/10 px-3 text-xs font-semibold text-white hover:bg-white/20">
             Save

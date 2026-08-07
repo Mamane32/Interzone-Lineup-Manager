@@ -1,6 +1,6 @@
 import { getLiveMatch } from "@/lib/live-match";
-import { getBaseBranding, withCompetition } from "@/lib/branding";
-import { getVMixStatus } from "@/lib/vmix/client";
+import { getBaseBranding, getPlatformBranding, withCompetition } from "@/lib/branding";
+import { BroadcastEngine } from "@/lib/broadcast/BroadcastEngine";
 import { WebsiteSync } from "@/lib/broadcast/WebsiteSync";
 import { getTacticalFormation } from "@/lib/tactical-formation";
 import { buildReadinessReport, teamReadinessFromData } from "@/lib/readiness";
@@ -17,15 +17,17 @@ export default async function BroadcastControlCenterLayout({
   children: React.ReactNode;
   params: { matchId: string };
 }) {
-  await requireRole(["broadcast_operator", "admin", "super_admin"]);
+  const { role } = await requireRole(["broadcast_operator", "admin", "super_admin"]);
+  const showAdminLink = role === "admin" || role === "super_admin";
   const { match, homeLineup, awayLineup } = await getLiveMatch(params.matchId);
   const branding = withCompetition(getBaseBranding(), match.competition);
 
-  const [vmixStatus, websiteSyncStatuses, homeFormation, awayFormation] = await Promise.all([
-    getVMixStatus(),
+  const [vmixStatus, websiteSyncStatuses, homeFormation, awayFormation, platformBranding] = await Promise.all([
+    BroadcastEngine.getSystemStatus("vmix"),
     WebsiteSync.getProvidersStatus(),
     getTacticalFormation(params.matchId, match.home_team_id),
     getTacticalFormation(params.matchId, match.away_team_id),
+    getPlatformBranding(),
   ]);
 
   const readiness = buildReadinessReport({
@@ -52,6 +54,8 @@ export default async function BroadcastControlCenterLayout({
     <div className="min-h-screen bg-surface-950 text-white">
       <BroadcastHeader
         branding={branding}
+        platform={{ orgName: platformBranding.organizationName, subtitle: platformBranding.organizationSubtitle, logoUrl: platformBranding.organizationLogoUrl }}
+        showAdminLink={showAdminLink}
         matchToken={params.matchId}
         homeTeamName={match.home_team.name}
         awayTeamName={match.away_team.name}

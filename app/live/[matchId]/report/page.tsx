@@ -35,9 +35,9 @@ export default async function MatchReportPage({ params }: { params: { matchId: s
           {match.competition?.name ?? "No competition"} {match.round ? `· ${match.round}` : ""}
         </p>
         <p className="mt-1 text-xs text-white/30">{formatMatchDate(match.match_date, match.match_time)}</p>
-        <div className="mt-5 grid grid-cols-3 items-center">
+        <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center">
           <TeamCol name={match.home_team.name} logo={match.home_team.logo_url} />
-          <p className="font-display text-4xl font-black tabular-nums">
+          <p className="whitespace-nowrap font-display text-3xl font-black tabular-nums sm:text-4xl">
             {match.home_score ?? 0} – {match.away_score ?? 0}
           </p>
           <TeamCol name={match.away_team.name} logo={match.away_team.logo_url} />

@@ -5,6 +5,10 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    /* Fallback only — app/layout.tsx sets the real value as an inline
+       style on <html> from the platform's Smooth Scroll toggle (Motion).
+       Inline style always wins, so this rule only matters for the
+       instant before that's applied. */
     scroll-behavior: smooth;
   }
   body {
@@ -105,12 +109,15 @@
   50% { opacity: .8; }
 }
 
+/* Every animation duration below is multiplied by Brand Studio's Motion ->
+   Animation Speed token (--ggsp-animation-speed, default 1 = unchanged) —
+   inherited from the ThemeScope app/layout.tsx wraps <body> in. */
 .animate-soft-pulse {
-  animation: soft-pulse 3s ease-in-out infinite;
+  animation: soft-pulse calc(3s * var(--ggsp-animation-speed, 1)) ease-in-out infinite;
 }
 
 .animate-fade-up {
-  animation: fade-up 0.35s ease-out both;
+  animation: fade-up calc(0.35s * var(--ggsp-animation-speed, 1)) ease-out both;
 }
 
 @keyframes slide-in-right {
@@ -125,7 +132,7 @@
 }
 
 .animate-slide-in {
-  animation: slide-in-right 0.3s ease-out both;
+  animation: slide-in-right calc(0.3s * var(--ggsp-animation-speed, 1)) ease-out both;
 }
 
 @keyframes scale-in {
@@ -140,7 +147,10 @@
 }
 
 .animate-scale-in {
-  animation: scale-in 0.16s ease-out both;
+  /* Modal.tsx's open animation — also gated by the Modal Animation toggle
+     below (which zeroes this same duration, rather than being a second,
+     competing rule). */
+  animation: scale-in calc(0.16s * var(--ggsp-animation-speed, 1) * var(--ggsp-modal-animation, 1)) ease-out both;
 }
 
 @keyframes success-pop {
@@ -167,6 +177,162 @@
   animation-delay: calc(var(--stagger, 0) * 60ms);
 }
 
+/* GoodGrafik master shell's one-time entry splash (components/goodgrafik/
+   MasterSplash.tsx). Three staged beats instead of one flat fade-in, so the
+   reveal actually reads as an event: the glow blooms first, the logo does
+   a real spring-scale entrance (starts small, overshoots past 1, settles —
+   not just a 0.92-to-1 nudge), then a gold underline sweeps in beneath it.
+   MasterSplash itself decides whether to render at all under reduced
+   motion (skips outright, see that component's doc comment) rather than
+   relying on .ggsp-reduced-motion here, since its dismiss timing is a JS
+   setTimeout, not a CSS animation duration alone. */
+@keyframes splash-logo-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.62);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  78% {
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes splash-glow-bloom {
+  0% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.9;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes splash-underline-draw {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.animate-splash-logo {
+  animation: splash-logo-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-splash-glow {
+  animation: splash-glow-bloom 1.4s ease-out both;
+}
+
+.animate-splash-underline {
+  animation: splash-underline-draw 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.5s;
+  transform-origin: center;
+}
+
+@keyframes splash-overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-splash-fade-out {
+  animation: splash-overlay-out 0.78s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* The mark (logo + underline) dissolves and lifts slightly as the overlay
+   clears, instead of just riding the overlay's own flat opacity fade — it
+   reads as the mark handing off to the page behind it, not one layer
+   cutting to another. Applied to the inner wrapper only, so the glow
+   (which has its own bloom animation already) isn't double-animated. */
+@keyframes splash-mark-out {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.05) translateY(-6px);
+    filter: blur(6px);
+  }
+}
+
+.animate-splash-mark-out {
+  animation: splash-mark-out 0.55s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+/* GoodGrafik home content sits, visible-but-veiled, behind the splash
+   overlay from first paint (the overlay itself is translucent + blurred,
+   not opaque — see MasterSplash.tsx) and pulls into focus as the splash
+   clears, so the page reads as alive underneath the mark instead of
+   appearing only after it's gone. Driven by a body class MasterSplash
+   toggles in lockstep with its own phase — the transition is declared
+   unconditionally so it animates on both the way in (class added) and the
+   way out (class removed), the same "toggle a class, let CSS transition
+   do the work" approach the rest of this design system already uses for
+   collapsible sections. Only engages when the splash is actually about to
+   play: a repeat visit within the same session, or prefers-reduced-motion,
+   never adds the class in the first place, so the page simply renders at
+   rest with no transition at all. */
+.goodgrafik-content {
+  filter: blur(0) saturate(1);
+  transform: scale(1);
+  opacity: 1;
+  transition:
+    filter 1.05s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.05s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.9s ease-out;
+}
+
+.ggsp-splash-active .goodgrafik-content {
+  filter: blur(22px) saturate(0.7);
+  transform: scale(1.035);
+  opacity: 0.5;
+}
+
+/* Overrides Tailwind's own .animate-pulse utility (LoadingState.tsx) —
+   comes after @tailwind utilities in source order, so it wins at equal
+   (single-class) specificity. Gated by the Loading Animation toggle the
+   same way .animate-scale-in is gated by Modal Animation above. */
+.animate-pulse {
+  animation-duration: calc(2s * var(--ggsp-animation-speed, 1) * var(--ggsp-loading-animation, 1));
+}
+
+/* Brand Studio's Reduced Motion toggle (Motion) — the exact same rules as
+   the OS-level media query below, applied instead from
+   platform_branding.reduced_motion via a class app/layout.tsx puts on
+   <body> when the platform owner has explicitly forced it on, regardless
+   of the visitor's own OS setting. */
+.ggsp-reduced-motion,
+.ggsp-reduced-motion *,
+.ggsp-reduced-motion *::before,
+.ggsp-reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -174,4 +340,187 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ============================================================================
+   Brand Studio — Components (Phase 5)
+   ============================================================================
+   Border Radius has a real cssVar (--ggsp-radius, set on <body> by
+   app/layout.tsx / on .ggsp-preview-scope by PreviewSurface.tsx) since it's
+   one numeric value. Shadow Style / Card Style / Input Style / Badge Shape
+   don't: each switches between a handful of unrelated CSS properties at
+   once, so there's no single var a rule could consume. Those four are
+   instead driven by a `ggsp-<token>-<value>` class
+   (lib/theme-tokens.ts's componentStyleClassNames) that the rules below key
+   off of — only for non-default values, since the default option always
+   matches the plain rules elsewhere in this file. */
+
+/* Border Radius — rounded-xl (16px) and rounded-2xl (24px, this project's
+   customized 1.5x-of-xl scale — see tailwind.config.ts) both track the one
+   token so buttons/inputs and cards/modals resize together. rounded-full
+   (avatars, dot indicators, pill badges below) is a shape, not a radius
+   scale, and is deliberately left alone. */
+[class*="rounded-xl"] {
+  border-radius: var(--ggsp-radius, 16px) !important;
+}
+[class*="rounded-2xl"] {
+  border-radius: calc(var(--ggsp-radius, 16px) * 1.5) !important;
+}
+
+/* Shadow Style — card elevation (.surface-panel's shadow-panel utility) and
+   the Primary button's glow (shadow-glow). "soft" is the existing default
+   in both utilities (tailwind.config.ts), so it needs no override block. */
+.ggsp-shadow-none [class*="shadow-panel"],
+.ggsp-shadow-none [class*="shadow-glow"] {
+  box-shadow: none !important;
+}
+.ggsp-shadow-elevated [class*="shadow-panel"] {
+  box-shadow: 0 28px 90px -24px rgba(0, 0, 0, 0.75) !important;
+}
+.ggsp-shadow-elevated [class*="shadow-glow"] {
+  box-shadow: 0 0 0 1px rgba(255, 182, 46, 0.4), 0 30px 80px -20px rgba(245, 158, 11, 0.65) !important;
+}
+.ggsp-shadow-sharp [class*="shadow-panel"],
+.ggsp-shadow-sharp [class*="shadow-glow"] {
+  box-shadow: 0 8px 0 0 rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Card Style — .surface-panel (and its top-highlight ::before) is the
+   shared shape for cards, modals, and drawers across the app. "glass" is
+   the default look defined earlier in this file, so it needs no override. */
+.ggsp-card-solid .surface-panel {
+  background: rgb(17 23 32 / 0.97) !important;
+  backdrop-filter: none !important;
+}
+.ggsp-card-flat .surface-panel {
+  background: rgba(255, 255, 255, 0.025) !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+.ggsp-card-outlined .surface-panel {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-width: 1px !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+.ggsp-card-flat .surface-panel::before,
+.ggsp-card-outlined .surface-panel::before {
+  display: none;
+}
+
+/* Input Style — Input.tsx / Select.tsx both carry the .ggsp-field marker
+   class so this can target them precisely instead of guessing at their
+   tone-dependent utility classes. "filled" is the existing translucent
+   background + border look, so it needs no override. */
+.ggsp-input-outlined .ggsp-field {
+  background: transparent !important;
+  border-width: 1.5px !important;
+}
+.ggsp-input-underlined .ggsp-field {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Badge Shape — every role/status/invitation chip carries the .ggsp-badge
+   marker class. "pill" (rounded-full) is the existing shape, so it needs
+   no override. */
+.ggsp-badge-rounded .ggsp-badge {
+  border-radius: 6px !important;
+}
+.ggsp-badge-square .ggsp-badge {
+  border-radius: 0 !important;
+}
+
+/* ============================================================================
+   Brand Studio — Motion (expanded system)
+   ============================================================================
+   Animation Speed / Modal / Loading / Reduced Motion already have rules
+   earlier in this file (they multiply into a calc() duration or gate the
+   near-instant .ggsp-reduced-motion override). Everything below is the
+   rest of the granular motion system — same class-driven mechanism as the
+   Components section above, each keyed off lib/theme-tokens.ts's
+   motionToggleClassNames()/componentStyleClassNames(). */
+
+/* Hover Effects / Hover Intensity — Button.tsx's hover:-translate-y-0.5
+   lift is the real target on every variant. "normal" is that existing
+   0.5 (2px) lift, so it needs no override; "off" wins over intensity
+   since a disabled effect has no distance to scale. */
+.ggsp-hover-effects-off [class*="hover:-translate-y"]:hover,
+.ggsp-hover-effects-off [class*="hover:scale"]:hover {
+  transform: none !important;
+}
+.ggsp-hover-intensity-subtle [class*="hover:-translate-y-0.5"]:hover {
+  transform: translateY(-1px) !important;
+}
+.ggsp-hover-intensity-strong [class*="hover:-translate-y-0.5"]:hover {
+  transform: translateY(-4px) !important;
+}
+
+/* Button Press Feedback — Button.tsx's active:scale-[0.97] press-down,
+   present on every variant. On is the existing baseline. */
+.ggsp-press-feedback-off [class*="active:scale"]:active {
+  transform: none !important;
+}
+
+/* Card Hover Behavior — every surface-panel card (Card.tsx and every
+   direct .surface-panel usage) already carries `transition-all
+   duration-200`, so these hover rules animate smoothly with no extra
+   transition declaration needed. "none" is the existing baseline (cards
+   don't react to hover today), so it needs no override block. */
+.ggsp-card-hover-lift .surface-panel:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 24px 60px -22px rgba(0, 0, 0, 0.65);
+}
+.ggsp-card-hover-glow .surface-panel:hover {
+  box-shadow: 0 0 0 1px rgba(var(--ggsp-color-primary-rgb, 245 166 35) / 0.35), 0 20px 50px -20px rgba(0, 0, 0, 0.6);
+}
+.ggsp-card-hover-border .surface-panel:hover {
+  border-color: rgba(var(--ggsp-color-primary-rgb, 245 166 35) / 0.45);
+}
+
+/* Drawer Animation — AppShell.tsx's mobile navigation drawer and every
+   foundation/Drawer.tsx panel carry the .ggsp-drawer-panel marker class
+   alongside their existing .animate-slide-in (see this file's Animation
+   Speed section above for what multiplies its duration). On is the
+   existing baseline. */
+.ggsp-drawer-animation-off .ggsp-drawer-panel {
+  animation: none !important;
+}
+
+/* Dropdown Animation — AppShell.tsx's notification and profile popover
+   menus carry the .ggsp-dropdown-panel marker class alongside their
+   existing scale/opacity transition. On is the existing baseline. */
+.ggsp-dropdown-animation-off .ggsp-dropdown-panel {
+  transition: none !important;
+}
+
+/* Tooltip Animation — AppShell.tsx's collapsed-sidebar hover tooltip
+   carries the .ggsp-tooltip marker class alongside its existing
+   opacity transition. On is the existing baseline. */
+.ggsp-tooltip-animation-off .ggsp-tooltip {
+  transition: none !important;
+}
+
+/* Focus Ring Animation — an outward pop on the app's one shared
+   :focus-visible ring (top of this file), opt-in since the instant ring
+   is the existing accessibility baseline and shouldn't change without
+   an explicit choice. */
+@keyframes ggsp-focus-pop {
+  from {
+    outline-width: 0px;
+    outline-offset: 0px;
+  }
+  to {
+    outline-width: 2px;
+    outline-offset: 2px;
+  }
+}
+.ggsp-focus-ring-animated :focus-visible {
+  animation: ggsp-focus-pop 0.15s ease-out;
 }

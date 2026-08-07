@@ -6,7 +6,9 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { recordAuditEvent } from "@/lib/audit";
 import { broadcastScoreUpdate } from "@/lib/broadcast/ScoreEngine";
 import { broadcastGoal, broadcastCard, broadcastSubstitution, broadcastStatusChange } from "@/lib/broadcast/EventEngine";
+import { broadcastClockUpdate } from "@/lib/broadcast/ClockEngine";
 import { autoTriggerGraphicForEvent } from "@/lib/broadcast/graphics-automation";
+import type { BroadcastOperator } from "@/lib/broadcast/types";
 import type { MatchLiveStatus, MatchEventType } from "@/lib/types";
 
 const GOAL_TYPES: MatchEventType[] = ["goal", "penalty_goal", "own_goal"];
@@ -120,6 +122,7 @@ export async function addGoalEvent(
       // the goal graphic are separate vMix inputs in the command map.
       await broadcastScoreUpdate({ matchId, homeScore, awayScore });
       await broadcastGoal({ matchId, team, playerName, minute });
+      await broadcastClockUpdate({ matchId, minute });
       // Sprint 3 Graphics Integration — the Production Queue, not this
       // direct vMix data-sync call above, is what actually puts a "Goal"
       // graphic on air; the two are complementary (scoreboard text vs.
@@ -170,6 +173,10 @@ export async function addMatchEvent(
   await afterBroadcastEvent(async () => {
     const playerName = await resolvePlayerName(supabase, playerId);
     const team: "home" | "away" | null = teamId ? (teamId === match.home_team_id ? "home" : "away") : null;
+
+    // Every minute-stamped event moves the clock forward, regardless of
+    // which branch below it takes — not only cards/substitutions.
+    await broadcastClockUpdate({ matchId, minute });
 
     if (type === "yellow_card" || type === "second_yellow" || type === "red_card") {
       if (!team) return;
@@ -330,6 +337,9 @@ export async function setManualScore(matchId: string, homeScore: number, awaySco
  * Match Header — venue, referee, and the rest of the officiating crew
  * (Sprint 3: assistant referees, fourth official, VAR official — plain
  * nullable columns per product decision, not a separate entities table).
+ * Sprint 4 added the stream watch link and its Featured Broadcasts pin
+ * (migration 034) to this same form, for the same reason: one match, one
+ * of each, no new table.
  */
 export async function updateMatchHeaderInfo(matchId: string, formData: FormData) {
   const { userId } = await requireRole(["broadcast_operator", "admin", "super_admin"]);
@@ -341,6 +351,8 @@ export async function updateMatchHeaderInfo(matchId: string, formData: FormData)
   const fourthOfficialName = str("fourthOfficialName");
   const varOfficialName = str("varOfficialName");
   const venueId = str("venueId");
+  const streamUrl = str("streamUrl");
+  const isFeaturedBroadcast = formData.get("isFeaturedBroadcast") === "on";
 
   const supabase = supabaseAdmin();
   const { error } = await supabase
@@ -353,6 +365,8 @@ export async function updateMatchHeaderInfo(matchId: string, formData: FormData)
       assistant_referee_2_name: assistantReferee2Name,
       fourth_official_name: fourthOfficialName,
       var_official_name: varOfficialName,
+      stream_url: streamUrl,
+      is_featured_broadcast: isFeaturedBroadcast,
     })
     .eq("id", matchId);
   revalidateMatch(matchId);
@@ -368,6 +382,38 @@ export async function updateMatchHeaderInfo(matchId: string, formData: FormData)
         targetType: "match",
         targetId: matchId,
         metadata: { referee_name: refereeName, venue },
+      });
+    });
+  }
+}
+
+/**
+ * Sets this match's Active Operator (migration 035) — "ggsp" (GGSP's own
+ * Broadcast Control Center is the operator, GGSP renders its own
+ * graphics via app/broadcast-output) or "vmix"/"obs" (a human operates
+ * inside that external system directly; GGSP's own graphics output
+ * stands down — see app/broadcast-output/[matchId]/{program,preview}).
+ * Purely a mode switch: it does not itself move any data, dispatch any
+ * command, or require the chosen system to actually be connected —
+ * choosing "vmix" with VMIX_HOST unset is a valid (if not yet useful)
+ * state, same honesty as every other status in this file.
+ */
+export async function setBroadcastOperator(matchId: string, operator: BroadcastOperator) {
+  const { userId } = await requireRole(["broadcast_operator", "admin", "super_admin"]);
+  const supabase = supabaseAdmin();
+  const { error } = await supabase.from("matches").update({ broadcast_operator: operator }).eq("id", matchId);
+  revalidateMatch(matchId);
+  revalidatePath(`/broadcast-output/${matchId}/program`);
+  revalidatePath(`/broadcast-output/${matchId}/preview`);
+
+  if (!error) {
+    await afterBroadcastEvent(async () => {
+      await recordAuditEvent({
+        actorUserId: userId,
+        action: "match.broadcast_operator_changed",
+        targetType: "match",
+        targetId: matchId,
+        metadata: { operator },
       });
     });
   }

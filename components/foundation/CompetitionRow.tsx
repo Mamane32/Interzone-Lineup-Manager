@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { Palette } from "lucide-react";
 import UserStatusBadge from "@/components/iam/StatusBadge";
 import ConfirmActionDialog from "@/components/iam/ConfirmActionDialog";
 import Button from "@/components/ui/Button";
@@ -18,7 +20,14 @@ export default function CompetitionRow({ competition, organizations, organizatio
       <Button type="button" variant="secondary" size="md" onClick={() => setOpen(true)}>Manage</Button>
       {open && (
         <Drawer title={competition.name} subtitle={organizationName} onClose={() => setOpen(false)}>
-          <div className="mb-4"><UserStatusBadge status={status} /></div>
+          <div className="mb-4 flex items-center justify-between">
+            <UserStatusBadge status={status} />
+            <Link href={`/admin/competitions/${competition.id}/branding`}>
+              <Button type="button" variant="secondary" size="md">
+                <Palette size={14} /> Branding
+              </Button>
+            </Link>
+          </div>
           <form action={renameCompetition.bind(null, competition.id)} className="flex flex-col gap-4">
             <CompetitionFormFields competition={competition} organizations={organizations} />
             <Button type="submit" className="w-fit">Save changes</Button>

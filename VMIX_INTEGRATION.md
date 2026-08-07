@@ -15,6 +15,57 @@ integration. The milestone that follows this document is: **GGSP
 successfully sends one command to a real vMix instance.** That hasn't
 happened yet.
 
+## GGScoreLive never depends on any of this
+
+GGScoreLive (the public site — `app/scores/**`, `app/match/**`, and the
+rest of the `app/(goodgrafik)/sports` entry point) reads match state
+directly from Supabase and always has. Nothing described in this document
+sits between GGScoreLive and its data — vMix, OBS, or any future
+production system is purely something the *operator-facing* Broadcast
+Control Center talks to. The public site works identically whether zero,
+one, or several production systems are connected.
+
+## Broadcast Integration Layer — vMix is a provider, not a dependency
+
+`lib/broadcast/` is the mediator between the Broadcast Control Center and
+whichever production system(s) are actually connected — GGSP is not wired
+to vMix specifically anywhere above this layer:
+
+```
+lib/broadcast/types.ts          BroadcastCommand (system-agnostic — "a goal
+                                 happened", never "call vMix's SetText"),
+                                 BroadcastSystemStatus, and the
+                                 BroadcastSystemEngine interface every
+                                 provider implements: getStatus(), send().
+lib/broadcast/BroadcastEngine.ts  REGISTERED_SYSTEMS (today: [VMixEngine])
+                                 plus dispatch() (send one command to every
+                                 registered system) and
+                                 getSystemStatus(id)/getSystemsStatus()
+                                 (read status through the layer). This is
+                                 the ONLY object UI/session code should
+                                 import to ask "is vMix connected" — never
+                                 lib/vmix/client directly. A characterization
+                                 test (tests/characterization/
+                                 architecture-guards.test.ts) fails the
+                                 build if any file outside
+                                 lib/broadcast/VMixEngine.ts imports
+                                 lib/vmix/client.
+lib/broadcast/VMixEngine.ts     The vMix implementation of
+                                 BroadcastSystemEngine — the only file
+                                 allowed to import lib/vmix/client.
+```
+
+Adding OBS (or Ross, Vizrt, CasparCG) later means writing `ObsEngine.ts`
+implementing the same `BroadcastSystemEngine` interface and adding it to
+`REGISTERED_SYSTEMS` — no change anywhere else, since every caller above
+`BroadcastEngine` only ever asks the layer, never a concrete system. For
+this first pass, that's the whole scope: a real, provider-agnostic path
+from the Broadcast Center to whichever system(s) are registered. Per-
+capability status (stream URL, start/stop, Graphics/Recording/Replay/
+Audio/Camera status) is intentionally not modeled yet — see
+`lib/broadcast/BroadcastSession.ts`'s `BroadcastSubsystemKey` union for
+the reserved shape those will eventually fill.
+
 ## How vMix's API actually works
 
 vMix exposes an HTTP API on the machine it runs on, by default at
@@ -59,13 +110,18 @@ components/live/vmix-status.ts
 ## What's real vs. planned
 
 **Real, working, in production right now:**
-- `getVMixStatus()` — called from both `app/live/[matchId]/layout.tsx` and
-  `page.tsx` on every Broadcast Control Center page load. If `VMIX_HOST`
-  is unset (true today, everywhere), it returns `"not_configured"`
-  instantly with no network call — zero cost for the common case. If it
-  *is* set, it makes a real request with a 2.5s timeout and reports
-  `"connected"` (with the real version string parsed from vMix's XML
-  response) or `"error"` truthfully.
+- `getVMixStatus()` — called by `VMixEngine.getStatus()` only. Every UI/
+  session file (`app/live/[matchId]/layout.tsx`, `page.tsx`,
+  `readiness/page.tsx`, `formation/page.tsx`, `BroadcastSession.ts`) reads
+  vMix's status through `BroadcastEngine.getSystemStatus("vmix")` instead
+  — the Broadcast Integration Layer, not `lib/vmix/client` directly (see
+  above; this used to be a direct import in all five places, found and
+  fixed as a real architectural bypass, not a hypothetical one). If
+  `VMIX_HOST` is unset (true today, everywhere), it returns
+  `"not_configured"` instantly with no network call — zero cost for the
+  common case. If it *is* set, it makes a real request with a 2.5s
+  timeout and reports `"connected"` (with the real version string parsed
+  from vMix's XML response) or `"error"` truthfully.
 - The Mission Control strip and Production Status panel now show vMix's
   *real* state instead of a hardcoded placeholder.
 - A misconfigured vMix (host set, unreachable) surfaces as a genuine Live

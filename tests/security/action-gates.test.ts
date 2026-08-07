@@ -29,6 +29,12 @@ const EXEMPT_ACTION_FILES: Record<string, string> = {
   "app/team/reset-password/actions.ts": "pre-authentication: completes a reset via an emailed code — no session exists yet",
   "app/select-workspace/actions.ts":
     "any authenticated user may call this by design (it's how a multi-role user picks a workspace); it validates the chosen assignment belongs to the session user itself via getSessionUser()+getActiveAssignments() rather than requiring one fixed role",
+  "app/admin/brand-studio/actions.ts":
+    "gated by requirePlatformBrandingWrite() from lib/branding-permissions.ts, a purpose-built check for the two-level (Platform Owner / Competition Administrator) branding permission model — equivalent in strictness to requireAdmin(), just not one of the four generically-named gates this scan looks for.",
+  "app/admin/competitions/[id]/branding/actions.ts":
+    "gated by requireCompetitionBrandingWrite() from lib/branding-permissions.ts — the Level 2 (Competition Administrator) counterpart to requirePlatformBrandingWrite() above, scoped to the one competition a call actually targets rather than the whole platform.",
+  "app/scores/actions.ts":
+    "no auth by design: GGScoreLive (app/scores/**) is the platform's public, anonymous-facing site — this action only reads the same public match DTO (lib/public-scores.ts's searchPublicMatches) every visitor to /scores already sees server-rendered, just from a client-side search box instead of a page load.",
 };
 
 /** Recursively finds every actions.ts file under a directory. */
@@ -97,7 +103,7 @@ describe("server action authorization coverage", () => {
     // Unlike the Coach Portal (see below), these surfaces have no
     // legitimate reason to touch formation code at all — not even the
     // shared engine.
-    const publicSurfaces = ["app/api", "app/page.tsx", "app/(marketing)"].filter((p) => fs.existsSync(path.join(ROOT, p)));
+    const publicSurfaces = ["app/api", "app/page.tsx", "app/(marketing)", "app/(goodgrafik)"].filter((p) => fs.existsSync(path.join(ROOT, p)));
     for (const surface of publicSurfaces) {
       const files = fs.statSync(path.join(ROOT, surface)).isDirectory()
         ? fs.readdirSync(path.join(ROOT, surface), { recursive: true }).filter((f): f is string => typeof f === "string" && /\.(ts|tsx)$/.test(f))

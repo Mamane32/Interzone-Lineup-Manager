@@ -230,7 +230,7 @@ export default async function DashboardPage() {
         </div>
       ) : headlineMatch ? (
         <div className="surface-panel pitch-texture flex flex-col gap-6 p-6 lg:flex-row lg:items-center">
-          <div className="flex-1">
+          <div className={`flex-1 ${todayMatches.length > 0 ? "" : "flex flex-col items-center text-center"}`}>
             <p className="eyebrow">{headlineIsToday ? "Today's matchday" : "Next kickoff"}</p>
             <div className="mt-3 flex items-center gap-3">
               <TeamCrest team={headlineMatch.home_team} size={40} />
@@ -265,7 +265,7 @@ export default async function DashboardPage() {
       ) : null}
 
       {/* Ecosystem scope — the platform is running an entire operation, not one match */}
-      <div className="flex flex-wrap items-center gap-x-8 gap-y-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-5 py-3.5">
+      <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-5 py-3.5">
         <span className="text-xs font-semibold uppercase tracking-wider text-white/25">Your operation</span>
         {[
           { label: "Organizations", value: scope.organizations, icon: Building2 },

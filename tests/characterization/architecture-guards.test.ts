@@ -120,3 +120,50 @@ describe("schema.sql stays in sync with the real tables (Sprint 1 closure — Hi
     }
   });
 });
+
+describe("Broadcast Integration Layer stays the single mediator (production-system provider abstraction)", () => {
+  // The regression this guards: BroadcastEngine/BroadcastSystemEngine (the
+  // provider abstraction — vMix today, OBS/Ross/Vizrt/CasparCG later) already
+  // existed, but five call sites reached past it straight into
+  // lib/vmix/client's getVMixStatus() — one vMix-specific system baked
+  // directly into UI/session code, the exact coupling the abstraction exists
+  // to prevent. Only lib/broadcast/VMixEngine.ts (the vMix *implementation*
+  // of the provider interface) may import lib/vmix/client — every other
+  // caller must go through BroadcastEngine.getSystemStatus()/getSystemsStatus(),
+  // so adding a second provider (OBS) never requires touching UI/session code.
+  const ALLOWED_VMIX_CLIENT_IMPORTERS = ["lib/vmix/client.ts", "lib/broadcast/VMixEngine.ts"];
+
+  it("only lib/broadcast/VMixEngine.ts imports lib/vmix/client outside the client itself", () => {
+    function findTsFiles(dir: string): string[] {
+      const results: string[] = [];
+      for (const entry of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+        const rel = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name === "node_modules" || entry.name === ".next") continue;
+          results.push(...findTsFiles(rel));
+        } else if (/\.(ts|tsx)$/.test(entry.name)) {
+          results.push(rel);
+        }
+      }
+      return results;
+    }
+
+    const offenders: string[] = [];
+    for (const dir of ["app", "components", "lib"]) {
+      for (const relativePath of findTsFiles(dir)) {
+        if (ALLOWED_VMIX_CLIENT_IMPORTERS.includes(relativePath)) continue;
+        const source = fs.readFileSync(path.join(ROOT, relativePath), "utf8");
+        if (/from ["']@\/lib\/vmix\/client["']/.test(source)) offenders.push(relativePath);
+      }
+    }
+    expect(offenders, "these files bypass the Broadcast Integration Layer by importing lib/vmix/client directly — use BroadcastEngine.getSystemStatus(\"vmix\") instead").toEqual([]);
+  });
+
+  it("BroadcastEngine exposes a provider-agnostic status lookup callers use instead of naming vMix", () => {
+    const source = fs.readFileSync(path.join(ROOT, "lib/broadcast/BroadcastEngine.ts"), "utf8");
+    expect(source).toContain("getSystemStatus");
+    // The registry itself is still allowed to name concrete systems — this
+    // guards that callers of the layer don't have to.
+    expect(source).toContain("REGISTERED_SYSTEMS");
+  });
+});

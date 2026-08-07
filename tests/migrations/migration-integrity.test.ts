@@ -40,6 +40,19 @@ describe("migration integrity", () => {
       "020_player_roster_fields.sql",
       "021_competition_squad_rules.sql",
       "022_platform_branding.sql",
+      "023_platform_branding_expansion.sql",
+      "024_competition_branding.sql",
+      "025_branding_permission_grants.sql",
+      "026_platform_brand_asset_bucket.sql",
+      "027_platform_color_studio.sql",
+      "028_typography_expansion.sql",
+      "029_motion_expansion.sql",
+      "030_components_expansion.sql",
+      "031_motion_expansion_v2.sql",
+      "032_branding_version_history.sql",
+      "033_news_center.sql",
+      "034_streaming.sql",
+      "035_broadcast_operator.sql",
     ]);
   });
 

@@ -18,7 +18,7 @@ const LABEL: Record<InvitationStatus, string> = {
 
 export default function InvitationStatusBadge({ status }: { status: InvitationStatus }) {
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${STYLE[status]}`}>
+    <span className={`ggsp-badge inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${STYLE[status]}`}>
       {LABEL[status]}
     </span>
   );

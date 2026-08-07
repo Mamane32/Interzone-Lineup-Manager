@@ -2,7 +2,7 @@ import { requireRole } from "@/lib/access";
 import { getLiveMatch } from "@/lib/live-match";
 import { getTacticalFormation } from "@/lib/tactical-formation";
 import { getBaseBranding, withCompetition } from "@/lib/branding";
-import { getVMixStatus } from "@/lib/vmix/client";
+import { BroadcastEngine } from "@/lib/broadcast/BroadcastEngine";
 import PageHeader from "@/components/ui/PageHeader";
 import TacticalFormationBoard from "@/components/live/formation/TacticalFormationBoard";
 
@@ -29,7 +29,7 @@ export default async function TacticalFormationPage({ params }: { params: { matc
   const [savedHome, savedAway, vmixStatus] = await Promise.all([
     getTacticalFormation(params.matchId, match.home_team_id),
     getTacticalFormation(params.matchId, match.away_team_id),
-    getVMixStatus(),
+    BroadcastEngine.getSystemStatus("vmix"),
   ]);
 
   return (
@@ -44,7 +44,7 @@ export default async function TacticalFormationPage({ params }: { params: { matc
         matchId={params.matchId}
         branding={branding}
         vmixConnected={vmixStatus.state === "connected"}
-        vmixDetail={vmixStatus.state === "connected" ? `vMix ${vmixStatus.version ?? ""}`.trim() : vmixStatus.error}
+        vmixDetail={vmixStatus.detail}
         canEdit={canEdit}
         home={{
           id: match.home_team_id,

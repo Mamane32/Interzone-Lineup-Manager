@@ -1,6 +1,6 @@
 import { getLiveMatch } from "@/lib/live-match";
 import { getBaseBrandingAsync, withCompetition } from "@/lib/branding";
-import { getVMixStatus } from "@/lib/vmix/client";
+import { BroadcastEngine } from "@/lib/broadcast/BroadcastEngine";
 import { WebsiteSync } from "@/lib/broadcast/WebsiteSync";
 import { listProductionQueue } from "@/lib/broadcast/ProductionQueueEngine";
 import { listMatchStatistics } from "@/lib/match-statistics";
@@ -20,6 +20,9 @@ import BroadcastPanel from "@/components/live/BroadcastPanel";
 import HighlightsIndex from "@/components/live/HighlightsIndex";
 import AdvertisingPanel from "@/components/live/AdvertisingPanel";
 import ProductionStatusPanel from "@/components/live/ProductionStatusPanel";
+import BroadcastOperatorControl from "@/components/live/BroadcastOperatorControl";
+import CapabilityOwnershipPanel from "@/components/live/CapabilityOwnershipPanel";
+import { resolveOwnerForOperator } from "@/lib/broadcast/runtime/ownership";
 import QuickControlsBar from "@/components/live/QuickControlsBar";
 import CenterTabs from "@/components/live/CenterTabs";
 import CollapsibleSection from "@/components/live/CollapsibleSection";
@@ -50,7 +53,7 @@ export default async function LiveControlRoomPage({ params }: { params: { matchI
   const { match, events, homePlayers, awayPlayers } = bundle;
   const status = match.live_status ?? "pre_match";
   const branding = withCompetition(await getBaseBrandingAsync(), match.competition);
-  const vmixStatus = await getVMixStatus();
+  const vmixStatus = await BroadcastEngine.getSystemStatus("vmix");
   const vmixState = connectionStateToSystemState(vmixStatus.state);
   const [websiteSyncStatus] = await WebsiteSync.getProvidersStatus();
   const websiteSyncState = connectionStateToSystemState(websiteSyncStatus.state);
@@ -155,7 +158,22 @@ export default async function LiveControlRoomPage({ params }: { params: { matchI
             tabs={[
               { key: "broadcast", label: "Graphics", content: <BroadcastPanel matchId={match.id} items={graphicsQueue} /> },
               { key: "ads", label: "Advertising", content: <AdvertisingPanel /> },
-              { key: "status", label: "Production Status", content: <ProductionStatusPanel vmixState={vmixState} websiteSyncState={websiteSyncState} /> },
+              {
+                key: "status",
+                label: "Production Status",
+                content: (
+                  <div className="flex flex-col gap-4">
+                    <BroadcastOperatorControl matchId={match.id} current={match.broadcast_operator ?? "ggsp"} />
+                    <CapabilityOwnershipPanel
+                      owners={{
+                        clock: resolveOwnerForOperator(match.broadcast_operator ?? "ggsp", "clock"),
+                        graphics: resolveOwnerForOperator(match.broadcast_operator ?? "ggsp", "graphics"),
+                      }}
+                    />
+                    <ProductionStatusPanel vmixState={vmixState} websiteSyncState={websiteSyncState} />
+                  </div>
+                ),
+              },
             ]}
           />
         </CollapsibleSection>

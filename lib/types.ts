@@ -319,6 +319,18 @@ export interface Match {
   assistant_referee_2_name?: string | null;
   fourth_official_name?: string | null;
   var_official_name?: string | null;
+  // Sprint 4 — Streaming Experience (supabase/migrations/034_streaming.sql).
+  // One watch link per match, same "plain nullable column" pattern as venue
+  // and referee_name above. `is_featured_broadcast` is an editorial pin,
+  // independent of kickoff time or live_status.
+  stream_url?: string | null;
+  is_featured_broadcast?: boolean;
+  // Broadcast Integration Layer — active operator (supabase/migrations/
+  // 035_broadcast_operator.sql). "ggsp" (default) means GGSP's own
+  // Broadcast Control Center is the operator and renders its own
+  // graphics; "vmix"/"obs" means a human operates inside that external
+  // system directly. See lib/broadcast/BroadcastBridge.ts.
+  broadcast_operator?: "ggsp" | "vmix" | "obs";
 }
 
 export interface MatchEvent {

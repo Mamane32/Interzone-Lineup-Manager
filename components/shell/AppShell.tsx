@@ -110,7 +110,7 @@ export default function AppShell({
   const railWidth = collapsed ? "w-[76px]" : "w-[264px]";
 
   const sidebar = (
-    <aside className={`flex h-full flex-col bg-surface-900 transition-[width] duration-200 ${railWidth}`}>
+    <aside className={`flex h-full flex-col bg-sidebar transition-[width] duration-200 ${railWidth}`}>
       <div className={`flex h-16 items-center border-b border-white/[0.06] ${collapsed ? "justify-center px-2" : "justify-between px-5"}`}>
         <BrandMark
           href="/admin/dashboard"
@@ -146,6 +146,12 @@ export default function AppShell({
                       active ? "bg-brand-400 text-surface-950 shadow-glow" : "text-white/45 hover:bg-white/[0.045] hover:text-white"
                     }`}
                   >
+                    {/* Navigation Color's real target: an active-item accent bar,
+                        layered on top of the Primary-driven pill rather than
+                        replacing it — Primary's high-contrast active state stays
+                        intact regardless of Navigation Color's own (much darker)
+                        default. */}
+                    {active && <span aria-hidden="true" className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-navigation" />}
                     <Icon size={17} aria-hidden="true" className="flex-none" />
                     {!collapsed && (
                       <>
@@ -154,7 +160,7 @@ export default function AppShell({
                       </>
                     )}
                     {collapsed && (
-                      <span className="pointer-events-none absolute left-full ml-2 hidden whitespace-nowrap rounded-lg bg-surface-700 px-2.5 py-1.5 text-xs font-medium text-white shadow-panel group-hover:block">
+                      <span className="ggsp-tooltip pointer-events-none absolute left-full ml-2 whitespace-nowrap rounded-lg bg-surface-700 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-panel transition-opacity duration-150 group-hover:opacity-100">
                         {label}
                       </span>
                     )}
@@ -192,8 +198,8 @@ export default function AppShell({
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setMobileOpen(false)} aria-label="Close navigation overlay" />
-          <div className="relative h-full w-[min(88vw,300px)] border-r border-white/[0.08] shadow-2xl">
-            <div className="flex h-full flex-col bg-surface-900 w-[min(88vw,300px)]">
+          <div className="ggsp-drawer-panel animate-slide-in relative h-full w-[min(88vw,300px)] border-r border-white/[0.08] shadow-2xl">
+            <div className="flex h-full flex-col bg-sidebar w-[min(88vw,300px)]">
               <div className="flex h-16 items-center justify-between border-b border-white/[0.06] px-5">
                 <BrandMark
                   href="/admin/dashboard"
@@ -213,7 +219,8 @@ export default function AppShell({
                       {group.items.map(({ href, label, icon: Icon }) => {
                         const active = pathname === href || (href !== "/admin/dashboard" && pathname.startsWith(`${href}/`));
                         return (
-                          <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${active ? "bg-brand-400 text-surface-950 shadow-glow" : "text-white/45 hover:bg-white/[0.045] hover:text-white"}`}>
+                          <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${active ? "bg-brand-400 text-surface-950 shadow-glow" : "text-white/45 hover:bg-white/[0.045] hover:text-white"}`}>
+                            {active && <span aria-hidden="true" className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-navigation" />}
                             <Icon size={17} aria-hidden="true" />
                             <span className="flex-1">{label}</span>
                           </Link>
@@ -228,7 +235,7 @@ export default function AppShell({
         </div>
       )}
 
-      <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-surface-950/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-header/85 backdrop-blur-xl">
         <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
           <button onClick={() => setMobileOpen(true)} className="rounded-xl border border-white/[0.07] p-2.5 text-white/55 hover:bg-white/5 hover:text-white lg:hidden" aria-label="Open navigation">
             <Menu size={19} />
@@ -245,7 +252,7 @@ export default function AppShell({
             <ChevronRight size={12} className="text-white/15" />
             {breadcrumbs.map((item, index) => (
               <span key={`${item.href}-${index}`} className="flex min-w-0 items-center gap-2">
-                <Link href={item.href} className={`truncate ${index === breadcrumbs.length - 1 ? "font-medium text-white/70" : "text-white/30 hover:text-white"}`}>{item.label}</Link>
+                <Link href={item.href} className={`truncate ${index === breadcrumbs.length - 1 ? "font-medium text-white/70" : "text-white/30 hover:text-link"}`}>{item.label}</Link>
                 {index < breadcrumbs.length - 1 && <ChevronRight size={12} className="text-white/15" />}
               </span>
             ))}
@@ -272,7 +279,7 @@ export default function AppShell({
             <div
               role="menu"
               aria-hidden={!notificationsOpen}
-              className={`surface-panel-solid absolute right-0 top-12 w-[min(88vw,360px)] origin-top-right overflow-hidden p-0 transition-all duration-150 ease-out ${
+              className={`ggsp-dropdown-panel surface-panel-solid absolute right-0 top-12 w-[min(88vw,360px)] origin-top-right overflow-hidden p-0 transition-all duration-150 ease-out ${
                 notificationsOpen ? "pointer-events-auto scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"
               }`}
             >
@@ -302,7 +309,7 @@ export default function AppShell({
             <div
               role="menu"
               aria-hidden={!profileOpen}
-              className={`surface-panel-solid absolute right-0 top-12 w-64 origin-top-right overflow-hidden p-2 transition-all duration-150 ease-out ${
+              className={`ggsp-dropdown-panel surface-panel-solid absolute right-0 top-12 w-64 origin-top-right overflow-hidden p-2 transition-all duration-150 ease-out ${
                 profileOpen ? "pointer-events-auto scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"
               }`}
             >
